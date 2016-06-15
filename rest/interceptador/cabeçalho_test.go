@@ -12,7 +12,7 @@ func TestCabeçalhoCompatível_DefinirCabeçalho(t *testing.T) {
 	header.DefinirCabeçalho("key", "value2")
 
 	if value := header.Cabeçalho.Get("key"); value != "value2" {
-		t.Errorf("Unexpected key “%s”", value)
+		t.Errorf("Chave “%s” inexperada", value)
 	}
 }
 
@@ -22,6 +22,6 @@ func TestCabeçalhoCompatível_AdicionarCabeçalho(t *testing.T) {
 	header.AdicionarCabeçalho("key", "value2")
 
 	if value := header.Cabeçalho.Get("key"); value != "value1" {
-		t.Errorf("Unexpected key “%s”", value)
+		t.Errorf("Chave “%s” inexperada", value)
 	}
 }
