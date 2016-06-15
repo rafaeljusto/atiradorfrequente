@@ -23,12 +23,12 @@ func NovaFrequênciaPedidoCompleta(cr string, frequênciaPedido FrequênciaPedid
 }
 
 type FrequênciaResposta struct {
-	NúmeroControle int `json:"numeroControle"`
+	NúmeroControle int    `json:"numeroControle"`
+	Imagem         string `json:"imagem"` // base64
 }
 
 type FrequênciaConfirmaçãoPedido struct {
-	FormatoImagem string `json:"formatoImagem`
-	Imagem        string `json:"imagem"` // base64
+	Imagem string `json:"imagem"` // base64
 }
 
 type FrequênciaConfirmaçãoPedidoCompleta struct {
