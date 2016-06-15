@@ -3,7 +3,7 @@
 Sistema de controle de frequência para Atiradores com CR (Certificado de
 Registro) em Clubes de Tiro.
 
-![Exército Brasileiro](https://raw.githubusercontent.com/rafaeljusto/cr/master/exercito.png =600x600)
+![Exército Brasileiro](https://raw.githubusercontent.com/rafaeljusto/cr/master/exercito.png)
 
 ## English Introduction
 
