@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	registrar("/frequencia-atirador/{cr}/{numeroControle}", func() handy.Handler { return &frequênciaAtiradorConfirmação{} })
+	registrar("/frequencia/{cr}/{numeroControle}", func() handy.Handler { return &frequênciaAtiradorConfirmação{} })
 }
 
 type frequênciaAtiradorConfirmação struct {
