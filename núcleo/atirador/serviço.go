@@ -1,6 +1,6 @@
 package atirador
 
-import "github.com/rafaeljusto/cr/núcleo/protocolo"
+import "github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 
 type Serviço interface {
 	CadastrarFrequência(protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaResposta, error)

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/rafaeljusto/cr/rest/interceptador"
+	"github.com/rafaeljusto/atiradorfrequente/rest/interceptador"
 	"github.com/trajber/handy"
 )
 

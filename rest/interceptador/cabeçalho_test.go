@@ -3,7 +3,7 @@ package interceptador_test
 import (
 	"testing"
 
-	"github.com/rafaeljusto/cr/rest/interceptador"
+	"github.com/rafaeljusto/atiradorfrequente/rest/interceptador"
 )
 
 func TestCabeçalhoCompatível_DefinirCabeçalho(t *testing.T) {

@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
-	"github.com/rafaeljusto/cr/núcleo/atirador"
-	"github.com/rafaeljusto/cr/núcleo/protocolo"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/atirador"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/trajber/handy"
 )
 
