@@ -1,9 +1,7 @@
-# Atirador Frequente
+![Atirador Frequente](https://raw.githubusercontent.com/rafaeljusto/atiradorfrequente/master/logo.png)
 
 Sistema de controle de frequência para Atiradores com CR (Certificado de
 Registro) em Clubes de Tiro proposto ao Exército Brasileiro.
-
-![Exército Brasileiro](https://raw.githubusercontent.com/rafaeljusto/cr/master/exercito.png)
 
 ## English Introduction
 
