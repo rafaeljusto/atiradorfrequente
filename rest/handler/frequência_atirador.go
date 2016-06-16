@@ -16,21 +16,22 @@ func init() {
 type frequênciaAtirador struct {
 	básico
 
-	CR                 string                       `urivar:"cr"`
-	FrequênciaPedido   protocolo.FrequênciaPedido   `request:"post"`
-	FrequênciaResposta protocolo.FrequênciaResposta `response:"post"`
+	CR                         string                                `urivar:"cr"`
+	FrequênciaPedido           protocolo.FrequênciaPedido            `request:"post"`
+	FrequênciaPendenteResposta *protocolo.FrequênciaPendenteResposta `response:"post"`
 }
 
 func (f *frequênciaAtirador) Post() int {
-	frequênciaPedidoCompleta := protocolo.NovaFrequênciaPedidoCompleta(f.CR, f.FrequênciaPedido)
 	serviçoAtirador := atirador.NovoServiço()
+	frequênciaPedidoCompleta := protocolo.NovaFrequênciaPedidoCompleta(f.CR, f.FrequênciaPedido)
+	frequênciaPendenteResposta, err := serviçoAtirador.CadastrarFrequência(frequênciaPedidoCompleta)
 
-	var err error
-	if f.FrequênciaResposta, err = serviçoAtirador.CadastrarFrequência(frequênciaPedidoCompleta); err != nil {
+	if err != nil {
 		return http.StatusInternalServerError
 	}
 
-	f.DefinirCabeçalho("Location", fmt.Sprintf("/frequencia-atirador/%s/%d", f.CR, f.FrequênciaResposta.NúmeroControle))
+	f.FrequênciaPendenteResposta = &frequênciaPendenteResposta
+	f.DefinirCabeçalho("Location", fmt.Sprintf("/frequencia-atirador/%s/%d", f.CR, f.FrequênciaPendenteResposta.NúmeroControle))
 	return http.StatusCreated
 }
 

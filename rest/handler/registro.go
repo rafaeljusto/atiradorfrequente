@@ -3,6 +3,8 @@ package handler
 import "github.com/trajber/handy"
 
 var (
+	// Rotas armazena todos os endereços registrados para este servidor REST e
+	// seus respectivos tratadores.
 	Rotas map[string]handy.Constructor
 )
 

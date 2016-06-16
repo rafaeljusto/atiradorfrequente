@@ -15,15 +15,14 @@ func init() {
 type frequênciaAtiradorConfirmação struct {
 	básico
 
-	CR             string `urivar:"cr"`
-	NúmeroControle int    `urivar:"numeroControle"`
-
-	frequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedidoCompleta `request:"put"`
+	CR                          string                                `urivar:"cr"`
+	NúmeroControle              int64                                 `urivar:"numeroControle"`
+	FrequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedido `request:"put"`
 }
 
 func (f *frequênciaAtiradorConfirmação) Put() int {
-	frequênciaConfirmaçãoPedidoCompleta := protocolo.NovaFrequênciaConfirmaçãoPedidoCompleta(f.CR, f.NúmeroControle, f.frequênciaConfirmaçãoPedido)
 	serviçoAtirador := atirador.NovoServiço()
+	frequênciaConfirmaçãoPedidoCompleta := protocolo.NovaFrequênciaConfirmaçãoPedidoCompleta(f.CR, f.NúmeroControle, f.FrequênciaConfirmaçãoPedido)
 
 	if err := serviçoAtirador.ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta); err != nil {
 		return http.StatusInternalServerError
