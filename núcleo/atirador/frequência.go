@@ -12,6 +12,8 @@ type frequência struct {
 	CR                   string
 	Calibre              string
 	ArmaUtilizada        string
+	NúmeroSérie          string
+	GuiaDeTráfego        string
 	QuantidadeMunição    int
 	HorárioInício        time.Time
 	HorárioTérmino       time.Time
@@ -27,6 +29,8 @@ func novaFrequência(frequênciaPedidoCompleta protocolo.FrequênciaPedidoComple
 		CR:                frequênciaPedidoCompleta.CR,
 		Calibre:           frequênciaPedidoCompleta.Calibre,
 		ArmaUtilizada:     frequênciaPedidoCompleta.ArmaUtilizada,
+		NúmeroSérie:       frequênciaPedidoCompleta.NúmeroSérie,
+		GuiaDeTráfego:     frequênciaPedidoCompleta.GuiaDeTráfego,
 		QuantidadeMunição: frequênciaPedidoCompleta.QuantidadeMunição,
 		HorárioInício:     frequênciaPedidoCompleta.HorárioInício,
 		HorárioTérmino:    frequênciaPedidoCompleta.HorárioTérmino,

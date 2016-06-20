@@ -7,6 +7,8 @@ import "time"
 type FrequênciaPedido struct {
 	Calibre           string    `json:"calibre"`
 	ArmaUtilizada     string    `json:"armaUtilizada"`
+	NúmeroSérie       string    `json:"numeroSerie"`
+	GuiaDeTráfego     string    `json:"guiaTrafego"`
 	QuantidadeMunição int       `json:"quantidadeMunicao"`
 	HorárioInício     time.Time `json:"horarioInicio"`
 	HorárioTérmino    time.Time `json:"horarioTermino"`
