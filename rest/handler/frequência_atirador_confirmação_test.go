@@ -6,8 +6,10 @@ import (
 	"testing"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/atirador"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
+	"github.com/rafaeljusto/atiradorfrequente/testes/simulador"
 )
 
 func TestFrequênciaAtiradorConfirmação_Put(t *testing.T) {
@@ -30,7 +32,7 @@ dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
 dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
 ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
-			serviçoAtirador: serviçoAtiradorSimulado{
+			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaConfirmarFrequência: func(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
 					return nil
 				},
@@ -48,7 +50,7 @@ dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
 dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
 ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
-			serviçoAtirador: serviçoAtiradorSimulado{
+			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaConfirmarFrequência: func(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
 					return fmt.Errorf("erro de baixo nível")
 				},
@@ -63,7 +65,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 	}()
 
 	for i, cenário := range cenários {
-		atirador.NovoServiço = func() atirador.Serviço {
+		atirador.NovoServiço = func(s *bd.SQLogger) atirador.Serviço {
 			return cenário.serviçoAtirador
 		}
 
@@ -78,5 +80,21 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		if err := verificadorResultado.VerificaResultado(handler.Put(), nil); err != nil {
 			t.Error(err)
 		}
+	}
+}
+
+func TestFrequênciaAtiradorConfirmação_Interceptors(t *testing.T) {
+	esperado := []string{
+		"*interceptador.EndereçoRemoto",
+		"*interceptador.Log",
+		"*interceptador.BD",
+	}
+
+	var handler frequênciaAtiradorConfirmação
+
+	verificadorResultado := testes.NovoVerificadorResultados("deve conter os interceptadores corretos", 0)
+	verificadorResultado.DefinirEsperado(esperado, nil)
+	if err := verificadorResultado.VerificaResultado(testes.TiposDaLista(handler.Interceptors()), nil); err != nil {
+		t.Error(err)
 	}
 }

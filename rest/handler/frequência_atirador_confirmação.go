@@ -5,6 +5,7 @@ import (
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/atirador"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
+	"github.com/rafaeljusto/atiradorfrequente/rest/interceptador"
 	"github.com/trajber/handy"
 )
 
@@ -14,6 +15,7 @@ func init() {
 
 type frequênciaAtiradorConfirmação struct {
 	básico
+	interceptador.BDCompatível
 
 	CR                          string                                `urivar:"cr"`
 	NúmeroControle              int64                                 `urivar:"numeroControle"`
@@ -21,7 +23,7 @@ type frequênciaAtiradorConfirmação struct {
 }
 
 func (f *frequênciaAtiradorConfirmação) Put() int {
-	serviçoAtirador := atirador.NovoServiço()
+	serviçoAtirador := atirador.NovoServiço(f.Tx())
 	frequênciaConfirmaçãoPedidoCompleta := protocolo.NovaFrequênciaConfirmaçãoPedidoCompleta(f.CR, f.NúmeroControle, f.FrequênciaConfirmaçãoPedido)
 
 	if err := serviçoAtirador.ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta); err != nil {
@@ -32,5 +34,6 @@ func (f *frequênciaAtiradorConfirmação) Put() int {
 }
 
 func (f *frequênciaAtiradorConfirmação) Interceptors() handy.InterceptorChain {
-	return nil
+	return criarCorrenteBásica(f).
+		Chain(interceptador.NovoBD(f))
 }

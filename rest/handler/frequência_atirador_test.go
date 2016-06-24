@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/atirador"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
+	"github.com/rafaeljusto/atiradorfrequente/testes/simulador"
 )
 
 func TestFrequênciaAtirador_Post(t *testing.T) {
@@ -32,7 +34,7 @@ func TestFrequênciaAtirador_Post(t *testing.T) {
 				HorárioInício:     data,
 				HorárioTérmino:    data.Add(30 * time.Minute),
 			},
-			serviçoAtirador: serviçoAtiradorSimulado{
+			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaCadastrarFrequência: func(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
 					return protocolo.FrequênciaPendenteResposta{
 						NúmeroControle: 918273645,
@@ -64,7 +66,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				HorárioInício:     data,
 				HorárioTérmino:    data.Add(30 * time.Minute),
 			},
-			serviçoAtirador: serviçoAtiradorSimulado{
+			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaCadastrarFrequência: func(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
 					return protocolo.FrequênciaPendenteResposta{}, fmt.Errorf("erro de baixo nível")
 				},
@@ -79,7 +81,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 	}()
 
 	for i, cenário := range cenários {
-		atirador.NovoServiço = func() atirador.Serviço {
+		atirador.NovoServiço = func(s *bd.SQLogger) atirador.Serviço {
 			return cenário.serviçoAtirador
 		}
 
@@ -102,15 +104,18 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 	}
 }
 
-type serviçoAtiradorSimulado struct {
-	SimulaCadastrarFrequência func(protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error)
-	SimulaConfirmarFrequência func(protocolo.FrequênciaConfirmaçãoPedidoCompleta) error
-}
+func TestFrequênciaAtirador_Interceptors(t *testing.T) {
+	esperado := []string{
+		"*interceptador.EndereçoRemoto",
+		"*interceptador.Log",
+		"*interceptador.BD",
+	}
 
-func (s serviçoAtiradorSimulado) CadastrarFrequência(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
-	return s.SimulaCadastrarFrequência(frequênciaPedidoCompleta)
-}
+	var handler frequênciaAtirador
 
-func (s serviçoAtiradorSimulado) ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
-	return s.SimulaConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta)
+	verificadorResultado := testes.NovoVerificadorResultados("deve conter os interceptadores corretos", 0)
+	verificadorResultado.DefinirEsperado(esperado, nil)
+	if err := verificadorResultado.VerificaResultado(testes.TiposDaLista(handler.Interceptors()), nil); err != nil {
+		t.Error(err)
+	}
 }
