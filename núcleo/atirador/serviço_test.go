@@ -17,7 +17,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 	}{}
 
 	for i, cenário := range cenários {
-		serviço := atirador.NovoServiço()
+		serviço := atirador.NovoServiço(nil)
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(cenário.esperado, cenário.erroEsperado)
 
@@ -35,7 +35,7 @@ func TestServiço_ConfirmarFrequência(t *testing.T) {
 	}{}
 
 	for i, cenário := range cenários {
-		serviço := atirador.NovoServiço()
+		serviço := atirador.NovoServiço(nil)
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(nil, cenário.erroEsperado)
 

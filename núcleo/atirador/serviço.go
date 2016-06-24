@@ -1,6 +1,9 @@
 package atirador
 
-import "github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
+import (
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
+)
 
 // Serviço disponibiliza as ações que podem ser feitas relacionadas ao Atirador.
 type Serviço interface {
@@ -17,11 +20,14 @@ type Serviço interface {
 
 // NovoServiço inicializa um serviço concreto do Atirador. Pode ser substituído
 // em testes por simuladores, permitindo uma abstração da camada de serviços.
-var NovoServiço = func() Serviço {
-	return serviço{}
+var NovoServiço = func(s *bd.SQLogger) Serviço {
+	return serviço{
+		sqlogger: s,
+	}
 }
 
 type serviço struct {
+	sqlogger *bd.SQLogger
 }
 
 func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
