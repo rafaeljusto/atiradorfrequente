@@ -17,30 +17,37 @@ type sqler interface {
 	Req() *http.Request
 }
 
+// BD disponibiliza uma transação do banco de dados para o handler.
 type BD struct {
 	handler sqler
 	tx      bd.Tx
 }
 
+// NovoBD cria um novo interceptador BD.
 func NovoBD(h sqler) *BD {
 	return &BD{handler: h}
 }
 
+// Before inicia uma conexão com o banco de dados caso não existe, e começa uma
+// transação que ficará disponível para o handler. Ao iniciarmos a conexão com o
+// banco de dados neste ponto garantimos que falhas temporárias de comunicação
+// com o banco de dados serão resolvidas assim que o nível de rede voltar ao
+// normal.
 func (i *BD) Before() int {
 	i.handler.Logger().Debug("Interceptador Antes: BD")
 
 	if bd.Conexão == nil {
 		// TODO(rafaeljusto): criptografar a senha
 		err := bd.IniciarConexão(db.ConnParams{
-			Username:           config.REST.BancoDados.Usuário,
-			Password:           config.REST.BancoDados.Senha,
-			DatabaseName:       config.REST.BancoDados.Nome,
-			Host:               config.REST.BancoDados.Endereço,
-			ConnectTimeout:     config.REST.BancoDados.TempoEsgotadoConexão,
-			StatementTimeout:   config.REST.BancoDados.TempoEsgotadoComando,
-			MaxIdleConnections: config.REST.BancoDados.MáximoNúmeroConexõesInativas,
-			MaxOpenConnections: config.REST.BancoDados.MáximoNúmeroConexõesAbertas,
-		}, config.REST.BancoDados.TempoEsgotadoTransação)
+			Username:           config.Atual().BancoDados.Usuário,
+			Password:           config.Atual().BancoDados.Senha,
+			DatabaseName:       config.Atual().BancoDados.Nome,
+			Host:               config.Atual().BancoDados.Endereço,
+			ConnectTimeout:     config.Atual().BancoDados.TempoEsgotadoConexão,
+			StatementTimeout:   config.Atual().BancoDados.TempoEsgotadoComando,
+			MaxIdleConnections: config.Atual().BancoDados.MáximoNúmeroConexõesInativas,
+			MaxOpenConnections: config.Atual().BancoDados.MáximoNúmeroConexõesAbertas,
+		}, config.Atual().BancoDados.TempoEsgotadoTransação)
 
 		if err != nil {
 			i.handler.Logger().Critf("Erro ao conectar o banco de dados. Detalhes: %s", err)
@@ -58,6 +65,9 @@ func (i *BD) Before() int {
 	return 0
 }
 
+// After responsável por confirmar a transação (commit) ou desfazer as alterções
+// (rollback). A confirmação somente é feita se o handler ou outros
+// interceptadores retornarem um código HTTP de sucesso.
 func (i *BD) After(status int) int {
 	i.handler.Logger().Debug("Interceptador Depois: BD")
 
@@ -80,14 +90,19 @@ func (i *BD) After(status int) int {
 	return status
 }
 
+// BDCompatível implementa os métodos que serão utilizados pelo handler para
+// acessar a transação criada por este interceptador.
 type BDCompatível struct {
 	sqlogger *bd.SQLogger
 }
 
+// DefineTx define a transação do banco de dados que será utilizada pelo
+// handler.
 func (d *BDCompatível) DefineTx(tx *bd.SQLogger) {
 	d.sqlogger = tx
 }
 
+// Tx retorna a transação do banco de dados que será utilizada pelo handler.
 func (d BDCompatível) Tx() *bd.SQLogger {
 	return d.sqlogger
 }

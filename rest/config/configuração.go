@@ -1,10 +1,16 @@
 package config
 
-import "time"
+import (
+	"sync/atomic"
+	"time"
+	"unsafe"
+)
 
-var REST configuração
+var configuração unsafe.Pointer
 
-type configuração struct {
+// Configuração estrutura que representa todas as possíveis configurações do
+// servidor REST.
+type Configuração struct {
 	BancoDados struct {
 		Endereço                     string
 		Nome                         string
@@ -16,4 +22,17 @@ type configuração struct {
 		MáximoNúmeroConexõesInativas int           `yaml:"maximo numero conexoes inativas"`
 		MáximoNúmeroConexõesAbertas  int           `yaml:"maximo numero conexoes abertas"`
 	} `yaml:"banco de dados"`
+}
+
+// Atual retorna a configuração atual do sistema, armazenada internamente em uma
+// variável global.
+func Atual() *Configuração {
+	return (*Configuração)(atomic.LoadPointer(&configuração))
+}
+
+// AtualizarConfiguração modifica a atual configuração do sistema de maneira
+// segura. Muito útil para cenários de testes que precisam simular uma
+// configuração específica.
+func AtualizarConfiguração(c *Configuração) {
+	atomic.StorePointer(&configuração, unsafe.Pointer(c))
 }

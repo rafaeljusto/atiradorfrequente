@@ -150,9 +150,9 @@ func TestBD_Before(t *testing.T) {
 		},
 	}
 
-	configuraçãoRESTOriginal := config.REST
+	configuraçãoRESTOriginal := config.Atual()
 	defer func() {
-		config.REST = configuraçãoRESTOriginal
+		config.AtualizarConfiguração(configuraçãoRESTOriginal)
 	}()
 
 	iniciarConexãoOriginal := bd.IniciarConexão
@@ -165,15 +165,17 @@ func TestBD_Before(t *testing.T) {
 		bd.Conexão = conexãoOriginal
 	}()
 
-	config.REST.BancoDados.Endereço = "127.0.0.1"
-	config.REST.BancoDados.Nome = "teste"
-	config.REST.BancoDados.Usuário = "usuario"
-	config.REST.BancoDados.Senha = "senha"
-	config.REST.BancoDados.TempoEsgotadoConexão = 2 * time.Second
-	config.REST.BancoDados.TempoEsgotadoComando = 10 * time.Second
-	config.REST.BancoDados.TempoEsgotadoTransação = 1 * time.Second
-	config.REST.BancoDados.MáximoNúmeroConexõesInativas = 16
-	config.REST.BancoDados.MáximoNúmeroConexõesAbertas = 32
+	var configuração config.Configuração
+	configuração.BancoDados.Endereço = "127.0.0.1"
+	configuração.BancoDados.Nome = "teste"
+	configuração.BancoDados.Usuário = "usuario"
+	configuração.BancoDados.Senha = "senha"
+	configuração.BancoDados.TempoEsgotadoConexão = 2 * time.Second
+	configuração.BancoDados.TempoEsgotadoComando = 10 * time.Second
+	configuração.BancoDados.TempoEsgotadoTransação = 1 * time.Second
+	configuração.BancoDados.MáximoNúmeroConexõesInativas = 16
+	configuração.BancoDados.MáximoNúmeroConexõesAbertas = 32
+	config.AtualizarConfiguração(&configuração)
 
 	for i, cenário := range cenários {
 		bd.IniciarConexão = cenário.iniciarConexão
