@@ -2,18 +2,12 @@ package interceptador
 
 import (
 	"fmt"
-	"math/rand"
 	"net"
 	"net/http"
-	"time"
 
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/randômico"
 	"github.com/registrobr/gostk/log"
 )
-
-func init() {
-	// TODO(rafaeljusto): https://nishanths.svbtle.com/do-not-seed-the-global-random
-	rand.Seed(time.Now().UTC().UnixNano())
-}
 
 type logger interface {
 	EndereçoRemoto() net.IP
@@ -22,16 +16,25 @@ type logger interface {
 	Req() *http.Request
 }
 
+// Log disponibiliza ao handler uma estrutura de log contextualizada para a
+// requisição, de forma a permitir identificar as mensagens de log de um
+// usuário.
 type Log struct {
 	handler logger
 }
 
+// NovoLog cria um novo interceptador Log.
 func NovoLog(h logger) *Log {
 	return &Log{handler: h}
 }
 
+// Before inicializa uma estrutura de log contextualizada, utilizando como
+// identificador o endereço IP remoto e um número aleatório. Existe uma pequena
+// chance de colisão de identificadores caso gere um número aleatório repetido
+// para o mesmo endereço IP remoto. Ao inicializar, adiciona informações da
+// requisição no log.
 func (l Log) Before() int {
-	idRequisição := rand.Int31n(99999)
+	idRequisição := randômico.FonteRandômica.Int31n(99999)
 	identificador := fmt.Sprintf("%s %05d", l.handler.EndereçoRemoto(), idRequisição)
 	l.handler.DefineLogger(log.NewLogger(identificador))
 
@@ -40,20 +43,25 @@ func (l Log) Before() int {
 	return 0
 }
 
+// After adiciona informações da resposta no log.
 func (l Log) After(status int) int {
 	requisição := l.handler.Req()
 	l.handler.Logger().Infof("Resposta %s %s %d %s", requisição.Method, requisição.RequestURI, status, http.StatusText(status))
 	return status
 }
 
+// LogCompatível implementa os métodos que serão utilizados pelo handler para
+// acessar o log criado por este interceptador.
 type LogCompatível struct {
 	logger log.Logger
 }
 
+// DefineLogger defile o logger que será utilizado pelo handler.
 func (l *LogCompatível) DefineLogger(logger log.Logger) {
 	l.logger = logger
 }
 
+// Logger obtém o logger que será utilizado pelo handler.
 func (l LogCompatível) Logger() log.Logger {
 	return l.logger
 }

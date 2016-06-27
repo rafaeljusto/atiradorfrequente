@@ -15,15 +15,22 @@ type endereçoRemoto interface {
 	Req() *http.Request
 }
 
+// EndereçoRemoto disponibiliza ao handler o endereço do cliente. Possuí a
+// capacidade de tratar endereços enviados via proxy tanto com o cabeçalhos HTTP
+// X-Forwarded-For quanto com o X-Real-IP.
 type EndereçoRemoto struct {
 	interceptor.NopInterceptor
 	handler endereçoRemoto
 }
 
+// NovoEndereçoRemoto cria um novo interceptador EndereçoRemoto.
 func NovoEndereçoRemoto(e endereçoRemoto) *EndereçoRemoto {
 	return &EndereçoRemoto{handler: e}
 }
 
+// Before interpreta a conexão e os cabeçalhos HTTP para identificar o endereço
+// IP do cliente. A prioridade é dada na seguinte ordem: Cabeçalhos HTTP
+// X-Forwarded-For, X-Real-IP e IP da conexão.
 func (r *EndereçoRemoto) Before() int {
 	var endereçoCliente string
 
@@ -60,14 +67,18 @@ func (r *EndereçoRemoto) Before() int {
 	return 0
 }
 
+// EndereçoRemotoCompatível implementa os métodos que serão utilizados pelo
+// handler para acessar o endereço IP remoto armazenado por este interceptador.
 type EndereçoRemotoCompatível struct {
 	endereçoRemoto net.IP
 }
 
+// DefineEndereçoRemoto armazena o endereço IP remoto.
 func (r *EndereçoRemotoCompatível) DefineEndereçoRemoto(a net.IP) {
 	r.endereçoRemoto = a
 }
 
+// EndereçoRemoto obtém o endereço IP remoto.
 func (r EndereçoRemotoCompatível) EndereçoRemoto() net.IP {
 	return r.endereçoRemoto
 }
