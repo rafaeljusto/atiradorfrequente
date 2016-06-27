@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/randômico"
 )
 
 type frequência struct {
@@ -25,7 +26,7 @@ type frequência struct {
 
 func novaFrequência(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) frequência {
 	return frequência{
-		Controle:          origemRandômica.Int63(),
+		Controle:          randômico.FonteRandômica.Int63(),
 		CR:                frequênciaPedidoCompleta.CR,
 		Calibre:           frequênciaPedidoCompleta.Calibre,
 		ArmaUtilizada:     frequênciaPedidoCompleta.ArmaUtilizada,

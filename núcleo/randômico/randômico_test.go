@@ -1,18 +1,18 @@
-package atirador
+package randômico
 
 import (
 	"testing"
 	"time"
 )
 
-func TestTravaOrigemRandômica_Int63(t *testing.T) {
+func TestTravaFonteRandômica_Int63(t *testing.T) {
 	iterações := 50
 	númeroRandômicoCh := make(chan int, iterações)
 
 	for i := 0; i < iterações; i++ {
 		go func() {
-			origemRandômica.Seed(time.Now().UnixNano())
-			númeroRandômicoCh <- origemRandômica.Intn(100)
+			FonteRandômica.Seed(time.Now().UnixNano())
+			númeroRandômicoCh <- FonteRandômica.Intn(100)
 		}()
 	}
 
