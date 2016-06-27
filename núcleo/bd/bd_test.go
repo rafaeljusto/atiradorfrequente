@@ -70,7 +70,7 @@ func TestBd_Begin(t *testing.T) {
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(nil, cenário.erroEsperado)
-		if err := verificadorResultado.VerificaResultado(nil, err); err != nil {
+		if err = verificadorResultado.VerificaResultado(nil, err); err != nil {
 			t.Error(err)
 		}
 	}
@@ -203,7 +203,7 @@ func TestIniciarConexão(t *testing.T) {
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(nil, cenário.erroEsperado)
-		if err := verificadorResultado.VerificaResultado(nil, err); err != nil {
+		if err = verificadorResultado.VerificaResultado(nil, err); err != nil {
 			t.Error(err)
 		}
 	}

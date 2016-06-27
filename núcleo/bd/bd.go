@@ -9,6 +9,10 @@ import (
 	"github.com/registrobr/gostk/db"
 )
 
+// Conexão armazena a conexão global do sistema com a base de dados. Todas as
+// transações com o banco de dados relacional devem ser abertas a partir desta
+// variável. Internamente possui um sistema de pool automático, o que garante a
+// escalabilidade.
 var Conexão BD
 
 // BD representa uma conexão do banco de dados. Util para manipulação em
@@ -49,6 +53,7 @@ func (b *bd) Begin() (Tx, error) {
 	return db.NewTx(b.DB, b.txTempoEsgotado)
 }
 
+// IniciarConexão conecta-se ao banco de dados com os parâmetros informados.
 var IniciarConexão = func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
 	// TODO(rafaeljusto): Adicionar semáforos para evitar concorrência no acesso a
 	// variável global Conexão
