@@ -28,7 +28,7 @@ func (f frequênciaDAOImpl) criar(frequência *frequência) error {
 	frequência.revisão = 0
 
 	sql := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (DEFAULT, %s)`,
-		frequênciaTabela, frequênciaCriaçãoCamposTexto, bd.Marcadores(len(frequênciaCriaçãoCampos)-1))
+		frequênciaTabela, frequênciaCriaçãoCamposTexto, bd.MarcadoresPSQL(len(frequênciaCriaçãoCampos)-1))
 
 	resultado, err := f.sqlogger.Exec(sql,
 		frequência.Controle,

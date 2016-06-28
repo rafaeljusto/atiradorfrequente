@@ -5,27 +5,27 @@ import (
 	"strconv"
 )
 
-// Marcadores gera os argumentos de um comando SQL para PostgresSQL com a
+// MarcadoresPSQL gera os argumentos de um comando SQL para PostgresSQL com a
 // notação "$1,$...,$n".
-func Marcadores(n int) string {
-	return MarcadoresComInicio(1, n)
+func MarcadoresPSQL(n int) string {
+	return MarcadoresPSQLComInício(1, n)
 }
 
-// MarcadoresComInicio gera os argumentos de um comando SQL para PostgresSQL com
-// a notação "$inicio,$...,$n".
-func MarcadoresComInicio(inicio, n int) string {
-	if n <= 0 || inicio <= 0 {
+// MarcadoresPSQLComInício gera os argumentos de um comando SQL para PostgresSQL
+// com a notação "$início,$...,$n".
+func MarcadoresPSQLComInício(início, n int) string {
+	if n <= 0 || início <= 0 {
 		return ""
 	}
 
 	buf := bytes.NewBufferString("")
-	for i := inicio; i <= n; i++ {
+	for i := início; i <= n; i++ {
 		buf.WriteString("$")
 		buf.WriteString(strconv.Itoa(i))
 		buf.WriteString(",")
 	}
 
-	// remove a última virgula
+	// remove a última vírgula
 	if buf.Len() > 1 {
 		buf.Truncate(buf.Len() - 1)
 	}

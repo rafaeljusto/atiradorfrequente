@@ -26,7 +26,7 @@ func TestMarcadores(t *testing.T) {
 	}
 
 	for i, cenário := range cenários {
-		argumentos := bd.Marcadores(cenário.n)
+		argumentos := bd.MarcadoresPSQL(cenário.n)
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(cenário.esperado, nil)
@@ -39,38 +39,38 @@ func TestMarcadores(t *testing.T) {
 func TestMarcadoresComInicio(t *testing.T) {
 	cenários := []struct {
 		descrição string
-		inicio    int
+		início    int
 		n         int
 		esperado  string
 	}{
 		{
 			descrição: "deve gerar os argumentos corretamente",
-			inicio:    1,
+			início:    1,
 			n:         3,
 			esperado:  "$1,$2,$3",
 		},
 		{
-			descrição: "deve tratar corretamente quando o inicio for negativo",
-			inicio:    -1,
+			descrição: "deve tratar corretamente quando o início for negativo",
+			início:    -1,
 			n:         3,
 			esperado:  "",
 		},
 		{
 			descrição: "deve tratar corretamente quando o número de argumentos for negativo",
-			inicio:    1,
+			início:    1,
 			n:         -1,
 			esperado:  "",
 		},
 		{
-			descrição: "deve tratar corretamente quando o inicio for maior que o número de argumentos",
-			inicio:    4,
+			descrição: "deve tratar corretamente quando o início for maior que o número de argumentos",
+			início:    4,
 			n:         3,
 			esperado:  "",
 		},
 	}
 
 	for i, cenário := range cenários {
-		argumentos := bd.MarcadoresComInicio(cenário.inicio, cenário.n)
+		argumentos := bd.MarcadoresPSQLComInício(cenário.início, cenário.n)
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(cenário.esperado, nil)
