@@ -43,3 +43,17 @@ precisa de nenhuma informação externa para funcionar. O lado negativo desta
 solução, é que exige que o Clube de Tiro tenha acesso a Internet, uma impressora
 e uma máquina fotográfica digital (ou celular com foto). Mas acredito que poucos
 Clubes de Tiro não possuem estes requisitos.
+
+## Serviços
+
+Abaixo a lista de serviços a serem implementadas neste projeto. Conforme
+surgirem novos serviços ou os listados forem concluídos esta tabela será
+alterada.
+
+| Descrição                           | REST  | WEB   | URI                                      |
+| ----------------------------------- | :---: | :---: | ---------------------------------------- |
+| Criar uma freqência (clube)         | [   ] | [   ] | [POST] /frequencia/{cr}                  |
+| Confirmar uma frequência (clube)    | [   ] | [   ] | [PUT]  /frequencia/{cr}/{numeroControle} |
+| Cadastrar um clube (administrativo) | [   ] | [   ] | [POST] /clube                            |
+| Login (clube e administrativo)      | [   ] | [   ] | [POST] /login                            |
+| Listar frequências (administrativo) | [   ] | [   ] | [GET]  /frequencia                       |
