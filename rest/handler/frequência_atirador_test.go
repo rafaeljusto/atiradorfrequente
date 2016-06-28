@@ -34,8 +34,8 @@ func TestFrequênciaAtirador_Post(t *testing.T) {
 				Calibre:           ".380",
 				ArmaUtilizada:     "Arma do Clube",
 				QuantidadeMunição: 50,
-				HorárioInício:     data,
-				HorárioTérmino:    data.Add(30 * time.Minute),
+				DataInício:        data,
+				DataTérmino:       data.Add(30 * time.Minute),
 			},
 			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaCadastrarFrequência: func(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
@@ -66,8 +66,8 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				Calibre:           ".380",
 				ArmaUtilizada:     "Arma do Clube",
 				QuantidadeMunição: 50,
-				HorárioInício:     data,
-				HorárioTérmino:    data.Add(30 * time.Minute),
+				DataInício:        data,
+				DataTérmino:       data.Add(30 * time.Minute),
 			},
 			logger: simulador.Logger{
 				SimulaError: func(e error) {

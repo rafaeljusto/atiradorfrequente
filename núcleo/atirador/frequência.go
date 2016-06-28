@@ -8,7 +8,7 @@ import (
 )
 
 type frequência struct {
-	ID                   uint64
+	ID                   int64
 	Controle             int64
 	CR                   string
 	Calibre              string
@@ -16,12 +16,18 @@ type frequência struct {
 	NúmeroSérie          string
 	GuiaDeTráfego        string
 	QuantidadeMunição    int
-	HorárioInício        time.Time
-	HorárioTérmino       time.Time
+	DataInício           time.Time
+	DataTérmino          time.Time
+	DataCriação          time.Time
+	DataAtualização      time.Time
+	DataConfirmação      time.Time
 	ImagemNúmeroControle string
 	ImagemConfirmação    string
-	DataCriação          time.Time
-	DataConfirmação      time.Time
+
+	// revisão utilizado para o controle de versão do objeto na base de dados,
+	// minimizando problemas de concorrência quando 2 transações alteram o mesmo
+	// objeto.
+	revisão int
 }
 
 func novaFrequência(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) frequência {
@@ -33,8 +39,7 @@ func novaFrequência(frequênciaPedidoCompleta protocolo.FrequênciaPedidoComple
 		NúmeroSérie:       frequênciaPedidoCompleta.NúmeroSérie,
 		GuiaDeTráfego:     frequênciaPedidoCompleta.GuiaDeTráfego,
 		QuantidadeMunição: frequênciaPedidoCompleta.QuantidadeMunição,
-		HorárioInício:     frequênciaPedidoCompleta.HorárioInício,
-		HorárioTérmino:    frequênciaPedidoCompleta.HorárioTérmino,
-		DataCriação:       time.Now().UTC(),
+		DataInício:        frequênciaPedidoCompleta.DataInício,
+		DataTérmino:       frequênciaPedidoCompleta.DataTérmino,
 	}
 }

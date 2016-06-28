@@ -5,13 +5,17 @@ import "time"
 // FrequênciaPedido armazena os dados exigidos pelo Exército ao utilizar um
 // estande de Tiro.
 type FrequênciaPedido struct {
-	Calibre           string    `json:"calibre"`
-	ArmaUtilizada     string    `json:"armaUtilizada"`
-	NúmeroSérie       string    `json:"numeroSerie"`
-	GuiaDeTráfego     string    `json:"guiaTrafego"`
-	QuantidadeMunição int       `json:"quantidadeMunicao"`
-	HorárioInício     time.Time `json:"horarioInicio"`
-	HorárioTérmino    time.Time `json:"horarioTermino"`
+	Calibre           string `json:"calibre"`
+	ArmaUtilizada     string `json:"armaUtilizada"`
+	NúmeroSérie       string `json:"numeroSerie"`
+	GuiaDeTráfego     string `json:"guiaTrafego"`
+	QuantidadeMunição int    `json:"quantidadeMunicao"`
+
+	// DataInício data e hora do início do treino de tiro no estande do clube.
+	DataInício time.Time `json:"dataInicio"`
+
+	// DataTérmino data e hora do término do treino de tiro no estande do clube.
+	DataTérmino time.Time `json:"dataTermino"`
 }
 
 // FrequênciaPedidoCompleta é uma extensão do tipo FrequênciaPedido incluindo o
