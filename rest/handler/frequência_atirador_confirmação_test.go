@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/atirador"
@@ -10,6 +10,8 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
 	"github.com/rafaeljusto/atiradorfrequente/testes/simulador"
+	"github.com/registrobr/gostk/errors"
+	"github.com/registrobr/gostk/log"
 )
 
 func TestFrequênciaAtiradorConfirmação_Put(t *testing.T) {
@@ -18,6 +20,7 @@ func TestFrequênciaAtiradorConfirmação_Put(t *testing.T) {
 		cr                          string
 		númeroControle              int64
 		frequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedido
+		logger                      log.Logger
 		serviçoAtirador             atirador.Serviço
 		códigoHTTPEsperado          int
 	}{
@@ -50,9 +53,16 @@ dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
 dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
 ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
+			logger: simulador.Logger{
+				SimulaError: func(e error) {
+					if !strings.HasSuffix(e.Error(), "erro de baixo nível") {
+						t.Error("não está adicionando o erro correto ao log")
+					}
+				},
+			},
 			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaConfirmarFrequência: func(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
-					return fmt.Errorf("erro de baixo nível")
+					return errors.Errorf("erro de baixo nível")
 				},
 			},
 			códigoHTTPEsperado: http.StatusInternalServerError,
@@ -74,6 +84,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			NúmeroControle:              cenário.númeroControle,
 			FrequênciaConfirmaçãoPedido: cenário.frequênciaConfirmaçãoPedido,
 		}
+		handler.DefineLogger(cenário.logger)
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(cenário.códigoHTTPEsperado, nil)

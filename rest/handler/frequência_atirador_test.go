@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -11,6 +11,8 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
 	"github.com/rafaeljusto/atiradorfrequente/testes/simulador"
+	"github.com/registrobr/gostk/errors"
+	"github.com/registrobr/gostk/log"
 )
 
 func TestFrequênciaAtirador_Post(t *testing.T) {
@@ -20,6 +22,7 @@ func TestFrequênciaAtirador_Post(t *testing.T) {
 		descrição          string
 		cr                 string
 		frequênciaPedido   protocolo.FrequênciaPedido
+		logger             log.Logger
 		serviçoAtirador    atirador.Serviço
 		códigoHTTPEsperado int
 		esperado           *protocolo.FrequênciaPendenteResposta
@@ -66,9 +69,16 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				HorárioInício:     data,
 				HorárioTérmino:    data.Add(30 * time.Minute),
 			},
+			logger: simulador.Logger{
+				SimulaError: func(e error) {
+					if !strings.HasSuffix(e.Error(), "erro de baixo nível") {
+						t.Error("não está adicionando o erro correto ao log")
+					}
+				},
+			},
 			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaCadastrarFrequência: func(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
-					return protocolo.FrequênciaPendenteResposta{}, fmt.Errorf("erro de baixo nível")
+					return protocolo.FrequênciaPendenteResposta{}, errors.Errorf("erro de baixo nível")
 				},
 			},
 			códigoHTTPEsperado: http.StatusInternalServerError,
@@ -89,6 +99,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			CR:               cenário.cr,
 			FrequênciaPedido: cenário.frequênciaPedido,
 		}
+		handler.DefineLogger(cenário.logger)
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 

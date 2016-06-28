@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/atirador"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/rafaeljusto/atiradorfrequente/rest/interceptador"
 	"github.com/trajber/handy"
@@ -27,6 +28,7 @@ func (f *frequênciaAtiradorConfirmação) Put() int {
 	frequênciaConfirmaçãoPedidoCompleta := protocolo.NovaFrequênciaConfirmaçãoPedidoCompleta(f.CR, f.NúmeroControle, f.FrequênciaConfirmaçãoPedido)
 
 	if err := serviçoAtirador.ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta); err != nil {
+		f.Logger().Error(erros.Novo(err))
 		return http.StatusInternalServerError
 	}
 

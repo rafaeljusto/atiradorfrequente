@@ -50,7 +50,7 @@ func (i *BD) Before() int {
 		}, config.Atual().BancoDados.TempoEsgotadoTransação)
 
 		if err != nil {
-			i.handler.Logger().Critf("Erro ao conectar o banco de dados. Detalhes: %s", err)
+			i.handler.Logger().Critf("Erro ao conectar o banco de dados. Detalhes: %s", erros.Novo(err))
 			return http.StatusInternalServerError
 		}
 	}
