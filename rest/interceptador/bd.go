@@ -37,6 +37,11 @@ func (i *BD) Before() int {
 	i.handler.Logger().Debug("Interceptador Antes: BD")
 
 	if bd.Conexão == nil {
+		if config.Atual() == nil {
+			i.handler.Logger().Crit("Não existe configuração definida para iniciar a conexão com o banco de dados")
+			return http.StatusInternalServerError
+		}
+
 		// TODO(rafaeljusto): criptografar a senha
 		err := bd.IniciarConexão(db.ConnParams{
 			Username:           config.Atual().BancoDados.Usuário,

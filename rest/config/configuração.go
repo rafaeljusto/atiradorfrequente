@@ -4,6 +4,7 @@
 package config
 
 import (
+	"net"
 	"sync/atomic"
 	"time"
 	"unsafe"
@@ -15,16 +16,20 @@ var configuração unsafe.Pointer
 // servidor REST.
 type Configuração struct {
 	BancoDados struct {
-		Endereço                     string
-		Nome                         string
-		Usuário                      string
-		Senha                        string
+		Endereço                     string        `yaml:"endereco"`
+		Nome                         string        `yaml:"nome"`
+		Usuário                      string        `yaml:"usuario"`
+		Senha                        string        `yaml:"senha"`
 		TempoEsgotadoConexão         time.Duration `yaml:"tempo esgotado conexao"`
 		TempoEsgotadoComando         time.Duration `yaml:"tempo esgotado comando"`
 		TempoEsgotadoTransação       time.Duration `yaml:"tempo esgotado transacao"`
 		MáximoNúmeroConexõesInativas int           `yaml:"maximo numero conexoes inativas"`
 		MáximoNúmeroConexõesAbertas  int           `yaml:"maximo numero conexoes abertas"`
 	} `yaml:"banco de dados"`
+
+	// Proxies define a lista de endereços IPs que podem informar os cabeçalhos
+	// HTTP X-Forwarded-For ou X-Real-IP para identificar os clientes finais.
+	Proxies []net.IP `yaml:"proxies"`
 }
 
 // Atual retorna a configuração atual do sistema, armazenada internamente em uma

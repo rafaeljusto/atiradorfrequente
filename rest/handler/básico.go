@@ -20,6 +20,8 @@ type correnteBásica interface {
 	Req() *http.Request
 	DefineEndereçoRemoto(net.IP)
 	EndereçoRemoto() net.IP
+	EndereçoProxy() net.IP
+	DefineEndereçoProxy(net.IP)
 	DefineLogger(log.Logger)
 	Logger() log.Logger
 }

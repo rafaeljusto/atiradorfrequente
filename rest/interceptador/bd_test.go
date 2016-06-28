@@ -22,6 +22,7 @@ func TestBD_Before(t *testing.T) {
 		descrição          string
 		iniciarConexão     func(db.ConnParams, time.Duration) error
 		conexão            bd.BD
+		configuração       *config.Configuração
 		logger             log.Logger
 		códigoHTTPEsperado int
 		sqloggerEsperado   *bd.SQLogger
@@ -73,6 +74,19 @@ func TestBD_Before(t *testing.T) {
 
 				return nil
 			},
+			configuração: func() *config.Configuração {
+				configuração := new(config.Configuração)
+				configuração.BancoDados.Endereço = "127.0.0.1"
+				configuração.BancoDados.Nome = "teste"
+				configuração.BancoDados.Usuário = "usuario"
+				configuração.BancoDados.Senha = "senha"
+				configuração.BancoDados.TempoEsgotadoConexão = 2 * time.Second
+				configuração.BancoDados.TempoEsgotadoComando = 10 * time.Second
+				configuração.BancoDados.TempoEsgotadoTransação = 1 * time.Second
+				configuração.BancoDados.MáximoNúmeroConexõesInativas = 16
+				configuração.BancoDados.MáximoNúmeroConexõesAbertas = 32
+				return configuração
+			}(),
 			logger: simulador.Logger{
 				SimulaDebug: func(m ...interface{}) {
 					mensagem := fmt.Sprint(m...)
@@ -84,12 +98,43 @@ func TestBD_Before(t *testing.T) {
 			sqloggerEsperado: bd.NovoSQLogger(simulador.Tx{}),
 		},
 		{
+			descrição: "deve detectar quando a configuração não foi inicializada",
+			logger: simulador.Logger{
+				SimulaCrit: func(m ...interface{}) {
+					mensagem := fmt.Sprint(m...)
+					if mensagem != "Não existe configuração definida para iniciar a conexão com o banco de dados" {
+						t.Errorf("mensagem inesperada: %s", mensagem)
+					}
+				},
+				SimulaDebug: func(m ...interface{}) {
+					mensagem := fmt.Sprint(m...)
+					if mensagem != "Interceptador Antes: BD" {
+						t.Errorf("mensagem inesperada: %s", mensagem)
+					}
+				},
+			},
+			códigoHTTPEsperado: http.StatusInternalServerError,
+		},
+		{
 			descrição: "deve ignorar quando já existe uma conexão aberta",
 			conexão: simulador.BD{
 				SimulaBegin: func() (bd.Tx, error) {
 					return simulador.Tx{}, nil
 				},
 			},
+			configuração: func() *config.Configuração {
+				configuração := new(config.Configuração)
+				configuração.BancoDados.Endereço = "127.0.0.1"
+				configuração.BancoDados.Nome = "teste"
+				configuração.BancoDados.Usuário = "usuario"
+				configuração.BancoDados.Senha = "senha"
+				configuração.BancoDados.TempoEsgotadoConexão = 2 * time.Second
+				configuração.BancoDados.TempoEsgotadoComando = 10 * time.Second
+				configuração.BancoDados.TempoEsgotadoTransação = 1 * time.Second
+				configuração.BancoDados.MáximoNúmeroConexõesInativas = 16
+				configuração.BancoDados.MáximoNúmeroConexõesAbertas = 32
+				return configuração
+			}(),
 			logger: simulador.Logger{
 				SimulaDebug: func(m ...interface{}) {
 					mensagem := fmt.Sprint(m...)
@@ -105,6 +150,19 @@ func TestBD_Before(t *testing.T) {
 			iniciarConexão: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
 				return errors.Errorf("erro de conexão")
 			},
+			configuração: func() *config.Configuração {
+				configuração := new(config.Configuração)
+				configuração.BancoDados.Endereço = "127.0.0.1"
+				configuração.BancoDados.Nome = "teste"
+				configuração.BancoDados.Usuário = "usuario"
+				configuração.BancoDados.Senha = "senha"
+				configuração.BancoDados.TempoEsgotadoConexão = 2 * time.Second
+				configuração.BancoDados.TempoEsgotadoComando = 10 * time.Second
+				configuração.BancoDados.TempoEsgotadoTransação = 1 * time.Second
+				configuração.BancoDados.MáximoNúmeroConexõesInativas = 16
+				configuração.BancoDados.MáximoNúmeroConexõesAbertas = 32
+				return configuração
+			}(),
 			logger: simulador.Logger{
 				SimulaCritf: func(m string, a ...interface{}) {
 					mensagem := fmt.Sprintf(m, a...)
@@ -132,6 +190,19 @@ func TestBD_Before(t *testing.T) {
 
 				return nil
 			},
+			configuração: func() *config.Configuração {
+				configuração := new(config.Configuração)
+				configuração.BancoDados.Endereço = "127.0.0.1"
+				configuração.BancoDados.Nome = "teste"
+				configuração.BancoDados.Usuário = "usuario"
+				configuração.BancoDados.Senha = "senha"
+				configuração.BancoDados.TempoEsgotadoConexão = 2 * time.Second
+				configuração.BancoDados.TempoEsgotadoComando = 10 * time.Second
+				configuração.BancoDados.TempoEsgotadoTransação = 1 * time.Second
+				configuração.BancoDados.MáximoNúmeroConexõesInativas = 16
+				configuração.BancoDados.MáximoNúmeroConexõesAbertas = 32
+				return configuração
+			}(),
 			logger: simulador.Logger{
 				SimulaErrorf: func(m string, a ...interface{}) {
 					mensagem := fmt.Sprintf(m, a...)
@@ -150,9 +221,9 @@ func TestBD_Before(t *testing.T) {
 		},
 	}
 
-	configuraçãoRESTOriginal := config.Atual()
+	configuraçãoOriginal := config.Atual()
 	defer func() {
-		config.AtualizarConfiguração(configuraçãoRESTOriginal)
+		config.AtualizarConfiguração(configuraçãoOriginal)
 	}()
 
 	iniciarConexãoOriginal := bd.IniciarConexão
@@ -165,19 +236,8 @@ func TestBD_Before(t *testing.T) {
 		bd.Conexão = conexãoOriginal
 	}()
 
-	var configuração config.Configuração
-	configuração.BancoDados.Endereço = "127.0.0.1"
-	configuração.BancoDados.Nome = "teste"
-	configuração.BancoDados.Usuário = "usuario"
-	configuração.BancoDados.Senha = "senha"
-	configuração.BancoDados.TempoEsgotadoConexão = 2 * time.Second
-	configuração.BancoDados.TempoEsgotadoComando = 10 * time.Second
-	configuração.BancoDados.TempoEsgotadoTransação = 1 * time.Second
-	configuração.BancoDados.MáximoNúmeroConexõesInativas = 16
-	configuração.BancoDados.MáximoNúmeroConexõesAbertas = 32
-	config.AtualizarConfiguração(&configuração)
-
 	for i, cenário := range cenários {
+		config.AtualizarConfiguração(cenário.configuração)
 		bd.IniciarConexão = cenário.iniciarConexão
 		bd.Conexão = cenário.conexão
 
