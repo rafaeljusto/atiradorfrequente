@@ -50,10 +50,10 @@ Abaixo a lista de serviços a serem implementadas neste projeto. Conforme
 surgirem novos serviços ou os listados forem concluídos esta tabela será
 alterada.
 
-| Descrição                           | REST    | WEB     | URI                                        |
-| ----------------------------------- | :-----: | :-----: | ------------------------------------------ |
-| Criar uma freqência (clube)         | `[   ]` | `[   ]` | `[POST] /frequencia/{cr}`                  |
-| Confirmar uma frequência (clube)    | `[   ]` | `[   ]` | `[PUT]  /frequencia/{cr}/{numeroControle}` |
-| Cadastrar um clube (administrativo) | `[   ]` | `[   ]` | `[POST] /clube`                            |
-| Login (clube e administrativo)      | `[   ]` | `[   ]` | `[POST] /login`                            |
-| Listar frequências (administrativo) | `[   ]` | `[   ]` | `[GET]  /frequencia`                       |
+| Descrição                            | REST    | WEB     | URI                                         |
+| ------------------------------------ | :-----: | :-----: | ------------------------------------------- |
+| Criar uma freqência (clube)          | `[   ]` | `[   ]` | /frequencia/{cr} **[POST]**                 |
+| Confirmar uma frequência (clube)     | `[   ]` | `[   ]` | /frequencia/{cr}/{numeroControle} **[PUT]** |
+| Cadastrar um clube (administrativo?) | `[   ]` | `[   ]` | /clube **[POST]**                           |
+| Login (clube e administrativo)       | `[   ]` | `[   ]` | /login **[POST]**                           |
+| Listar frequências (administrativo)  | `[   ]` | `[   ]` | /frequencia **[GET]**                       |
