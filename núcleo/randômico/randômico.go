@@ -1,3 +1,6 @@
+// Package randômico disponibiliza uma fonte randômica global seguindo a
+// estratégia de Nishanth Shanmugham em
+// https://nishanths.svbtle.com/do-not-seed-the-global-random
 package randômico
 
 import (
@@ -16,8 +19,6 @@ func init() {
 	})
 }
 
-// travaFonteRandômica segue a estratégia definida em
-// https://nishanths.svbtle.com/do-not-seed-the-global-random
 type travaFonteRandômica struct {
 	sync.Mutex
 	rand.Source

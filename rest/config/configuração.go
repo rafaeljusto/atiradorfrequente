@@ -1,3 +1,6 @@
+// Package config armazena as configurações relacionadas ao servidor REST. Para
+// facilitar a usabilidade uma variável global estará disponível para acessar os
+// dados de configuração.
 package config
 
 import (

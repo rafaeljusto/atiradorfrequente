@@ -1,3 +1,5 @@
+// Package erros adiciona uma camada extra a estrutura de erros do gostk
+// tratando alguns casos excepcionais.
 package erros
 
 import (
