@@ -2,6 +2,7 @@ package atirador
 
 import (
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 )
 
@@ -31,7 +32,13 @@ type serviço struct {
 }
 
 func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
-	// TODO(rafaeljusto): Persistir na base de dados
+	f := novaFrequência(frequênciaPedidoCompleta)
+
+	dao := novaFrequênciaDAO(s.sqlogger)
+	if err := dao.criar(&f); err != nil {
+		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)
+	}
+
 	// TODO(rafaeljusto): Criar imagem com o número de controle
 	return protocolo.FrequênciaPendenteResposta{}, nil
 }
