@@ -27,10 +27,7 @@ func (f frequênciaDAOImpl) criar(frequência *frequência) error {
 	frequência.DataCriação = time.Now().UTC()
 	frequência.revisão = 0
 
-	sql := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (DEFAULT, %s)`,
-		frequênciaTabela, frequênciaCriaçãoCamposTexto, bd.MarcadoresPSQL(len(frequênciaCriaçãoCampos)-1))
-
-	resultado, err := f.sqlogger.Exec(sql,
+	resultado, err := f.sqlogger.Exec(frequênciaCriaçãoComando,
 		frequência.Controle,
 		frequência.CR,
 		frequência.Calibre,
@@ -61,15 +58,7 @@ func (f frequênciaDAOImpl) atualizar(frequência *frequência) error {
 	frequência.DataAtualização = time.Now().UTC()
 	frequência.revisão++
 
-	sql := fmt.Sprintf(`UPDATE %s SET
-	data_atualizacao = $1,
-	data_confirmacao = $2,
-	revisao = $3,
-	imagem_numero_controle = $4,
-	imagem_confirmacao = $5
-	WHERE id = $6 AND revisao = $7`, frequênciaTabela)
-
-	resultado, err := f.sqlogger.Exec(sql,
+	resultado, err := f.sqlogger.Exec(frequênciaAtualizaçãoComando,
 		frequência.DataAtualização.UTC(),
 		frequência.DataConfirmação.UTC(),
 		frequência.revisão,
@@ -99,10 +88,7 @@ func (f frequênciaDAOImpl) atualizar(frequência *frequência) error {
 }
 
 func (f frequênciaDAOImpl) resgatar(id int64) (frequência, error) {
-	sql := fmt.Sprintf(`SELECT %s FROM %s WHERE id = $1`,
-		frequênciaTabela, frequênciaResgateCamposTexto)
-
-	resultado := f.sqlogger.QueryRow(sql, id)
+	resultado := f.sqlogger.QueryRow(frequênciaResgateComando, id)
 
 	var freq frequência
 	err := resultado.Scan(
@@ -145,6 +131,16 @@ var (
 		"revisao",
 	}
 	frequênciaCriaçãoCamposTexto = strings.Join(frequênciaCriaçãoCampos, ", ")
+	frequênciaCriaçãoComando     = fmt.Sprintf(`INSERT INTO %s (%s) VALUES (DEFAULT, %s)`,
+		frequênciaTabela, frequênciaCriaçãoCamposTexto, bd.MarcadoresPSQL(len(frequênciaCriaçãoCampos)-1))
+
+	frequênciaAtualizaçãoComando = fmt.Sprintf(`UPDATE %s SET
+	data_atualizacao = $1,
+	data_confirmacao = $2,
+	revisao = $3,
+	imagem_numero_controle = $4,
+	imagem_confirmacao = $5
+	WHERE id = $6 AND revisao = $7`, frequênciaTabela)
 
 	frequênciaResgateCampos = []string{
 		"id",
@@ -165,4 +161,6 @@ var (
 		"revisao",
 	}
 	frequênciaResgateCamposTexto = strings.Join(frequênciaResgateCampos, ", ")
+	frequênciaResgateComando     = fmt.Sprintf(`SELECT %s FROM %s WHERE id = $1`,
+		frequênciaTabela, frequênciaResgateCamposTexto)
 )
