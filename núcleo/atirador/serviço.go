@@ -45,5 +45,6 @@ func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.Frequ
 
 func (s serviço) ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
 	// TODO(rafaeljusto): Persistir imagem de confirmação
+	// TODO(rafaeljusto): Adicionar regras/políticas (máximo intervalo para confirmação)
 	return nil
 }
