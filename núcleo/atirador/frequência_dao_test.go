@@ -2,11 +2,10 @@ package atirador
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"testing"
 	"time"
-
-	"database/sql/driver"
 
 	"github.com/erikstmartin/go-testdb"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
@@ -26,7 +25,7 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 	cenários := []struct {
 		descrição          string
 		simulação          func()
-		frequência         frequência
+		frequência         *frequência
 		frequênciaEsperada frequência
 		erroEsperado       error
 	}{
@@ -34,8 +33,12 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 			descrição: "deve criar corretamente a frequência",
 			simulação: func() {
 				testdb.StubExec(frequênciaCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 			},
-			frequência: frequência{
+			frequência: &frequência{
 				Controle:          98765,
 				CR:                "1234567890",
 				Calibre:           ".380",
@@ -63,11 +66,15 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 			},
 		},
 		{
+			descrição:    "deve detectar quando a frequência não está definida",
+			erroEsperado: erros.ObjetoIndefinido,
+		},
+		{
 			descrição: "deve detectar um erro ao criar a frequência",
 			simulação: func() {
 				testdb.StubExecError(frequênciaCriaçãoComando, fmt.Errorf("erro de execução"))
 			},
-			frequência: frequência{
+			frequência: &frequência{
 				Controle:          98765,
 				CR:                "1234567890",
 				Calibre:           ".380",
@@ -86,7 +93,7 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 			simulação: func() {
 				testdb.StubExec(frequênciaCriaçãoComando, testdb.NewResult(0, fmt.Errorf("erro com o ID"), 1, nil))
 			},
-			frequência: frequência{
+			frequência: &frequência{
 				Controle:          98765,
 				CR:                "1234567890",
 				Calibre:           ".380",
@@ -100,27 +107,77 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 			},
 			erroEsperado: errors.Errorf("erro com o ID"),
 		},
+		{
+			descrição: "deve detectar um erro ao gerar uma identificação de log",
+			simulação: func() {
+				testdb.StubExec(frequênciaCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				testdb.StubExecError(logCriaçãoComando, fmt.Errorf("erro na criação do id log"))
+			},
+			frequência: &frequência{
+				Controle:          98765,
+				CR:                "1234567890",
+				Calibre:           ".380",
+				ArmaUtilizada:     "Arma Clube",
+				NúmeroSérie:       "ZA785671",
+				GuiaDeTráfego:     "XYZ12345",
+				QuantidadeMunição: 50,
+				DataInício:        data.Add(-1 * time.Hour),
+				DataTérmino:       data.Add(-10 * time.Minute),
+				revisão:           2, // revisão sempre inicia com zero
+			},
+			erroEsperado: errors.Errorf("erro na criação do id log"),
+		},
+		{
+			descrição: "deve detectar um erro ao gerar uma entrada de log",
+			simulação: func() {
+				testdb.StubExec(frequênciaCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				testdb.StubExecError(frequênciaLogCriaçãoComando, fmt.Errorf("erro na criação do log"))
+
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+			},
+			frequência: &frequência{
+				Controle:          98765,
+				CR:                "1234567890",
+				Calibre:           ".380",
+				ArmaUtilizada:     "Arma Clube",
+				NúmeroSérie:       "ZA785671",
+				GuiaDeTráfego:     "XYZ12345",
+				QuantidadeMunição: 50,
+				DataInício:        data.Add(-1 * time.Hour),
+				DataTérmino:       data.Add(-10 * time.Minute),
+				revisão:           2, // revisão sempre inicia com zero
+			},
+			erroEsperado: errors.Errorf("erro na criação do log"),
+		},
 	}
 
 	for i, cenário := range cenários {
 		testdb.Reset()
-		cenário.simulação()
-
-		dao := novaFrequênciaDAO(bd.NovoSQLogger(conexão))
-		err := dao.criar(&cenário.frequência)
-
-		if cenário.frequência.DataCriação.Before(cenário.frequênciaEsperada.DataCriação) {
-			t.Errorf("Item %d, “%s”: data de criação inesperada. Esperava que fosse após “%s”, e foi “%s”",
-				i, cenário.descrição, cenário.frequênciaEsperada.DataCriação, cenário.frequência.DataCriação)
+		if cenário.simulação != nil {
+			cenário.simulação()
 		}
 
-		// Após comparar as datas, deixamos elas iguais para comparar os demais
-		// campos. Isto é necessário pois não é possível prever a data de criação já
-		// que é definida no próprio método.
-		cenário.frequênciaEsperada.DataCriação = cenário.frequência.DataCriação
+		dao := novaFrequênciaDAO(bd.NovoSQLogger(conexão))
+		err := dao.criar(cenário.frequência)
+
+		if cenário.frequência != nil {
+			if cenário.frequência.DataCriação.Before(cenário.frequênciaEsperada.DataCriação) {
+				t.Errorf("Item %d, “%s”: data de criação inesperada. Esperava que fosse após “%s”, e foi “%s”",
+					i, cenário.descrição, cenário.frequênciaEsperada.DataCriação, cenário.frequência.DataCriação)
+			}
+
+			// Após comparar as datas, deixamos elas iguais para comparar os demais
+			// campos. Isto é necessário pois não é possível prever a data de criação já
+			// que é definida no próprio método.
+			cenário.frequênciaEsperada.DataCriação = cenário.frequência.DataCriação
+		}
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
-		verificadorResultado.DefinirEsperado(cenário.frequênciaEsperada, cenário.erroEsperado)
+		verificadorResultado.DefinirEsperado(&cenário.frequênciaEsperada, cenário.erroEsperado)
 		if err = verificadorResultado.VerificaResultado(cenário.frequência, err); err != nil {
 			t.Error(err)
 		}
@@ -138,7 +195,7 @@ func TestFrequênciaDAOImpl_atualizar(t *testing.T) {
 	cenários := []struct {
 		descrição          string
 		simulação          func()
-		frequência         frequência
+		frequência         *frequência
 		frequênciaEsperada frequência
 		erroEsperado       error
 	}{
@@ -146,8 +203,12 @@ func TestFrequênciaDAOImpl_atualizar(t *testing.T) {
 			descrição: "deve atualizar corretamente a frequência",
 			simulação: func() {
 				testdb.StubExec(frequênciaAtualizaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 			},
-			frequência: frequência{
+			frequência: &frequência{
 				ID:                1,
 				Controle:          98765,
 				CR:                "1234567890",
@@ -200,11 +261,15 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
 		},
 		{
+			descrição:    "deve detectar quando a frequência não está definida",
+			erroEsperado: erros.ObjetoIndefinido,
+		},
+		{
 			descrição: "deve detectar um erro ao atualizar a frequência",
 			simulação: func() {
 				testdb.StubExecError(frequênciaAtualizaçãoComando, fmt.Errorf("erro de execução"))
 			},
-			frequência: frequência{
+			frequência: &frequência{
 				ID:                1,
 				Controle:          98765,
 				CR:                "1234567890",
@@ -236,7 +301,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			simulação: func() {
 				testdb.StubExec(frequênciaAtualizaçãoComando, testdb.NewResult(0, nil, 1, fmt.Errorf("erro com o ID")))
 			},
-			frequência: frequência{
+			frequência: &frequência{
 				ID:                1,
 				Controle:          98765,
 				CR:                "1234567890",
@@ -268,7 +333,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			simulação: func() {
 				testdb.StubExec(frequênciaAtualizaçãoComando, testdb.NewResult(0, nil, 0, nil))
 			},
-			frequência: frequência{
+			frequência: &frequência{
 				ID:                1,
 				Controle:          98765,
 				CR:                "1234567890",
@@ -299,23 +364,27 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 
 	for i, cenário := range cenários {
 		testdb.Reset()
-		cenário.simulação()
-
-		dao := novaFrequênciaDAO(bd.NovoSQLogger(conexão))
-		err := dao.atualizar(&cenário.frequência)
-
-		if cenário.frequência.DataAtualização.Before(cenário.frequênciaEsperada.DataAtualização) {
-			t.Errorf("Item %d, “%s”: data de atualização inesperada. Esperava que fosse após “%s”, e foi “%s”",
-				i, cenário.descrição, cenário.frequênciaEsperada.DataAtualização, cenário.frequência.DataAtualização)
+		if cenário.simulação != nil {
+			cenário.simulação()
 		}
 
-		// Após comparar as datas, deixamos elas iguais para comparar os demais
-		// campos. Isto é necessário pois não é possível prever a data de atualização já
-		// que é definida no próprio método.
-		cenário.frequênciaEsperada.DataAtualização = cenário.frequência.DataAtualização
+		dao := novaFrequênciaDAO(bd.NovoSQLogger(conexão))
+		err := dao.atualizar(cenário.frequência)
+
+		if cenário.frequência != nil {
+			if cenário.frequência.DataAtualização.Before(cenário.frequênciaEsperada.DataAtualização) {
+				t.Errorf("Item %d, “%s”: data de atualização inesperada. Esperava que fosse após “%s”, e foi “%s”",
+					i, cenário.descrição, cenário.frequênciaEsperada.DataAtualização, cenário.frequência.DataAtualização)
+			}
+
+			// Após comparar as datas, deixamos elas iguais para comparar os demais
+			// campos. Isto é necessário pois não é possível prever a data de atualização já
+			// que é definida no próprio método.
+			cenário.frequênciaEsperada.DataAtualização = cenário.frequência.DataAtualização
+		}
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
-		verificadorResultado.DefinirEsperado(cenário.frequênciaEsperada, cenário.erroEsperado)
+		verificadorResultado.DefinirEsperado(&cenário.frequênciaEsperada, cenário.erroEsperado)
 		if err = verificadorResultado.VerificaResultado(cenário.frequência, err); err != nil {
 			t.Error(err)
 		}

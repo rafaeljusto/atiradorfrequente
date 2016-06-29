@@ -24,6 +24,10 @@ type frequênciaDAOImpl struct {
 }
 
 func (f frequênciaDAOImpl) criar(frequência *frequência) error {
+	if frequência == nil {
+		return erros.Novo(erros.ObjetoIndefinido)
+	}
+
 	frequência.DataCriação = time.Now().UTC()
 	frequência.revisão = 0
 
@@ -49,12 +53,15 @@ func (f frequênciaDAOImpl) criar(frequência *frequência) error {
 		return erros.Novo(err)
 	}
 
-	// TODO(rafaeljusto): inserir na tabela log
-
-	return nil
+	frequênciaLogDAO := novaFrequênciaLogDAO(f.sqlogger)
+	return erros.Novo(frequênciaLogDAO.criar(*frequência, bd.AçãoLogCriação))
 }
 
 func (f frequênciaDAOImpl) atualizar(frequência *frequência) error {
+	if frequência == nil {
+		return erros.Novo(erros.ObjetoIndefinido)
+	}
+
 	frequência.DataAtualização = time.Now().UTC()
 	frequência.revisão++
 
@@ -82,9 +89,8 @@ func (f frequênciaDAOImpl) atualizar(frequência *frequência) error {
 		return erros.NãoAtualizado
 	}
 
-	// TODO(rafaeljusto): inserir na tabela log
-
-	return nil
+	frequênciaLogDAO := novaFrequênciaLogDAO(f.sqlogger)
+	return erros.Novo(frequênciaLogDAO.criar(*frequência, bd.AçãoLogAtualização))
 }
 
 func (f frequênciaDAOImpl) resgatar(id int64) (frequência, error) {
