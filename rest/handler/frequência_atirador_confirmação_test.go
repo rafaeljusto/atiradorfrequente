@@ -18,7 +18,7 @@ func TestFrequênciaAtiradorConfirmação_Put(t *testing.T) {
 	cenários := []struct {
 		descrição                   string
 		cr                          string
-		númeroControle              int64
+		númeroControle              protocolo.NúmeroControle
 		frequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedido
 		logger                      log.Logger
 		serviçoAtirador             atirador.Serviço
@@ -27,7 +27,7 @@ func TestFrequênciaAtiradorConfirmação_Put(t *testing.T) {
 		{
 			descrição:      "deve confirmar corretamente os dados de frequência do atirador",
 			cr:             "123456789",
-			númeroControle: 918273645,
+			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 			frequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
 IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
@@ -45,7 +45,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		{
 			descrição:      "deve detectar um erro na camada de serviço do atirador",
 			cr:             "123456789",
-			númeroControle: 918273645,
+			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 			frequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
 IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg

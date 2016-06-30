@@ -19,7 +19,7 @@ type frequênciaAtiradorConfirmação struct {
 	interceptador.BDCompatível
 
 	CR                          string                                `urivar:"cr"`
-	NúmeroControle              int64                                 `urivar:"numeroControle"`
+	NúmeroControle              protocolo.NúmeroControle              `urivar:"numeroControle"`
 	FrequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedido `request:"put"`
 }
 

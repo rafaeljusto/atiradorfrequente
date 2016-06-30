@@ -42,9 +42,9 @@ func TestNovaFrequênciaPedidoCompleta(t *testing.T) {
 
 	for i, cenário := range cenários {
 		freqênciaPedidoCompleta := protocolo.NovaFrequênciaPedidoCompleta(cenário.cr, cenário.frequênciaPedido)
+
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(cenário.esperado, nil)
-
 		if err := verificadorResultado.VerificaResultado(freqênciaPedidoCompleta, nil); err != nil {
 			t.Error(err)
 		}
@@ -55,14 +55,14 @@ func TestNovaFrequênciaConfirmaçãoPedidoCompleta(t *testing.T) {
 	cenários := []struct {
 		descrição                   string
 		cr                          string
-		númeroControle              int64
+		númeroControle              protocolo.NúmeroControle
 		frequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedido
 		esperado                    protocolo.FrequênciaConfirmaçãoPedidoCompleta
 	}{
 		{
 			descrição:      "deve inicializar um objeto do tipo FrequênciaPedidoCompleta corretamente",
 			cr:             "123456789",
-			númeroControle: 918273645,
+			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 			frequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
 IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
@@ -72,7 +72,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
 			esperado: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
 				CR:             "123456789",
-				NúmeroControle: 918273645,
+				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
 IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
@@ -86,10 +86,110 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 
 	for i, cenário := range cenários {
 		freqênciaPedidoCompleta := protocolo.NovaFrequênciaConfirmaçãoPedidoCompleta(cenário.cr, cenário.númeroControle, cenário.frequênciaConfirmaçãoPedido)
+
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(cenário.esperado, nil)
-
 		if err := verificadorResultado.VerificaResultado(freqênciaPedidoCompleta, nil); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func TestNovoNúmeroControle(t *testing.T) {
+	cenários := []struct {
+		descrição string
+		id        int64
+		controle  int64
+		esperado  protocolo.NúmeroControle
+	}{
+		{
+			descrição: "deve construir corretamente o número de controle",
+			id:        123456789,
+			controle:  987654321,
+			esperado:  protocolo.NúmeroControle("123456789-987654321"),
+		},
+	}
+
+	for i, cenário := range cenários {
+		númeroControle := protocolo.NovoNúmeroControle(cenário.id, cenário.controle)
+
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.esperado, nil)
+		if err := verificadorResultado.VerificaResultado(númeroControle, nil); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func TestNúmeroControle_ID(t *testing.T) {
+	cenários := []struct {
+		descrição      string
+		númeroControle protocolo.NúmeroControle
+		idEsperado     int64
+	}{
+		{
+			descrição:      "deve extrair corretamente a identificação do número de controle",
+			númeroControle: protocolo.NúmeroControle("123456789-987654321"),
+			idEsperado:     123456789,
+		},
+		{
+			descrição:      "deve tratar o caso de quando não existe o número aleatório",
+			númeroControle: protocolo.NúmeroControle("123456789"),
+			idEsperado:     123456789,
+		},
+		{
+			descrição:      "deve tratar o caso de número de controle indefinido",
+			númeroControle: protocolo.NúmeroControle(""),
+			idEsperado:     0,
+		},
+		{
+			descrição:      "deve tratar o caso de número de controle inválido",
+			númeroControle: protocolo.NúmeroControle("X-X"),
+			idEsperado:     0,
+		},
+	}
+
+	for i, cenário := range cenários {
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.idEsperado, nil)
+		if err := verificadorResultado.VerificaResultado(cenário.númeroControle.ID(), nil); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func TestNúmeroControle_Controle(t *testing.T) {
+	cenários := []struct {
+		descrição        string
+		númeroControle   protocolo.NúmeroControle
+		controleEsperado int64
+	}{
+		{
+			descrição:        "deve extrair corretamente o número aleatório do número de controle",
+			númeroControle:   protocolo.NúmeroControle("123456789-987654321"),
+			controleEsperado: 987654321,
+		},
+		{
+			descrição:        "deve detectar quando não existe o número aleatório",
+			númeroControle:   protocolo.NúmeroControle("123456789"),
+			controleEsperado: 0,
+		},
+		{
+			descrição:        "deve tratar o caso de número de controle indefinido",
+			númeroControle:   protocolo.NúmeroControle(""),
+			controleEsperado: 0,
+		},
+		{
+			descrição:        "deve tratar o caso de número de controle inválido",
+			númeroControle:   protocolo.NúmeroControle("X-X"),
+			controleEsperado: 0,
+		},
+	}
+
+	for i, cenário := range cenários {
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.controleEsperado, nil)
+		if err := verificadorResultado.VerificaResultado(cenário.númeroControle.Controle(), nil); err != nil {
 			t.Error(err)
 		}
 	}

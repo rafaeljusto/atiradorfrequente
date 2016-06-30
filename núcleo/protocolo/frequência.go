@@ -1,6 +1,11 @@
 package protocolo
 
-import "time"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+)
 
 // FrequênciaPedido armazena os dados exigidos pelo Exército ao utilizar um
 // estande de Tiro.
@@ -37,8 +42,8 @@ func NovaFrequênciaPedidoCompleta(cr string, frequênciaPedido FrequênciaPedid
 // FrequênciaPendenteResposta armazena os dados que permitem ao Clube de Tiro
 // confirmar a presença do Atirador.
 type FrequênciaPendenteResposta struct {
-	NúmeroControle int64  `json:"numeroControle"`
-	Imagem         string `json:"imagem"` // base64
+	NúmeroControle NúmeroControle `json:"numeroControle"`
+	Imagem         string         `json:"imagem"` // base64
 }
 
 // FrequênciaConfirmaçãoPedido armazena os dados necessários para confirmar a
@@ -52,17 +57,61 @@ type FrequênciaConfirmaçãoPedido struct {
 // no endereço.
 type FrequênciaConfirmaçãoPedidoCompleta struct {
 	CR             string
-	NúmeroControle int64
+	NúmeroControle NúmeroControle
 	FrequênciaConfirmaçãoPedido
 }
 
 // NovaFrequênciaConfirmaçãoPedidoCompleta inicializa o tipo
 // FrequênciaConfirmaçãoPedidoCompleta a partir do CR, número de controle e do
 // tipo FrequênciaConfirmaçãoPedido.
-func NovaFrequênciaConfirmaçãoPedidoCompleta(cr string, númeroControle int64, frequênciaConfirmaçãoPedido FrequênciaConfirmaçãoPedido) FrequênciaConfirmaçãoPedidoCompleta {
+func NovaFrequênciaConfirmaçãoPedidoCompleta(cr string, númeroControle NúmeroControle, frequênciaConfirmaçãoPedido FrequênciaConfirmaçãoPedido) FrequênciaConfirmaçãoPedidoCompleta {
 	return FrequênciaConfirmaçãoPedidoCompleta{
 		CR:                          cr,
 		NúmeroControle:              númeroControle,
 		FrequênciaConfirmaçãoPedido: frequênciaConfirmaçãoPedido,
 	}
+}
+
+// NúmeroControle número gerado a partir do cadastro de uma frequência para
+// comprovação da presença física do atirador no estande de tiro. Formado a
+// partir do número de identificação da frequência com um número gerado
+// aleatoriamente.
+type NúmeroControle string
+
+// NovoNúmeroControle gera um novo número de controle a partir do número de
+// identificação da frequência com um número gerado aleatoriamente, chamado de
+// controle.
+func NovoNúmeroControle(id int64, controle int64) NúmeroControle {
+	return NúmeroControle(fmt.Sprintf("%d-%d", id, controle))
+}
+
+// ID retorna o número de identificação da frequência contido no número de
+// controle.
+func (n NúmeroControle) ID() int64 {
+	valor := string(n)
+	partes := strings.Split(valor, "-")
+
+	id, err := strconv.ParseInt(partes[0], 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return id
+}
+
+// Controle retorna o número aleatório contido no número de controle.
+func (n NúmeroControle) Controle() int64 {
+	valor := string(n)
+	partes := strings.Split(valor, "-")
+
+	if len(partes) != 2 {
+		return 0
+	}
+
+	controle, err := strconv.ParseInt(partes[1], 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return controle
 }
