@@ -4,9 +4,11 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/rafaeljusto/atiradorfrequente/rest/interceptador"
 	"github.com/registrobr/gostk/log"
 	"github.com/trajber/handy"
+	"github.com/trajber/handy/interceptor"
 )
 
 type básico struct {
@@ -14,6 +16,8 @@ type básico struct {
 	interceptador.CabeçalhoCompatível
 	interceptador.EndereçoRemotoCompatível
 	interceptador.LogCompatível
+	interceptador.MensagensCompatível
+	interceptor.IntrospectorCompliant
 }
 
 type correnteBásica interface {
@@ -24,10 +28,16 @@ type correnteBásica interface {
 	DefineEndereçoProxy(net.IP)
 	DefineLogger(log.Logger)
 	Logger() log.Logger
+	URIVars() handy.URIVars
+	Field(tag, valor string) interface{}
+	SetFields(interceptor.StructFields)
+	DefineMensagens(protocolo.Mensagens)
 }
 
 func criarCorrenteBásica(c correnteBásica) handy.InterceptorChain {
 	return handy.NewInterceptorChain().
 		Chain(interceptador.NovoEndereçoRemoto(c)).
-		Chain(interceptador.NovoLog(c))
+		Chain(interceptador.NovoLog(c)).
+		Chain(interceptor.NewIntrospector(c)).
+		Chain(interceptador.NovaVariáveisEndereço(c))
 }

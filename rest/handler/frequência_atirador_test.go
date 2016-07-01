@@ -119,6 +119,8 @@ func TestFrequênciaAtirador_Interceptors(t *testing.T) {
 	esperado := []string{
 		"*interceptador.EndereçoRemoto",
 		"*interceptador.Log",
+		"*interceptor.Introspector",
+		"*interceptador.VariáveisEndereço",
 		"*interceptador.BD",
 	}
 
