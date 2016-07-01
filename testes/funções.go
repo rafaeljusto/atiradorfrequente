@@ -59,15 +59,15 @@ func (c *VerificadorResultados) VerificaResultado(resultado interface{}, err err
 			c.índice, c.descrição, c.erroEsperado, err)
 	}
 
-	value := reflect.ValueOf(c.erroEsperado)
-	checkValue := value.Kind() == reflect.Chan ||
-		value.Kind() == reflect.Func ||
-		value.Kind() == reflect.Interface ||
-		value.Kind() == reflect.Map ||
-		value.Kind() == reflect.Ptr ||
-		value.Kind() == reflect.Slice
+	valor := reflect.ValueOf(c.erroEsperado)
+	verificaValor := valor.Kind() == reflect.Chan ||
+		valor.Kind() == reflect.Func ||
+		valor.Kind() == reflect.Interface ||
+		valor.Kind() == reflect.Map ||
+		valor.Kind() == reflect.Ptr ||
+		valor.Kind() == reflect.Slice
 
-	if c.erroEsperado == nil || (checkValue && value.IsNil()) {
+	if c.erroEsperado == nil || (verificaValor && valor.IsNil()) {
 		if !reflect.DeepEqual(resultado, c.resultadoEsperado) {
 			return fmt.Errorf("Item %d, “%s”: resultados não batem.\n%s",
 				c.índice, c.descrição, Diff(c.resultadoEsperado, resultado))
