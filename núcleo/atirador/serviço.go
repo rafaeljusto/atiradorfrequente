@@ -44,8 +44,20 @@ func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.Frequ
 }
 
 func (s serviço) ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
-	// TODO(rafaeljusto): Persistir imagem de confirmação
-	// TODO(rafaeljusto): Adicionar regras/políticas (verificar número de
-	// controle, máximo intervalo para confirmação)
-	return nil
+	dao := novaFrequênciaDAO(s.sqlogger)
+	frequência, err := dao.resgatar(frequênciaConfirmaçãoPedidoCompleta.NúmeroControle.ID())
+	if err != nil {
+		return erros.Novo(err)
+	}
+
+	if mensagens := protocolo.JuntarMensagens(
+		validarCR(frequênciaConfirmaçãoPedidoCompleta.CR, frequência),
+		validarNúmeroControle(frequênciaConfirmaçãoPedidoCompleta.NúmeroControle, frequência),
+		validarIntervaloMáximoConfirmação(frequência),
+	); len(mensagens) > 0 {
+		return mensagens
+	}
+
+	frequência.confirmar(frequênciaConfirmaçãoPedidoCompleta)
+	return erros.Novo(dao.atualizar(&frequência))
 }

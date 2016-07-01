@@ -30,6 +30,11 @@ type frequência struct {
 	revisão int
 }
 
+func (f *frequência) confirmar(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) {
+	f.DataConfirmação = time.Now().UTC()
+	f.ImagemConfirmação = frequênciaConfirmaçãoPedidoCompleta.Imagem
+}
+
 func novaFrequência(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) frequência {
 	return frequência{
 		Controle:          randômico.FonteRandômica.Int63(),

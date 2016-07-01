@@ -85,6 +85,11 @@ func NovoNúmeroControle(id int64, controle int64) NúmeroControle {
 	return NúmeroControle(fmt.Sprintf("%d-%d", id, controle))
 }
 
+// String retorna o formato texto do número de controle.
+func (n NúmeroControle) String() string {
+	return string(n)
+}
+
 // ID retorna o número de identificação da frequência contido no número de
 // controle.
 func (n NúmeroControle) ID() int64 {

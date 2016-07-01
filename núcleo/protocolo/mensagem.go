@@ -9,6 +9,13 @@ const (
 	// MensagemCódigoParâmetroInválido indica que uma variável do endereço possui
 	// um formato incorreto e não pode ser atribuída a variável correspondente.
 	MensagemCódigoParâmetroInválido MensagemCódigo = "parametro-invalido"
+
+	// MensagemCódigoNúmeroControleInválido número de controle informado não é
+	// válido.
+	MensagemCódigoNúmeroControleInválido MensagemCódigo = "numero-controle-invalido"
+
+	// MensagemCódigoCRInválido CR informado não é válido.
+	MensagemCódigoCRInválido MensagemCódigo = "cr-invalido"
 )
 
 // MensagemCódigo tipo que define as possíveis mensagens a serem retornadas. A
@@ -99,6 +106,15 @@ func (m Mensagens) String() string {
 // comportamento do método String.
 func (m Mensagens) Error() string {
 	return m.String()
+}
+
+// JuntarMensagens concatena grupos de mensagens para facilitar a usabilidade.
+func JuntarMensagens(m ...Mensagens) Mensagens {
+	var mensagensJuntas Mensagens
+	for _, mensagens := range m {
+		mensagensJuntas = append(mensagensJuntas, mensagens...)
+	}
+	return mensagensJuntas
 }
 
 // TODO(rafaeljusto): Criar método de tradução do código para uma mensagem.

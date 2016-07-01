@@ -121,6 +121,28 @@ func TestNovoNúmeroControle(t *testing.T) {
 	}
 }
 
+func TestNúmeroControle_String(t *testing.T) {
+	cenários := []struct {
+		descrição      string
+		númeroControle protocolo.NúmeroControle
+		esperado       string
+	}{
+		{
+			descrição:      "deve construir corretamente o número de controle",
+			númeroControle: protocolo.NovoNúmeroControle(123456789, 987654321),
+			esperado:       "123456789-987654321",
+		},
+	}
+
+	for i, cenário := range cenários {
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.esperado, nil)
+		if err := verificadorResultado.VerificaResultado(cenário.númeroControle.String(), nil); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
 func TestNúmeroControle_ID(t *testing.T) {
 	cenários := []struct {
 		descrição      string

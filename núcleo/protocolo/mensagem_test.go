@@ -206,3 +206,64 @@ func TestMensagens_Error(t *testing.T) {
 		}
 	}
 }
+
+func TestJuntarMensagens(t *testing.T) {
+	cenários := []struct {
+		descrição string
+		mensagens []protocolo.Mensagens
+		esperado  protocolo.Mensagens
+	}{
+		{
+			descrição: "deve juntar corretamente as mensagens",
+			mensagens: []protocolo.Mensagens{
+				protocolo.NovasMensagens(
+					protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoParâmetroInválido, "campo", "valor"),
+				),
+				protocolo.NovasMensagens(
+					protocolo.NovaMensagemComValor(protocolo.MensagemCódigoParâmetroInválido, "valor"),
+				),
+				protocolo.NovasMensagens(
+					protocolo.NovaMensagem(protocolo.MensagemCódigoParâmetroInválido),
+				),
+			},
+			esperado: protocolo.NovasMensagens(
+				protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoParâmetroInválido, "campo", "valor"),
+				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoParâmetroInválido, "valor"),
+				protocolo.NovaMensagem(protocolo.MensagemCódigoParâmetroInválido),
+			),
+		},
+		{
+			descrição: "deve tratar mensagens indefinidas",
+			mensagens: []protocolo.Mensagens{
+				protocolo.NovasMensagens(
+					protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoParâmetroInválido, "campo", "valor"),
+				),
+				protocolo.NovasMensagens(),
+				protocolo.NovasMensagens(
+					protocolo.NovaMensagem(protocolo.MensagemCódigoParâmetroInválido),
+				),
+			},
+			esperado: protocolo.NovasMensagens(
+				protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoParâmetroInválido, "campo", "valor"),
+				protocolo.NovaMensagem(protocolo.MensagemCódigoParâmetroInválido),
+			),
+		},
+		{
+			descrição: "deve tratar quando não existem mensagens (1)",
+			mensagens: []protocolo.Mensagens{},
+			esperado:  protocolo.NovasMensagens(),
+		},
+		{
+			descrição: "deve tratar quando não existem mensagens (2)",
+			esperado:  protocolo.NovasMensagens(),
+		},
+	}
+
+	for i, cenário := range cenários {
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.esperado, nil)
+		if err := verificadorResultado.VerificaResultado(protocolo.JuntarMensagens(cenário.mensagens...), nil); err != nil {
+			t.Error(err)
+		}
+	}
+}
