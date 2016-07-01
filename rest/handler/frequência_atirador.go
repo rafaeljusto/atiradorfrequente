@@ -29,6 +29,10 @@ func (f *frequênciaAtirador) Post() int {
 	frequênciaPedidoCompleta := protocolo.NovaFrequênciaPedidoCompleta(f.CR, f.FrequênciaPedido)
 	frequênciaPendenteResposta, err := serviçoAtirador.CadastrarFrequência(frequênciaPedidoCompleta)
 
+	// TODO(rafaeljusto): verificar se o erro é do tipo protocolo.Mensagens, neste
+	// caso retornar as mensagens para o usuário com o código HTTP BadRequest
+	// (400)
+
 	if err != nil {
 		f.Logger().Error(erros.Novo(err))
 		return http.StatusInternalServerError

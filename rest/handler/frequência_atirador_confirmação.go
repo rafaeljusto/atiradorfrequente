@@ -28,6 +28,10 @@ func (f *frequênciaAtiradorConfirmação) Put() int {
 	frequênciaConfirmaçãoPedidoCompleta := protocolo.NovaFrequênciaConfirmaçãoPedidoCompleta(f.CR, f.NúmeroControle, f.FrequênciaConfirmaçãoPedido)
 
 	if err := serviçoAtirador.ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta); err != nil {
+		// TODO(rafaeljusto): verificar se o erro é do tipo protocolo.Mensagens, neste
+		// caso retornar as mensagens para o usuário com o código HTTP BadRequest
+		// (400)
+
 		f.Logger().Error(erros.Novo(err))
 		return http.StatusInternalServerError
 	}
