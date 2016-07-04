@@ -42,15 +42,13 @@ type Tx interface {
 }
 
 type bd struct {
-	*sql.DB
-
-	txTempoEsgotado time.Duration
+	*db.DB
 }
 
 // Begin sobrescreve o comportamento padrão da biblioteca adicionando a
 // capacidade de timeout ao se criar uma nova transação.
 func (b *bd) Begin() (Tx, error) {
-	return db.NewTx(b.DB, b.txTempoEsgotado)
+	return b.DB.Begin()
 }
 
 // IniciarConexão conecta-se ao banco de dados com os parâmetros informados.
@@ -68,8 +66,7 @@ var IniciarConexão = func(parâmetrosConexão db.ConnParams, txTempoEsgotado ti
 	}
 
 	Conexão = &bd{
-		DB:              conexão,
-		txTempoEsgotado: txTempoEsgotado,
+		DB: db.NewDB(conexão, txTempoEsgotado),
 	}
 
 	if err := Conexão.Ping(); err != nil {
