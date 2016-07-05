@@ -120,3 +120,6 @@ func (n NúmeroControle) Controle() int64 {
 
 	return controle
 }
+
+// TODO(rafaeljusto): Implementar o encondig.TextUnmarshaler no NúmeroControle
+// para que seja possível utiliza-lo como variável no endereço

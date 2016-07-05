@@ -63,5 +63,6 @@ func (l *LogCompatível) DefineLogger(logger log.Logger) {
 
 // Logger obtém o logger que será utilizado pelo handler.
 func (l LogCompatível) Logger() log.Logger {
+	// TODO(rafaeljusto): Se o logger estiver indefinido devemos ter um plano B?
 	return l.logger
 }
