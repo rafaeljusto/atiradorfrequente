@@ -41,8 +41,7 @@ Atirador reportado com o número de controle gerado.
 Este Sistema poderia ser isolado dos demais Sistemas do Exército, já que não
 precisa de nenhuma informação externa para funcionar. O lado negativo desta
 solução, é que exige que o Clube de Tiro tenha acesso a Internet, uma impressora
-e uma máquina fotográfica digital (ou celular com foto). Mas acredito que poucos
-Clubes de Tiro não possuem estes requisitos.
+e uma máquina fotográfica digital (ou celular com foto).
 
 ## Serviços
 
