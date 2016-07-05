@@ -2,6 +2,7 @@ package atirador
 
 import (
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/config"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 )
@@ -21,14 +22,16 @@ type Serviço interface {
 
 // NovoServiço inicializa um serviço concreto do Atirador. Pode ser substituído
 // em testes por simuladores, permitindo uma abstração da camada de serviços.
-var NovoServiço = func(s *bd.SQLogger) Serviço {
+var NovoServiço = func(s *bd.SQLogger, configuração config.Configuração) Serviço {
 	return serviço{
-		sqlogger: s,
+		sqlogger:     s,
+		configuração: configuração,
 	}
 }
 
 type serviço struct {
-	sqlogger *bd.SQLogger
+	sqlogger     *bd.SQLogger
+	configuração config.Configuração
 }
 
 func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
@@ -40,7 +43,7 @@ func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.Frequ
 	}
 
 	// TODO(rafaeljusto): Criar imagem com o número de controle
-	return protocolo.FrequênciaPendenteResposta{}, nil
+	return f.protocoloPendente(), nil
 }
 
 func (s serviço) ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
@@ -53,7 +56,7 @@ func (s serviço) ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta pr
 	if mensagens := protocolo.JuntarMensagens(
 		validarCR(frequênciaConfirmaçãoPedidoCompleta.CR, frequência),
 		validarNúmeroControle(frequênciaConfirmaçãoPedidoCompleta.NúmeroControle, frequência),
-		validarIntervaloMáximoConfirmação(frequência),
+		validarIntervaloMáximoConfirmação(frequência, s.configuração.Atirador.PrazoConfirmação),
 	); len(mensagens) > 0 {
 		return mensagens
 	}

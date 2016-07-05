@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"time"
 	"unsafe"
+
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/config"
 )
 
 var configuração unsafe.Pointer
@@ -15,6 +17,8 @@ var configuração unsafe.Pointer
 // Configuração estrutura que representa todas as possíveis configurações do
 // servidor REST.
 type Configuração struct {
+	config.Configuração
+
 	BancoDados struct {
 		Endereço                     string        `yaml:"endereco"`
 		Nome                         string        `yaml:"nome"`

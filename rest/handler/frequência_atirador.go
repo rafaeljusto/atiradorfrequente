@@ -7,6 +7,7 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/atirador"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
+	"github.com/rafaeljusto/atiradorfrequente/rest/config"
 	"github.com/rafaeljusto/atiradorfrequente/rest/interceptador"
 	"github.com/trajber/handy"
 )
@@ -25,7 +26,12 @@ type frequênciaAtirador struct {
 }
 
 func (f *frequênciaAtirador) Post() int {
-	serviçoAtirador := atirador.NovoServiço(f.Tx())
+	if config.Atual() == nil {
+		f.Logger().Crit("Não existe configuração definida para atender a requisição")
+		return http.StatusInternalServerError
+	}
+
+	serviçoAtirador := atirador.NovoServiço(f.Tx(), config.Atual().Configuração)
 	frequênciaPedidoCompleta := protocolo.NovaFrequênciaPedidoCompleta(f.CR, f.FrequênciaPedido)
 	frequênciaPendenteResposta, err := serviçoAtirador.CadastrarFrequência(frequênciaPedidoCompleta)
 

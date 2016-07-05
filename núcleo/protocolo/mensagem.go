@@ -16,6 +16,10 @@ const (
 
 	// MensagemCódigoCRInválido CR informado não é válido.
 	MensagemCódigoCRInválido MensagemCódigo = "cr-invalido"
+
+	// MensagemCódigoPrazoConfirmaçãoExpirado prazo limite para envio da
+	// confirmação de sequência expirado.
+	MensagemCódigoPrazoConfirmaçãoExpirado MensagemCódigo = "prazo-confirmacao-expirado"
 )
 
 // MensagemCódigo tipo que define as possíveis mensagens a serem retornadas. A

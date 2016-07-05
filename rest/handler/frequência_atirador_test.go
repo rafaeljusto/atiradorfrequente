@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -8,7 +9,9 @@ import (
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/atirador"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
+	configNúcleo "github.com/rafaeljusto/atiradorfrequente/núcleo/config"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
+	configREST "github.com/rafaeljusto/atiradorfrequente/rest/config"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
 	"github.com/rafaeljusto/atiradorfrequente/testes/simulador"
 	"github.com/registrobr/gostk/errors"
@@ -23,6 +26,7 @@ func TestFrequênciaAtirador_Post(t *testing.T) {
 		cr                 string
 		frequênciaPedido   protocolo.FrequênciaPedido
 		logger             log.Logger
+		configuração       *configREST.Configuração
 		serviçoAtirador    atirador.Serviço
 		códigoHTTPEsperado int
 		esperado           *protocolo.FrequênciaPendenteResposta
@@ -37,6 +41,9 @@ func TestFrequênciaAtirador_Post(t *testing.T) {
 				DataInício:        data,
 				DataTérmino:       data.Add(30 * time.Minute),
 			},
+			configuração: func() *configREST.Configuração {
+				return new(configREST.Configuração)
+			}(),
 			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaCadastrarFrequência: func(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
 					return protocolo.FrequênciaPendenteResposta{
@@ -60,6 +67,31 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
 		},
 		{
+			descrição: "deve detectar quando a configuração não foi inicializada",
+			cr:        "123456789",
+			frequênciaPedido: protocolo.FrequênciaPedido{
+				Calibre:           ".380",
+				ArmaUtilizada:     "Arma do Clube",
+				QuantidadeMunição: 50,
+				DataInício:        data,
+				DataTérmino:       data.Add(30 * time.Minute),
+			},
+			logger: simulador.Logger{
+				SimulaCrit: func(m ...interface{}) {
+					mensagem := fmt.Sprint(m...)
+					if mensagem != "Não existe configuração definida para atender a requisição" {
+						t.Errorf("mensagem inesperada: %s", mensagem)
+					}
+				},
+				SimulaError: func(e error) {
+					if !strings.HasSuffix(e.Error(), "erro de baixo nível") {
+						t.Error("não está adicionando o erro correto ao log")
+					}
+				},
+			},
+			códigoHTTPEsperado: http.StatusInternalServerError,
+		},
+		{
 			descrição: "deve detectar um erro na camada de serviço do atirador",
 			cr:        "123456789",
 			frequênciaPedido: protocolo.FrequênciaPedido{
@@ -76,6 +108,9 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 					}
 				},
 			},
+			configuração: func() *configREST.Configuração {
+				return new(configREST.Configuração)
+			}(),
 			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaCadastrarFrequência: func(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
 					return protocolo.FrequênciaPendenteResposta{}, errors.Errorf("erro de baixo nível")
@@ -85,13 +120,20 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		},
 	}
 
+	configuraçãoOriginal := configREST.Atual()
+	defer func() {
+		configREST.AtualizarConfiguração(configuraçãoOriginal)
+	}()
+
 	serviçoAtiradorOriginal := atirador.NovoServiço
 	defer func() {
 		atirador.NovoServiço = serviçoAtiradorOriginal
 	}()
 
 	for i, cenário := range cenários {
-		atirador.NovoServiço = func(s *bd.SQLogger) atirador.Serviço {
+		configREST.AtualizarConfiguração(cenário.configuração)
+
+		atirador.NovoServiço = func(s *bd.SQLogger, configuração configNúcleo.Configuração) atirador.Serviço {
 			return cenário.serviçoAtirador
 		}
 
