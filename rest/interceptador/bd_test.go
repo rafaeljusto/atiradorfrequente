@@ -2,6 +2,7 @@ package interceptador_test
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"regexp"
 	"testing"
@@ -23,6 +24,7 @@ func TestBD_Before(t *testing.T) {
 		iniciarConexão     func(db.ConnParams, time.Duration) error
 		conexão            bd.BD
 		configuração       *config.Configuração
+		endereçoRemoto     net.IP
 		logger             log.Logger
 		códigoHTTPEsperado int
 		sqloggerEsperado   *bd.SQLogger
@@ -87,6 +89,7 @@ func TestBD_Before(t *testing.T) {
 				configuração.BancoDados.MáximoNúmeroConexõesAbertas = 32
 				return configuração
 			}(),
+			endereçoRemoto: net.ParseIP("192.168.1.1"),
 			logger: simulador.Logger{
 				SimulaDebug: func(m ...interface{}) {
 					mensagem := fmt.Sprint(m...)
@@ -95,10 +98,11 @@ func TestBD_Before(t *testing.T) {
 					}
 				},
 			},
-			sqloggerEsperado: bd.NovoSQLogger(simulador.Tx{}),
+			sqloggerEsperado: bd.NovoSQLogger(simulador.Tx{}, net.ParseIP("192.168.1.1")),
 		},
 		{
-			descrição: "deve detectar quando a configuração não foi inicializada",
+			descrição:      "deve detectar quando a configuração não foi inicializada",
+			endereçoRemoto: net.ParseIP("192.168.1.1"),
 			logger: simulador.Logger{
 				SimulaCrit: func(m ...interface{}) {
 					mensagem := fmt.Sprint(m...)
@@ -135,6 +139,7 @@ func TestBD_Before(t *testing.T) {
 				configuração.BancoDados.MáximoNúmeroConexõesAbertas = 32
 				return configuração
 			}(),
+			endereçoRemoto: net.ParseIP("192.168.1.1"),
 			logger: simulador.Logger{
 				SimulaDebug: func(m ...interface{}) {
 					mensagem := fmt.Sprint(m...)
@@ -143,7 +148,7 @@ func TestBD_Before(t *testing.T) {
 					}
 				},
 			},
-			sqloggerEsperado: bd.NovoSQLogger(simulador.Tx{}),
+			sqloggerEsperado: bd.NovoSQLogger(simulador.Tx{}, net.ParseIP("192.168.1.1")),
 		},
 		{
 			descrição: "deve detectar um erro ao iniciar uma conexão",
@@ -163,6 +168,7 @@ func TestBD_Before(t *testing.T) {
 				configuração.BancoDados.MáximoNúmeroConexõesAbertas = 32
 				return configuração
 			}(),
+			endereçoRemoto: net.ParseIP("192.168.1.1"),
 			logger: simulador.Logger{
 				SimulaCritf: func(m string, a ...interface{}) {
 					mensagem := fmt.Sprintf(m, a...)
@@ -203,6 +209,7 @@ func TestBD_Before(t *testing.T) {
 				configuração.BancoDados.MáximoNúmeroConexõesAbertas = 32
 				return configuração
 			}(),
+			endereçoRemoto: net.ParseIP("192.168.1.1"),
 			logger: simulador.Logger{
 				SimulaErrorf: func(m string, a ...interface{}) {
 					mensagem := fmt.Sprintf(m, a...)
@@ -248,6 +255,7 @@ func TestBD_Before(t *testing.T) {
 
 		handler := &bdSimulado{}
 		handler.SimulaRequisição = requisição
+		handler.DefineEndereçoRemoto(cenário.endereçoRemoto)
 		handler.DefineLogger(cenário.logger)
 
 		bd := interceptador.NovoBD(handler)
@@ -506,6 +514,7 @@ func TestBD_After(t *testing.T) {
 }
 
 type bdSimulado struct {
+	interceptador.EndereçoRemotoCompatível
 	interceptador.LogCompatível
 	interceptador.BDCompatível
 	simulador.Handler

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"net"
 	"testing"
 	"time"
 
@@ -61,7 +62,7 @@ func TestNovoSQLogger(t *testing.T) {
 		SimulaExec: func(query string, args ...interface{}) (sql.Result, error) {
 			return testdb.NewResult(1, nil, 1, nil), fmt.Errorf("erro na execução")
 		},
-	})
+	}, net.ParseIP("192.168.1.1"))
 
 	if sqlogger == nil {
 		t.Errorf("SQLogger não foi inicializado corretamente")
@@ -83,40 +84,43 @@ func TestSQLogger_Gerar(t *testing.T) {
 	cenários := []struct {
 		descrição    string
 		simulação    func()
-		log          bd.Log
+		log          *bd.Log
 		logEsperado  bd.Log
 		erroEsperado error
 	}{
 		{
 			descrição: "deve gerar um log corretamente",
 			simulação: func() {
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
 				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 			},
 			logEsperado: bd.Log{
-				ID:          1,
-				DataCriação: data,
+				ID:             1,
+				DataCriação:    data,
+				EndereçoRemoto: net.ParseIP("192.168.1.1"),
 			},
 		},
 		{
 			descrição: "deve ignorar se já existir um log gerado",
 			simulação: func() {
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
 				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 			},
-			log: bd.Log{
-				ID:          1,
-				DataCriação: data,
+			log: &bd.Log{
+				ID:             1,
+				DataCriação:    data,
+				EndereçoRemoto: net.ParseIP("192.168.1.1"),
 			},
 			logEsperado: bd.Log{
-				ID:          1,
-				DataCriação: data,
+				ID:             1,
+				DataCriação:    data,
+				EndereçoRemoto: net.ParseIP("192.168.1.1"),
 			},
 		},
 		{
 			descrição: "deve detectar um erro ao criar um log",
 			simulação: func() {
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
 				testdb.StubExecError(logCriaçãoComando, fmt.Errorf("erro ao gerar o log"))
 			},
 			erroEsperado: errors.Errorf("erro ao gerar o log"),
@@ -124,7 +128,7 @@ func TestSQLogger_Gerar(t *testing.T) {
 		{
 			descrição: "deve detectar um erro ao obter o número de identificação do log",
 			simulação: func() {
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
 				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, fmt.Errorf("erro ao obter id"), 1, nil))
 			},
 			erroEsperado: errors.Errorf("erro ao obter id"),
@@ -137,8 +141,10 @@ func TestSQLogger_Gerar(t *testing.T) {
 			cenário.simulação()
 		}
 
-		sqlogger := bd.NovoSQLogger(conexão)
-		sqlogger.Log = cenário.log
+		sqlogger := bd.NovoSQLogger(conexão, net.ParseIP("192.168.1.1"))
+		if cenário.log != nil {
+			sqlogger.Log = *cenário.log
+		}
 
 		err := sqlogger.Gerar()
 

@@ -35,7 +35,7 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 				testdb.StubExec(frequênciaCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 				testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
 				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 			},
 			frequência: &frequência{
@@ -113,7 +113,7 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 				testdb.StubExec(frequênciaCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 				testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
 				testdb.StubExecError(logCriaçãoComando, fmt.Errorf("erro na criação do id log"))
 			},
 			frequência: &frequência{
@@ -136,7 +136,7 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 				testdb.StubExec(frequênciaCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 				testdb.StubExecError(frequênciaLogCriaçãoComando, fmt.Errorf("erro na criação do log"))
 
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
 				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 			},
 			frequência: &frequência{
@@ -161,7 +161,7 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 			cenário.simulação()
 		}
 
-		dao := novaFrequênciaDAO(bd.NovoSQLogger(conexão))
+		dao := novaFrequênciaDAO(bd.NovoSQLogger(conexão, nil))
 		err := dao.criar(cenário.frequência)
 
 		if cenário.frequência != nil {
@@ -205,7 +205,7 @@ func TestFrequênciaDAOImpl_atualizar(t *testing.T) {
 				testdb.StubExec(frequênciaAtualizaçãoComando, testdb.NewResult(1, nil, 1, nil))
 				testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao) VALUES (DEFAULT, $1)`
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
 				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 			},
 			frequência: &frequência{
@@ -368,7 +368,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			cenário.simulação()
 		}
 
-		dao := novaFrequênciaDAO(bd.NovoSQLogger(conexão))
+		dao := novaFrequênciaDAO(bd.NovoSQLogger(conexão, nil))
 		err := dao.atualizar(cenário.frequência)
 
 		if cenário.frequência != nil {
@@ -447,7 +447,7 @@ func TestFrequênciaDAOImpl_resgatar(t *testing.T) {
 		testdb.Reset()
 		cenário.simulação()
 
-		dao := novaFrequênciaDAO(bd.NovoSQLogger(conexão))
+		dao := novaFrequênciaDAO(bd.NovoSQLogger(conexão, nil))
 		frequência, err := dao.resgatar(cenário.id)
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)

@@ -1,11 +1,11 @@
 package bd
 
 import (
+	"database/sql/driver"
 	"fmt"
+	"net"
 	"strings"
 	"time"
-
-	"database/sql/driver"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 )
@@ -36,12 +36,9 @@ func (a AçãoLog) Value() (driver.Value, error) {
 
 // Log armazena os dados para rastreamento de todas as modificações do usuário.
 type Log struct {
-	ID          int64
-	DataCriação time.Time
-
-	// TODO(rafaeljusto): Adicionar o IP? Neste caso todos os construtores de DAO
-	// receberiam o IP. Futuramente poderíamos até adicionar um identificador da
-	// sessão.
+	ID             int64
+	DataCriação    time.Time
+	EndereçoRemoto net.IP
 }
 
 // SQLogger armazena além dos dados da transação do banco de dados, referências
@@ -52,9 +49,12 @@ type SQLogger struct {
 }
 
 // NovoSQLogger gera um novo SQLogger com os dados da transação.
-func NovoSQLogger(s sqler) *SQLogger {
+func NovoSQLogger(s sqler, endereçoRemoto net.IP) *SQLogger {
 	return &SQLogger{
 		sqler: s,
+		Log: Log{
+			EndereçoRemoto: endereçoRemoto,
+		},
 	}
 }
 
@@ -65,8 +65,13 @@ func (s *SQLogger) Gerar() error {
 		return nil
 	}
 
+	// TODO(rafaeljusto): E se o endereço remoto estiver indefinido?
+
 	s.Log.DataCriação = time.Now().UTC()
-	resultado, err := s.Exec(logCriaçãoComando, s.Log.DataCriação)
+	resultado, err := s.Exec(logCriaçãoComando,
+		s.Log.DataCriação,
+		s.Log.EndereçoRemoto.String(),
+	)
 
 	if err != nil {
 		return erros.Novo(err)
@@ -85,6 +90,7 @@ var (
 	logCriaçãoCampos = []string{
 		"id",
 		"data_criacao",
+		"endereco_remoto",
 	}
 	logCriaçãoCamposTexto = strings.Join(logCriaçãoCampos, ", ")
 	logCriaçãoComando     = fmt.Sprintf(`INSERT INTO %s (%s) VALUES (DEFAULT, %s)`,

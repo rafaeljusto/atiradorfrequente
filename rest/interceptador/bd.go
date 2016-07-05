@@ -1,6 +1,7 @@
 package interceptador
 
 import (
+	"net"
 	"net/http"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
@@ -11,6 +12,7 @@ import (
 )
 
 type sqler interface {
+	EndereçoRemoto() net.IP
 	Logger() log.Logger
 	DefineTx(tx *bd.SQLogger)
 	Tx() *bd.SQLogger
@@ -66,7 +68,7 @@ func (i *BD) Before() int {
 		return http.StatusInternalServerError
 	}
 
-	i.handler.DefineTx(bd.NovoSQLogger(i.tx))
+	i.handler.DefineTx(bd.NovoSQLogger(i.tx, i.handler.EndereçoRemoto()))
 	return 0
 }
 
