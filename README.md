@@ -49,10 +49,12 @@ Abaixo a lista de serviços a serem implementadas neste projeto. Conforme
 surgirem novos serviços ou os listados forem concluídos esta tabela será
 alterada.
 
-| Descrição                            | REST                  | WEB                   | URI                                         |
-| ------------------------------------ | :-------------------: | :-------------------: | ------------------------------------------- |
-| Criar uma freqência (clube)          | :white_check_mark:    | :white_medium_square: | /frequencia/{cr} **[POST]**                 |
-| Confirmar uma frequência (clube)     | :white_check_mark:    | :white_medium_square: | /frequencia/{cr}/{numeroControle} **[PUT]** |
-| Cadastrar um clube (administrativo?) | :white_medium_square: | :white_medium_square: | /clube **[POST]**                           |
-| Login (clube e administrativo)       | :white_medium_square: | :white_medium_square: | /login **[POST]**                           |
-| Listar frequências (administrativo)  | :white_medium_square: | :white_medium_square: | /frequencia **[GET]**                       |
+| Descrição                            | REST                     | WEB                   | URI                                         |
+| ------------------------------------ | :----------------------: | :-------------------: | ------------------------------------------- |
+| Criar uma freqência (clube)          | :hourglass_flowing_sand: | :white_medium_square: | /frequencia/{cr} **[POST]**                 |
+| Confirmar uma frequência (clube)     | :hourglass_flowing_sand: | :white_medium_square: | /frequencia/{cr}/{numeroControle} **[PUT]** |
+| Cadastrar um clube (administrativo?) | :white_medium_square:    | :white_medium_square: | /clube **[POST]**                           |
+| Login (clube e administrativo)       | :white_medium_square:    | :white_medium_square: | /login **[POST]**                           |
+| Listar frequências (administrativo)  | :white_medium_square:    | :white_medium_square: | /frequencia **[GET]**                       |
+
+:white_medium_square: Planejado | :hourglass_flowing_sand: Em desenvolvimeto | :white_check_mark: Concluído
