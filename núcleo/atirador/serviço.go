@@ -42,7 +42,17 @@ func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.Frequ
 		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)
 	}
 
-	// TODO(rafaeljusto): Criar imagem com o número de controle
+	var err error
+	númeroControle := protocolo.NovoNúmeroControle(f.ID, f.Controle)
+	f.ImagemNúmeroControle, err = gerarImagemNúmeroControle(númeroControle)
+	if err != nil {
+		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)
+	}
+
+	if err := dao.atualizar(&f); err != nil {
+		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)
+	}
+
 	return f.protocoloPendente(), nil
 }
 
