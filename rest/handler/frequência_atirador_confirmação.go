@@ -19,6 +19,7 @@ type frequênciaAtiradorConfirmação struct {
 	básico
 	interceptador.BDCompatível
 
+	// TODO(rafaeljusto): Criar um tipo para o CR para padronizar a entrada
 	CR                          string                                `urivar:"cr"`
 	NúmeroControle              protocolo.NúmeroControle              `urivar:"numeroControle"`
 	FrequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedido `request:"put"`

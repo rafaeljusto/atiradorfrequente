@@ -20,6 +20,7 @@ type frequênciaAtirador struct {
 	básico
 	interceptador.BDCompatível
 
+	// TODO(rafaeljusto): Criar um tipo para o CR para padronizar a entrada
 	CR                         string                                `urivar:"cr"`
 	FrequênciaPedido           protocolo.FrequênciaPedido            `request:"post"`
 	FrequênciaPendenteResposta *protocolo.FrequênciaPendenteResposta `response:"post"`
