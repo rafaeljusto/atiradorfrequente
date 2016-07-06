@@ -2,10 +2,13 @@ package protocolo
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
+
+var númeroControleFormato = regexp.MustCompile(`^[0-9]+\-[0-9]+$`)
 
 // FrequênciaPedido armazena os dados exigidos pelo Exército ao utilizar um
 // estande de Tiro.
@@ -22,6 +25,9 @@ type FrequênciaPedido struct {
 	// DataTérmino data e hora do término do treino de tiro no estande do clube.
 	DataTérmino time.Time `json:"dataTermino"`
 }
+
+// TODO(rafaeljusto): Criar métodos de normalização e validação para o
+// FrequênciaPedido
 
 // FrequênciaPedidoCompleta é uma extensão do tipo FrequênciaPedido incluindo o
 // CR enviado no endereço.
@@ -51,6 +57,9 @@ type FrequênciaPendenteResposta struct {
 type FrequênciaConfirmaçãoPedido struct {
 	Imagem string `json:"imagem"` // base64
 }
+
+// TODO(rafaeljusto): Criar métodos de normalização e validação para o
+// FrequênciaConfirmaçãoPedido
 
 // FrequênciaConfirmaçãoPedidoCompleta extende o tipo
 // FrequênciaConfirmaçãoPedido incluindo o CR e o número de controle encontrados
@@ -121,5 +130,30 @@ func (n NúmeroControle) Controle() int64 {
 	return controle
 }
 
-// TODO(rafaeljusto): Implementar o encondig.TextUnmarshaler no NúmeroControle
-// para que seja possível utiliza-lo como variável no endereço
+// Normalizar padroniza o formato do número de controle.
+func (n *NúmeroControle) Normalizar() {
+	if n == nil {
+		return
+	}
+
+	texto := n.String()
+	texto = strings.TrimSpace(texto)
+	*n = NúmeroControle(texto)
+}
+
+// Validar verifica o formato do número de controle.
+func (n NúmeroControle) Validar() Mensagens {
+	var mensagens Mensagens
+	if !númeroControleFormato.MatchString(n.String()) {
+		mensagens = append(mensagens, NovaMensagemComValor(MensagemCódigoNúmeroControleInválido, n.String()))
+	}
+	return mensagens
+}
+
+// UnmarshalText converte um texto no tipo NúmeroControle, normalizando e
+// validando o valor convertido.
+func (n *NúmeroControle) UnmarshalText(texto []byte) error {
+	*n = NúmeroControle(texto)
+	n.Normalizar()
+	return n.Validar()
+}

@@ -216,3 +216,97 @@ func TestNúmeroControle_Controle(t *testing.T) {
 		}
 	}
 }
+
+func TestNúmeroControle_Normalizar(t *testing.T) {
+	cenários := []struct {
+		descrição              string
+		númeroControle         *protocolo.NúmeroControle
+		númeroControleEsperado *protocolo.NúmeroControle
+	}{
+		{
+			descrição: "deve padronizar corretamente o número de controle",
+			númeroControle: func() *protocolo.NúmeroControle {
+				n := protocolo.NúmeroControle("  1234567-7654321  ")
+				return &n
+			}(),
+			númeroControleEsperado: func() *protocolo.NúmeroControle {
+				n := protocolo.NúmeroControle("1234567-7654321")
+				return &n
+			}(),
+		},
+		{
+			descrição: "deve tratar corretamente o caso em que o número de controle esta indefinido",
+		},
+	}
+
+	for i, cenário := range cenários {
+		cenário.númeroControle.Normalizar()
+
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.númeroControleEsperado, nil)
+		if err := verificadorResultado.VerificaResultado(cenário.númeroControle, nil); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func TestNúmeroControle_Validar(t *testing.T) {
+	cenários := []struct {
+		descrição          string
+		númeroControle     protocolo.NúmeroControle
+		mensagensEsperadas protocolo.Mensagens
+	}{
+		{
+			descrição:      "deve aceitar um número de controle válido",
+			númeroControle: protocolo.NúmeroControle("1234567-7654321"),
+		},
+		{
+			descrição:      "deve detectar um número de controle sem hífen",
+			númeroControle: protocolo.NúmeroControle("12345677654321"),
+			mensagensEsperadas: protocolo.NovasMensagens(
+				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoNúmeroControleInválido, "12345677654321"),
+			),
+		},
+	}
+
+	for i, cenário := range cenários {
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(nil, cenário.mensagensEsperadas)
+		if err := verificadorResultado.VerificaResultado(nil, cenário.númeroControle.Validar()); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func TestNúmeroControle_UnmarshalText(t *testing.T) {
+	cenários := []struct {
+		descrição              string
+		texto                  []byte
+		númeroControleEsperado protocolo.NúmeroControle
+		mensagensEsperadas     protocolo.Mensagens
+	}{
+		{
+			descrição: "deve aceitar um número de controle válido",
+			texto:     []byte("  1234567-7654321  "),
+			númeroControleEsperado: protocolo.NúmeroControle("1234567-7654321"),
+		},
+		{
+			descrição: "deve detectar um número de controle inválido",
+			texto:     []byte("  1234567 7654321  "),
+			mensagensEsperadas: protocolo.NovasMensagens(
+				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoNúmeroControleInválido, "1234567 7654321"),
+			),
+		},
+	}
+
+	for i, cenário := range cenários {
+		var númeroControle protocolo.NúmeroControle
+		mensagens := númeroControle.UnmarshalText(cenário.texto)
+
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.númeroControleEsperado, cenário.mensagensEsperadas)
+		if err := verificadorResultado.VerificaResultado(númeroControle, mensagens); err != nil {
+			t.Error(err)
+		}
+	}
+}

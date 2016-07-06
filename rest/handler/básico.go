@@ -39,5 +39,6 @@ func criarCorrenteBásica(c correnteBásica) handy.InterceptorChain {
 		Chain(interceptador.NovoEndereçoRemoto(c)).
 		Chain(interceptador.NovoLog(c)).
 		Chain(interceptor.NewIntrospector(c)).
-		Chain(interceptador.NovaVariáveisEndereço(c))
+		Chain(interceptador.NovaVariáveisEndereço(c)).
+		Chain(interceptador.NovoPadronizador(c))
 }
