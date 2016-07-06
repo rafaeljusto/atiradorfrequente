@@ -29,5 +29,5 @@ func Novo(err error) error {
 		return NãoEncontrado
 	}
 
-	return errors.New(err)
+	return errors.NewWithFollowUp(err, 2)
 }
