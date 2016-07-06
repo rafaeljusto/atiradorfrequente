@@ -26,6 +26,9 @@ type FrequênciaPedido struct {
 	DataTérmino time.Time `json:"dataTermino"`
 }
 
+// TODO(rafaeljusto): Criar métodos de normalização e validação para o
+// FrequênciaPedido
+
 // FrequênciaPedidoCompleta é uma extensão do tipo FrequênciaPedido incluindo o
 // CR enviado no endereço.
 type FrequênciaPedidoCompleta struct {
@@ -54,6 +57,9 @@ type FrequênciaPendenteResposta struct {
 type FrequênciaConfirmaçãoPedido struct {
 	Imagem string `json:"imagem"` // base64
 }
+
+// TODO(rafaeljusto): Criar métodos de normalização e validação para o
+// FrequênciaConfirmaçãoPedido
 
 // FrequênciaConfirmaçãoPedidoCompleta extende o tipo
 // FrequênciaConfirmaçãoPedido incluindo o CR e o número de controle encontrados
