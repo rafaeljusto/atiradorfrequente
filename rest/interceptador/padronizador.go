@@ -24,11 +24,13 @@ type padronizador interface {
 	Req() *http.Request
 }
 
+// Padronizador normaliza e valida a requisição do usuário.
 type Padronizador struct {
 	interceptor.NopInterceptor
 	handler padronizador
 }
 
+// NovoPadronizador cria um novo interceptador Padronizador.
 func NovoPadronizador(p padronizador) *Padronizador {
 	return &Padronizador{handler: p}
 }
