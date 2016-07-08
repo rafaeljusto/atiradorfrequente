@@ -178,6 +178,7 @@ func TestFrequênciaAtiradorConfirmação_Interceptors(t *testing.T) {
 		"*interceptor.Introspector",
 		"*interceptador.VariáveisEndereço",
 		"*interceptador.Padronizador",
+		"*interceptador.Codificador",
 		"*interceptador.BD",
 	}
 

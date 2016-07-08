@@ -22,6 +22,7 @@ type básico struct {
 
 type correnteBásica interface {
 	Req() *http.Request
+	ResponseWriter() http.ResponseWriter
 	DefineEndereçoRemoto(net.IP)
 	EndereçoRemoto() net.IP
 	EndereçoProxy() net.IP
@@ -40,5 +41,6 @@ func criarCorrenteBásica(c correnteBásica) handy.InterceptorChain {
 		Chain(interceptador.NovoLog(c)).
 		Chain(interceptor.NewIntrospector(c)).
 		Chain(interceptador.NovaVariáveisEndereço(c)).
-		Chain(interceptador.NovoPadronizador(c))
+		Chain(interceptador.NovoPadronizador(c)).
+		Chain(interceptador.NovoCodificador(c, "application/json; charset=utf-8"))
 }
