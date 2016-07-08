@@ -19,15 +19,19 @@ type codificador interface {
 	ResponseWriter() http.ResponseWriter
 }
 
+// Codificador popula o objeto da requisição a partir do JSON recebido na rede,
+// também é responsável por criar o JSON a partir do objeto da resposta.
 type Codificador struct {
 	handler      codificador
 	tipoConteúdo string
 }
 
+// NovoCodificador cria um novo interceptador Codificador.
 func NovoCodificador(c codificador, tipoConteúdo string) *Codificador {
 	return &Codificador{handler: c, tipoConteúdo: tipoConteúdo}
 }
 
+// Before traduz do formato JSON para o objeto da requisição no handler.
 func (c *Codificador) Before() int {
 	c.handler.Logger().Debug("Interceptador Antes: Codificador")
 
@@ -60,6 +64,7 @@ func (c *Codificador) Before() int {
 	return 0
 }
 
+// After gera o JSON e cabeçalhos HTTP a partir do objeto de resposta.
 func (c *Codificador) After(códigoHTTP int) int {
 	c.handler.Logger().Debug("Interceptador Antes: Depois")
 
