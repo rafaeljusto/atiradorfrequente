@@ -30,6 +30,7 @@ func TestFrequênciaAtirador_Post(t *testing.T) {
 		serviçoAtirador    atirador.Serviço
 		códigoHTTPEsperado int
 		esperado           *protocolo.FrequênciaPendenteResposta
+		mensagensEsperadas protocolo.Mensagens
 	}{
 		{
 			descrição: "deve cadastrar corretamente os dados de frequência do atirador",
@@ -118,6 +119,32 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
 			códigoHTTPEsperado: http.StatusInternalServerError,
 		},
+		{
+			descrição: "deve detectar mensagens na camada de serviço do atirador",
+			cr:        "123456789",
+			frequênciaPedido: protocolo.FrequênciaPedido{
+				Calibre:           ".380",
+				ArmaUtilizada:     "Arma do Clube",
+				QuantidadeMunição: 50,
+				DataInício:        data,
+				DataTérmino:       data.Add(30 * time.Minute),
+			},
+			logger: simulador.Logger{},
+			configuração: func() *configREST.Configuração {
+				return new(configREST.Configuração)
+			}(),
+			serviçoAtirador: simulador.ServiçoAtirador{
+				SimulaCadastrarFrequência: func(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
+					return protocolo.FrequênciaPendenteResposta{}, protocolo.NovasMensagens(
+						protocolo.NovaMensagem(protocolo.MensagemCódigoCRInválido),
+					)
+				},
+			},
+			códigoHTTPEsperado: http.StatusBadRequest,
+			mensagensEsperadas: protocolo.NovasMensagens(
+				protocolo.NovaMensagem(protocolo.MensagemCódigoCRInválido),
+			),
+		},
 	}
 
 	configuraçãoOriginal := configREST.Atual()
@@ -152,6 +179,11 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 
 		verificadorResultado.DefinirEsperado(cenário.esperado, nil)
 		if err := verificadorResultado.VerificaResultado(handler.FrequênciaPendenteResposta, nil); err != nil {
+			t.Error(err)
+		}
+
+		verificadorResultado.DefinirEsperado(cenário.mensagensEsperadas, nil)
+		if err := verificadorResultado.VerificaResultado(handler.Mensagens, nil); err != nil {
 			t.Error(err)
 		}
 	}

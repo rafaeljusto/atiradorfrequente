@@ -27,6 +27,7 @@ func TestFrequênciaAtiradorConfirmação_Put(t *testing.T) {
 		configuração                *configREST.Configuração
 		serviçoAtirador             atirador.Serviço
 		códigoHTTPEsperado          int
+		mensagensEsperadas          protocolo.Mensagens
 	}{
 		{
 			descrição:      "deve confirmar corretamente os dados de frequência do atirador",
@@ -103,6 +104,33 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
 			códigoHTTPEsperado: http.StatusInternalServerError,
 		},
+		{
+			descrição:      "deve detectar mensagens na camada de serviço do atirador",
+			cr:             "123456789",
+			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+			frequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
+				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+			},
+			logger: simulador.Logger{},
+			configuração: func() *configREST.Configuração {
+				return new(configREST.Configuração)
+			}(),
+			serviçoAtirador: simulador.ServiçoAtirador{
+				SimulaConfirmarFrequência: func(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
+					return protocolo.NovasMensagens(
+						protocolo.NovaMensagem(protocolo.MensagemCódigoCRInválido),
+					)
+				},
+			},
+			códigoHTTPEsperado: http.StatusBadRequest,
+			mensagensEsperadas: protocolo.NovasMensagens(
+				protocolo.NovaMensagem(protocolo.MensagemCódigoCRInválido),
+			),
+		},
 	}
 
 	configuraçãoOriginal := configREST.Atual()
@@ -130,8 +158,14 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		handler.DefineLogger(cenário.logger)
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+
 		verificadorResultado.DefinirEsperado(cenário.códigoHTTPEsperado, nil)
 		if err := verificadorResultado.VerificaResultado(handler.Put(), nil); err != nil {
+			t.Error(err)
+		}
+
+		verificadorResultado.DefinirEsperado(cenário.mensagensEsperadas, nil)
+		if err := verificadorResultado.VerificaResultado(handler.Mensagens, nil); err != nil {
 			t.Error(err)
 		}
 	}
