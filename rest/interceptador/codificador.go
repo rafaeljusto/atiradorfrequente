@@ -66,7 +66,7 @@ func (c *Codificador) Before() int {
 
 // After gera o JSON e cabeçalhos HTTP a partir do objeto de resposta.
 func (c *Codificador) After(códigoHTTP int) int {
-	c.handler.Logger().Debug("Interceptador Antes: Depois")
+	c.handler.Logger().Debug("Interceptador Depois: Codificador")
 
 	if campoCabeçalho := c.handler.Field("response", "header"); campoCabeçalho != nil {
 		if cabeçalho, ok := campoCabeçalho.(*http.Header); ok {
@@ -86,30 +86,28 @@ func (c *Codificador) After(códigoHTTP int) int {
 	respostaGenérica := c.handler.Field("response", "all")
 	if respostaGenérica != nil && !reflect.ValueOf(respostaGenérica).IsNil() {
 		resposta = respostaGenérica
-
 	} else if respostaEspecífica := c.handler.Field("response", método); respostaEspecífica != nil {
-		if reflect.ValueOf(respostaEspecífica).IsNil() {
-			c.handler.ResponseWriter().WriteHeader(códigoHTTP)
-			return códigoHTTP
-		}
-
 		resposta = respostaEspecífica
 	}
 
-	if resposta != nil {
-		c.handler.ResponseWriter().Header().Set("Content-Type", c.tipoConteúdo)
-
-		defer func() {
-			var buffer bytes.Buffer
-			w := io.MultiWriter(c.handler.ResponseWriter(), &buffer)
-			if err := json.NewEncoder(w).Encode(resposta); err != nil {
-				c.handler.Logger().Error(erros.Novo(err))
-			}
-
-			c.handler.Logger().Debugf("Resposta corpo: “%s”", strings.TrimSpace(strings.Replace(buffer.String(), "\n", "", -1)))
-		}()
+	if resposta == nil {
+		c.handler.ResponseWriter().WriteHeader(códigoHTTP)
+		return códigoHTTP
 	}
 
+	c.handler.ResponseWriter().Header().Set("Content-Type", c.tipoConteúdo)
 	c.handler.ResponseWriter().WriteHeader(códigoHTTP)
+
+	defer func() {
+		var buffer bytes.Buffer
+		w := io.MultiWriter(c.handler.ResponseWriter(), &buffer)
+		if err := json.NewEncoder(w).Encode(resposta); err != nil {
+			c.handler.Logger().Error(erros.Novo(err))
+			return
+		}
+
+		c.handler.Logger().Debugf("Resposta corpo: “%s”", strings.TrimSpace(strings.Replace(buffer.String(), "\n", "", -1)))
+	}()
+
 	return códigoHTTP
 }
