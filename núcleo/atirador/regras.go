@@ -44,3 +44,4 @@ func validarIntervaloMáximoConfirmação(frequência frequência, prazoConfirma
 }
 
 // TODO(rafaeljusto): Validar imagem de confirmação. Podemos validar o formato.
+// Não deve ser igual a imagem do número de controle (MD5?)
