@@ -19,6 +19,8 @@ var configuração unsafe.Pointer
 type Configuração struct {
 	config.Configuração
 
+	EndereçoSyslog string `yaml:"endereco syslog"`
+
 	BancoDados struct {
 		Endereço                     string        `yaml:"endereco"`
 		Nome                         string        `yaml:"nome"`
