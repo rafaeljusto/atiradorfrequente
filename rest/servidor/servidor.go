@@ -11,29 +11,46 @@ import (
 )
 
 // Iniciar realiza todas as inicializações iniciais e sobe o servidor REST.
-// Supõe que a configuração já foi carregada.
+// Supõe que a configuração já foi carregada. Está função fica bloqueada
+// enquanto o servidor estiver executando.
 func Iniciar() error {
 	if err := iniciarConexãoSyslog(); err != nil {
+		log.Critf("Erro ao conectar servidor de log. Detalhes: %s", erros.Novo(err))
 		return erros.Novo(err)
 	}
+	defer func() {
+		if err := log.Close(); err != nil {
+			log.Errorf("Erro ao fechar a conexão do log. Detalhes: %s", erros.Novo(err))
+		}
+	}()
 
 	// o sistema não é interrompido caso ocorra um problema de conexão com o banco
 	// de dados. Novas tentativas serão feitas a cada tratamento de requisição.
 	if err := iniciarConexãoBancoDados(); err != nil {
 		log.Critf("Erro ao conectar o banco de dados. Detalhes: %s", erros.Novo(err))
 	}
+	defer func() {
+		if err := bd.Conexão.Close(); err != nil {
+			log.Errorf("Erro ao fechar a conexão do banco de dados. Detalhes: %s", erros.Novo(err))
+		}
+	}()
 
-	return erros.Novo(iniciarServidor())
+	if err := iniciarServidor(); err != nil {
+		log.Critf("Erro ao iniciar o servidor. Detalhes: %s", erros.Novo(err))
+		return erros.Novo(err)
+	}
+
+	return nil
 }
 
 func iniciarConexãoSyslog() error {
-	log.Info("inicializando conexão com o servidor de log")
+	log.Info("Inicializando conexão com o servidor de log")
 
 	return erros.Novo(log.Dial("tcp", config.Atual().EndereçoSyslog, "atirador-frequente"))
 }
 
 func iniciarConexãoBancoDados() error {
-	log.Info("inicializando conexão com o banco de dados")
+	log.Info("Inicializando conexão com o banco de dados")
 
 	err := bd.IniciarConexão(db.ConnParams{
 		Username:           config.Atual().BancoDados.Usuário,
@@ -50,8 +67,19 @@ func iniciarConexãoBancoDados() error {
 }
 
 func iniciarServidor() error {
+	log.Info("Inicializando servidor")
+
 	// TODO: utilizar bibliotecas para tornar a reinicialização do serviço
-	// graciosa? Exemplos: https://github.com/fvbock/endless e
-	// https://github.com/jpillora/overseer
+	// menos agressiva? Alguns exemplos de bibliotecas:
+	//   * github.com/fvbock/endless
+	//   * github.com/jpillora/overseer
+	//   * github.com/braintree/manners
+	//   * github.com/tylerb/graceful
+	//   * github.com/facebookgo/httpdown
+	//   * github.com/facebookgo/grace
+	//
+	// Algumas questões a serem levadas em consideração:
+	//   * Suporte a múltiplos listeners (?)
+	//   * Suporte a arquivo de chave (TLS) com senha
 	return nil
 }
