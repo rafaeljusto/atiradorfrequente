@@ -15,10 +15,32 @@ import (
 var configuração unsafe.Pointer
 
 // Configuração estrutura que representa todas as possíveis configurações do
-// servidor REST.
+// relacionadas ao sistema REST.
 type Configuração struct {
 	config.Configuração
 
+	Servidor struct {
+		// Endereço interface que o servidor irá escutar, formado pelo IP com porta
+		// (exemplo 127.0.0.1:443).
+		Endereço string
+
+		TLS struct {
+			// Habilitado define se o TLS será utilizado ou não.
+			Habilitado bool
+
+			// ArquivoCertificado caminho para o arquivo em formato PEM que contém o
+			// certificado.
+			ArquivoCertificado string
+
+			// ArquivoCertificado caminho para o arquivo em formato PEM que contém a
+			// chave privada referente ao certificado.
+			ArquivoChave string
+		}
+	}
+
+	// EndereçoSyslog endereço IP com porta (exemplo  127.0.0.1:514) para conexão
+	// com o servidor de log central. A conexão será feita utilizando o protocolo
+	// TCP para minimizar a perda de mensagens.
 	EndereçoSyslog string `yaml:"endereco syslog"`
 
 	BancoDados struct {
