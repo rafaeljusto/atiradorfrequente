@@ -3,17 +3,25 @@
 package servidor
 
 import (
+	"crypto/tls"
+	"net"
+	"net/http"
+	"runtime"
+
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/rest/config"
+	"github.com/rafaeljusto/atiradorfrequente/rest/handler"
 	"github.com/registrobr/gostk/db"
 	"github.com/registrobr/gostk/log"
+	"github.com/trajber/handy"
 )
 
 // Iniciar realiza todas as inicializações iniciais e sobe o servidor REST.
 // Supõe que a configuração já foi carregada. Está função fica bloqueada
-// enquanto o servidor estiver executando.
-func Iniciar() error {
+// enquanto o servidor estiver executando. Recebe como argumento a conexão TCP
+// que esta escutando, podendo ser promovida a conexão TLS por está função.
+func Iniciar(l net.Listener) error {
 	if err := iniciarConexãoSyslog(); err != nil {
 		log.Critf("Erro ao conectar servidor de log. Detalhes: %s", erros.Novo(err))
 		return erros.Novo(err)
@@ -35,7 +43,7 @@ func Iniciar() error {
 		}
 	}()
 
-	if err := iniciarServidor(); err != nil {
+	if err := iniciarServidor(l); err != nil {
 		log.Critf("Erro ao iniciar o servidor. Detalhes: %s", erros.Novo(err))
 		return erros.Novo(err)
 	}
@@ -66,20 +74,58 @@ func iniciarConexãoBancoDados() error {
 	return erros.Novo(err)
 }
 
-func iniciarServidor() error {
+func iniciarServidor(l net.Listener) error {
 	log.Info("Inicializando servidor")
 
-	// TODO: utilizar bibliotecas para tornar a reinicialização do serviço
-	// menos agressiva? Alguns exemplos de bibliotecas:
-	//   * github.com/fvbock/endless
-	//   * github.com/jpillora/overseer
-	//   * github.com/braintree/manners
-	//   * github.com/tylerb/graceful
-	//   * github.com/facebookgo/httpdown
-	//   * github.com/facebookgo/grace
-	//
-	// Algumas questões a serem levadas em consideração:
-	//   * Suporte a múltiplos listeners (?)
-	//   * Suporte a arquivo de chave (TLS) com senha
+	handy.ErrorFunc = log.Error
+
+	h := handy.NewHandy()
+	h.Recover = func(r interface{}) {
+		const tamanho = 1 << 16
+		buffer := make([]byte, tamanho)
+		buffer = buffer[:runtime.Stack(buffer, false)]
+		log.Critf("Erro grave detectado. Detalhes: %v\n%s", r, buffer)
+	}
+
+	for rota, handler := range handler.Rotas {
+		h.Handle(rota, handler)
+	}
+
+	servidor := http.Server{
+		Handler:     h,
+		ReadTimeout: config.Atual().Servidor.TempoEsgotadoLeitura,
+	}
+
+	if config.Atual().Servidor.TLS.Habilitado {
+		certificado, err := tls.LoadX509KeyPair(config.Atual().Servidor.TLS.ArquivoCertificado, config.Atual().Servidor.TLS.ArquivoChave)
+		if err != nil {
+			return erros.Novo(err)
+		}
+
+		cifras := []uint16{
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+			tls.TLS_RSA_WITH_AES_128_CBC_SHA,
+			tls.TLS_FALLBACK_SCSV,
+		}
+
+		configuraçãoTLS := tls.Config{
+			MinVersion:               tls.VersionTLS10,
+			PreferServerCipherSuites: true,
+			CipherSuites:             cifras,
+			Certificates:             []tls.Certificate{certificado},
+		}
+
+		l = tls.NewListener(l, configuraçãoTLS)
+	}
+
+	if err := servidor.Serve(l); err != nil {
+		return erros.Novo(err)
+	}
+
 	return nil
 }

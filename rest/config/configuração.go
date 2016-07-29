@@ -36,6 +36,8 @@ type Configuração struct {
 			// chave privada referente ao certificado.
 			ArquivoChave string
 		}
+
+		TempoEsgotadoLeitura time.Duration
 	}
 
 	// EndereçoSyslog endereço IP com porta (exemplo  127.0.0.1:514) para conexão
