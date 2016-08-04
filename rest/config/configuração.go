@@ -37,6 +37,8 @@ type Configuração struct {
 			ArquivoChave string
 		}
 
+		// TempoEsgotadoLeitura define o tempo em que o servidor irá aguardar após
+		// um cliente se conectar para que alguma requisição seja recebida.
 		TempoEsgotadoLeitura time.Duration
 	}
 

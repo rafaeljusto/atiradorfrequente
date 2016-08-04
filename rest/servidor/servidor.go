@@ -21,7 +21,7 @@ import (
 // Supõe que a configuração já foi carregada. Está função fica bloqueada
 // enquanto o servidor estiver executando. Recebe como argumento a conexão TCP
 // que esta escutando, podendo ser promovida a conexão TLS por está função.
-func Iniciar(l net.Listener) error {
+func Iniciar(escuta net.Listener) error {
 	if err := iniciarConexãoSyslog(); err != nil {
 		log.Critf("Erro ao conectar servidor de log. Detalhes: %s", erros.Novo(err))
 		return erros.Novo(err)
@@ -38,12 +38,17 @@ func Iniciar(l net.Listener) error {
 		log.Critf("Erro ao conectar o banco de dados. Detalhes: %s", erros.Novo(err))
 	}
 	defer func() {
+		// TODO(rafaeljusto): mover esta verificação para o próprio objeto
+		if bd.Conexão == nil {
+			return
+		}
+
 		if err := bd.Conexão.Close(); err != nil {
 			log.Errorf("Erro ao fechar a conexão do banco de dados. Detalhes: %s", erros.Novo(err))
 		}
 	}()
 
-	if err := iniciarServidor(l); err != nil {
+	if err := iniciarServidor(escuta); err != nil {
 		log.Critf("Erro ao iniciar o servidor. Detalhes: %s", erros.Novo(err))
 		return erros.Novo(err)
 	}
@@ -74,7 +79,7 @@ func iniciarConexãoBancoDados() error {
 	return erros.Novo(err)
 }
 
-func iniciarServidor(l net.Listener) error {
+func iniciarServidor(escuta net.Listener) error {
 	log.Info("Inicializando servidor")
 
 	handy.ErrorFunc = log.Error
@@ -120,12 +125,8 @@ func iniciarServidor(l net.Listener) error {
 			Certificates:             []tls.Certificate{certificado},
 		}
 
-		l = tls.NewListener(l, configuraçãoTLS)
+		escuta = tls.NewListener(escuta, &configuraçãoTLS)
 	}
 
-	if err := servidor.Serve(l); err != nil {
-		return erros.Novo(err)
-	}
-
-	return nil
+	return erros.Novo(servidor.Serve(escuta))
 }
