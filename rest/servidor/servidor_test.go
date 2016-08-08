@@ -49,29 +49,34 @@ func TestIniciar(t *testing.T) {
 	gostklog.LocalLogger = golog.New(&mensagens, "", golog.Lshortfile)
 
 	go func(l net.Listener) {
-		conn, err := l.Accept()
-		if err != nil {
-			return
-		}
-		defer conn.Close()
-
 		for {
-			var buffer [1024]byte
-			n, err := conn.Read(buffer[:])
+			conn, err := l.Accept()
 			if err != nil {
-				break
+				return
 			}
 
-			linhas := strings.Split(string(buffer[:n]), "\n")
-			for _, linha := range linhas {
-				linha = strings.TrimSpace(linha)
-				if linha == "" {
-					continue
+			go func(conn net.Conn) {
+				defer conn.Close()
+
+				for {
+					var buffer [1024]byte
+					n, err := conn.Read(buffer[:])
+					if err != nil {
+						break
+					}
+
+					linhas := strings.Split(string(buffer[:n]), "\n")
+					for _, linha := range linhas {
+						linha = strings.TrimSpace(linha)
+						if linha == "" {
+							continue
+						}
+
+						mensagens.WriteString(linha[strings.Index(linha, "[]")+3:])
+						mensagens.WriteString("\n")
+					}
 				}
-
-				mensagens.WriteString(linha[strings.Index(linha, "[]")+3:])
-				mensagens.WriteString("\n")
-			}
+			}(conn)
 		}
 	}(syslog)
 
@@ -106,7 +111,8 @@ func TestIniciar(t *testing.T) {
 				c.Servidor.TLS.Habilitado = true
 				c.Servidor.TLS.ArquivoCertificado = arquivoCertificado.Name()
 				c.Servidor.TLS.ArquivoChave = arquivoChave.Name()
-				c.EndereçoSyslog = syslog.Addr().String()
+				c.Syslog.Endereço = syslog.Addr().String()
+				c.Syslog.TempoEsgotadoConexão = 1 * time.Second
 				return c
 			}(),
 			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
@@ -119,9 +125,66 @@ func TestIniciar(t *testing.T) {
 .*Erro ao iniciar o servidor\. Detalhes: .*use of closed network connection
 $`),
 		},
+		{
+			descrição: "deve detectar um erro ao inicializar a conexão com o servidor de log",
+			escuta: func() net.Listener {
+				escuta, err := net.Listen("tcp", "localhost:0")
+				if err != nil {
+					t.Fatalf("Erro ao inicializar o servidor. Detalhes: %s", err)
+				}
+				endereçoServidor = escuta.Addr().String()
+				return escuta
+			}(),
+			configuração: func() config.Configuração {
+				var c config.Configuração
+				c.Servidor.Endereço = endereçoServidor
+				c.Servidor.TLS.Habilitado = true
+				c.Servidor.TLS.ArquivoCertificado = arquivoCertificado.Name()
+				c.Servidor.TLS.ArquivoChave = arquivoChave.Name()
+				c.Syslog.Endereço = "192.0.2.1:1234"
+				c.Syslog.TempoEsgotadoConexão = 100 * time.Millisecond
+				return c
+			}(),
+			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
+				return nil
+			},
+			erroEsperado: gostklog.ErrDialTimeout,
+			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
+.*Erro ao conectar servidor de log. Detalhes: .*dial timeout
+$`),
+		},
+		{
+			descrição: "deve detectar um erro ao iniciar a conexão com o banco de dados",
+			escuta: func() net.Listener {
+				escuta, err := net.Listen("tcp", "localhost:0")
+				if err != nil {
+					t.Fatalf("Erro ao inicializar o servidor. Detalhes: %s", err)
+				}
+				endereçoServidor = escuta.Addr().String()
+				return escuta
+			}(),
+			configuração: func() config.Configuração {
+				var c config.Configuração
+				c.Servidor.Endereço = endereçoServidor
+				c.Servidor.TLS.Habilitado = true
+				c.Servidor.TLS.ArquivoCertificado = arquivoCertificado.Name()
+				c.Servidor.TLS.ArquivoChave = arquivoChave.Name()
+				c.Syslog.Endereço = syslog.Addr().String()
+				c.Syslog.TempoEsgotadoConexão = 1 * time.Second
+				return c
+			}(),
+			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
+				return errors.Errorf("erro de conexão")
+			},
+			erroEsperado: errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
+			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
+.*Inicializando conexão com o banco de dados
+.*Erro ao conectar o banco de dados. Detalhes: .*erro de conexão
+.*Inicializando servidor
+.*Erro ao iniciar o servidor\. Detalhes: .*use of closed network connection
+$`),
+		},
 	}
-
-	//.*Erro ao iniciar o servidor\. Detalhes: .*use of closed network connection
 
 	configuraçãoOriginal := config.Atual()
 	defer func() {
