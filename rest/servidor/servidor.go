@@ -59,7 +59,7 @@ func Iniciar(escuta net.Listener) error {
 func iniciarConexãoSyslog() error {
 	log.Info("Inicializando conexão com o servidor de log")
 
-	return erros.Novo(log.Dial("tcp", config.Atual().EndereçoSyslog, "atirador-frequente"))
+	return erros.Novo(log.Dial("tcp", config.Atual().Syslog.Endereço, "atirador-frequente", config.Atual().Syslog.TempoEsgotadoConexão))
 }
 
 func iniciarConexãoBancoDados() error {

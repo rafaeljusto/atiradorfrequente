@@ -22,30 +22,33 @@ type Configuração struct {
 	Servidor struct {
 		// Endereço interface que o servidor irá escutar, formado pelo IP com porta
 		// (exemplo 127.0.0.1:443).
-		Endereço string
+		Endereço string `yaml:"endereco"`
 
 		TLS struct {
 			// Habilitado define se o TLS será utilizado ou não.
-			Habilitado bool
+			Habilitado bool `yaml:"habilitado"`
 
 			// ArquivoCertificado caminho para o arquivo em formato PEM que contém o
 			// certificado.
-			ArquivoCertificado string
+			ArquivoCertificado string `yaml:"arquivo certificado"`
 
 			// ArquivoCertificado caminho para o arquivo em formato PEM que contém a
 			// chave privada referente ao certificado.
-			ArquivoChave string
+			ArquivoChave string `yaml:"arquvi chave"`
 		}
 
 		// TempoEsgotadoLeitura define o tempo em que o servidor irá aguardar após
 		// um cliente se conectar para que alguma requisição seja recebida.
-		TempoEsgotadoLeitura time.Duration
+		TempoEsgotadoLeitura time.Duration `yaml:"tempo esgotado leitura"`
 	}
 
-	// EndereçoSyslog endereço IP com porta (exemplo  127.0.0.1:514) para conexão
-	// com o servidor de log central. A conexão será feita utilizando o protocolo
-	// TCP para minimizar a perda de mensagens.
-	EndereçoSyslog string `yaml:"endereco syslog"`
+	Syslog struct {
+		// EndereçoSyslog endereço IP com porta (exemplo  127.0.0.1:514) para
+		// conexão com o servidor de log central. A conexão será feita utilizando o
+		// protocolo TCP para minimizar a perda de mensagens.
+		Endereço             string        `yaml:"endereco"`
+		TempoEsgotadoConexão time.Duration `yaml:"tempo esgotado conexao"`
+	}
 
 	BancoDados struct {
 		Endereço                     string        `yaml:"endereco"`
