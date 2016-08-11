@@ -130,6 +130,11 @@ func TestIniciar(t *testing.T) {
 				return c
 			}(),
 			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
+				bd.Conexão = simulador.BD{
+					SimulaClose: func() error {
+						return nil
+					},
+				}
 				return nil
 			},
 			erroEsperado: errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
@@ -160,6 +165,11 @@ $`),
 				return c
 			}(),
 			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
+				bd.Conexão = simulador.BD{
+					SimulaClose: func() error {
+						return nil
+					},
+				}
 				return nil
 			},
 			erroEsperado: gostklog.ErrDialTimeout,
@@ -199,6 +209,42 @@ $`),
 $`),
 		},
 		{
+			descrição: "deve detectar um erro ao encerrar a conexão do banco de dados",
+			escuta: func() net.Listener {
+				escuta, err := net.Listen("tcp", "localhost:0")
+				if err != nil {
+					t.Fatalf("Erro ao inicializar o servidor. Detalhes: %s", err)
+				}
+				endereçoServidor = escuta.Addr().String()
+				return escuta
+			}(),
+			configuração: func() config.Configuração {
+				var c config.Configuração
+				c.Servidor.Endereço = endereçoServidor
+				c.Servidor.TLS.Habilitado = true
+				c.Servidor.TLS.ArquivoCertificado = arquivoCertificado.Name()
+				c.Servidor.TLS.ArquivoChave = arquivoChave.Name()
+				c.Syslog.Endereço = syslog.Addr().String()
+				c.Syslog.TempoEsgotadoConexão = 1 * time.Second
+				return c
+			}(),
+			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
+				bd.Conexão = simulador.BD{
+					SimulaClose: func() error {
+						return errors.Errorf("erro na conexão com o banco de dados")
+					},
+				}
+				return nil
+			},
+			erroEsperado: errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
+			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
+.*Inicializando conexão com o banco de dados
+.*Inicializando servidor
+.*Erro ao iniciar o servidor\. Detalhes: .*use of closed network connection
+.*Erro ao fechar a conexão do banco de dados. Detalhes: .*erro na conexão com o banco de dados
+$`),
+		},
+		{
 			descrição: "deve detectar quando o sistema entra em pânico",
 			escuta: func() net.Listener {
 				escuta, err := net.Listen("tcp", "localhost:0")
@@ -219,6 +265,11 @@ $`),
 				return c
 			}(),
 			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
+				bd.Conexão = simulador.BD{
+					SimulaClose: func() error {
+						return nil
+					},
+				}
 				return nil
 			},
 			inicializar: func() {
@@ -263,6 +314,11 @@ $`),
 				return c
 			}(),
 			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
+				bd.Conexão = simulador.BD{
+					SimulaClose: func() error {
+						return nil
+					},
+				}
 				return nil
 			},
 			erroEsperado: &os.PathError{
@@ -291,6 +347,8 @@ $`),
 	for i, cenário := range cenários {
 		mensagens.Reset()
 		config.AtualizarConfiguração(&cenário.configuração)
+
+		bd.Conexão = nil
 		bd.IniciarConexão = cenário.conexãoBD
 
 		if cenário.inicializar != nil {
