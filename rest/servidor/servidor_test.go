@@ -2,9 +2,13 @@ package servidor_test
 
 import (
 	"bytes"
+	"crypto/tls"
+	"fmt"
 	"io/ioutil"
 	golog "log"
 	"net"
+	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -12,11 +16,14 @@ import (
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
 	"github.com/rafaeljusto/atiradorfrequente/rest/config"
+	"github.com/rafaeljusto/atiradorfrequente/rest/handler"
 	"github.com/rafaeljusto/atiradorfrequente/rest/servidor"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
+	"github.com/rafaeljusto/atiradorfrequente/testes/simulador"
 	"github.com/registrobr/gostk/db"
 	"github.com/registrobr/gostk/errors"
 	gostklog "github.com/registrobr/gostk/log"
+	"github.com/trajber/handy"
 )
 
 func TestIniciar(t *testing.T) {
@@ -72,7 +79,12 @@ func TestIniciar(t *testing.T) {
 							continue
 						}
 
-						mensagens.WriteString(linha[strings.Index(linha, "[]")+3:])
+						if i := strings.Index(linha, "[]"); i != -1 && len(linha)-i > 3 {
+							mensagens.WriteString(linha[i+3:])
+						} else {
+							mensagens.WriteString(linha)
+						}
+
 						mensagens.WriteString("\n")
 					}
 				}
@@ -92,6 +104,8 @@ func TestIniciar(t *testing.T) {
 		escuta             net.Listener
 		configuração       config.Configuração
 		conexãoBD          func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error
+		inicializar        func()
+		finalizar          func()
 		erroEsperado       error
 		mensagensEsperadas *regexp.Regexp
 	}{
@@ -184,6 +198,84 @@ $`),
 .*Erro ao iniciar o servidor\. Detalhes: .*use of closed network connection
 $`),
 		},
+		{
+			descrição: "deve detectar quando o sistema entra em pânico",
+			escuta: func() net.Listener {
+				escuta, err := net.Listen("tcp", "localhost:0")
+				if err != nil {
+					t.Fatalf("Erro ao inicializar o servidor. Detalhes: %s", err)
+				}
+				endereçoServidor = escuta.Addr().String()
+				return escuta
+			}(),
+			configuração: func() config.Configuração {
+				var c config.Configuração
+				c.Servidor.Endereço = endereçoServidor
+				c.Servidor.TLS.Habilitado = true
+				c.Servidor.TLS.ArquivoCertificado = arquivoCertificado.Name()
+				c.Servidor.TLS.ArquivoChave = arquivoChave.Name()
+				c.Syslog.Endereço = syslog.Addr().String()
+				c.Syslog.TempoEsgotadoConexão = 1 * time.Second
+				return c
+			}(),
+			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
+				return nil
+			},
+			inicializar: func() {
+				handler.Rotas["/teste"] = handy.Constructor(func() handy.Handler {
+					return &simulador.Handler{
+						SimulaGet: func() int {
+							panic("pânico no sistema")
+						},
+					}
+				})
+			},
+			finalizar: func() {
+				delete(handler.Rotas, "/teste")
+			},
+			erroEsperado: errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
+			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
+.*Inicializando conexão com o banco de dados
+.*Inicializando servidor
+.*Erro grave detectado. Detalhes: pânico no sistema
+(.|\n)*
+.*Erro ao iniciar o servidor\. Detalhes: .*use of closed network connection
+$`),
+		},
+		{
+			descrição: "deve detectar certificados HTTPS inválidos",
+			escuta: func() net.Listener {
+				escuta, err := net.Listen("tcp", "localhost:0")
+				if err != nil {
+					t.Fatalf("Erro ao inicializar o servidor. Detalhes: %s", err)
+				}
+				endereçoServidor = escuta.Addr().String()
+				return escuta
+			}(),
+			configuração: func() config.Configuração {
+				var c config.Configuração
+				c.Servidor.Endereço = endereçoServidor
+				c.Servidor.TLS.Habilitado = true
+				c.Servidor.TLS.ArquivoCertificado = "/tmp/atiradorfrequente/nao-existo.crt"
+				c.Servidor.TLS.ArquivoChave = "/tmp/atiradorfrequente/nao-existo.key"
+				c.Syslog.Endereço = syslog.Addr().String()
+				c.Syslog.TempoEsgotadoConexão = 1 * time.Second
+				return c
+			}(),
+			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
+				return nil
+			},
+			erroEsperado: &os.PathError{
+				Op:   "open",
+				Path: "/tmp/atiradorfrequente/nao-existo.crt",
+				Err:  fmt.Errorf("no such file or directory"),
+			},
+			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
+.*Inicializando conexão com o banco de dados
+.*Inicializando servidor
+.*Erro ao iniciar o servidor\. Detalhes: .*open /tmp/atiradorfrequente/nao-existo.crt: no such file or directory
+$`),
+		},
 	}
 
 	configuraçãoOriginal := config.Atual()
@@ -201,20 +293,33 @@ $`),
 		config.AtualizarConfiguração(&cenário.configuração)
 		bd.IniciarConexão = cenário.conexãoBD
 
-		fim := make(chan bool)
+		if cenário.inicializar != nil {
+			cenário.inicializar()
+		}
+
 		go func() {
 			// aguarda para o servidor ser iniciado
 			time.Sleep(10 * time.Millisecond)
+
+			transporte := http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true,
+				},
+			}
+
+			cliente := http.Client{
+				Transport: &transporte,
+			}
+
+			cliente.Get(fmt.Sprintf("https://%s/teste", cenário.escuta.Addr()))
 
 			if cenário.escuta != nil {
 				// fecha o escutador para desbloquear a função Iniciar
 				cenário.escuta.Close()
 			}
-			<-fim
 		}()
 
 		err := servidor.Iniciar(cenário.escuta)
-		close(fim)
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(nil, cenário.erroEsperado)
@@ -226,7 +331,12 @@ $`),
 		time.Sleep(10 * time.Millisecond)
 
 		if !cenário.mensagensEsperadas.MatchString(mensagens.String()) {
-			t.Errorf("Mensagem inesperada: %s", mensagens.String())
+			t.Errorf("Item %d, “%s”: mensagem inesperada. Detalhes: %s",
+				i, cenário.descrição, mensagens.String())
+		}
+
+		if cenário.finalizar != nil {
+			cenário.finalizar()
 		}
 	}
 }
