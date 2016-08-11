@@ -6,7 +6,7 @@ import (
 	"crypto/tls"
 	"net"
 	"net/http"
-	"runtime"
+	"runtime/debug"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
@@ -86,10 +86,7 @@ func iniciarServidor(escuta net.Listener) error {
 
 	h := handy.NewHandy()
 	h.Recover = func(r interface{}) {
-		const tamanho = 1 << 16
-		buffer := make([]byte, tamanho)
-		buffer = buffer[:runtime.Stack(buffer, false)]
-		log.Critf("Erro grave detectado. Detalhes: %v\n%s", r, buffer)
+		log.Critf("Erro grave detectado. Detalhes: %v\n%s", r, debug.Stack())
 	}
 
 	for rota, handler := range handler.Rotas {
