@@ -48,12 +48,12 @@ func Iniciar(escuta net.Listener) error {
 		}
 	}()
 
-	if err := iniciarServidor(escuta); err != nil {
-		log.Critf("Erro ao iniciar o servidor. Detalhes: %s", erros.Novo(err))
-		return erros.Novo(err)
-	}
-
-	return nil
+	// a execução do servidor será bloqueante até que ocorra um erro. Mesmo quando
+	// encerramos corretamente o servidor um erro será gerado referente a escuta
+	// na interface. Mais detalhes em: https://github.com/golang/go/issues/11219
+	err := erros.Novo(iniciarServidor(escuta))
+	log.Critf("Erro ao iniciar o servidor. Detalhes: %s", err)
+	return erros.Novo(err)
 }
 
 func iniciarConexãoSyslog() error {
