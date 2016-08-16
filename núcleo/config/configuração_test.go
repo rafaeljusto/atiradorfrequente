@@ -387,7 +387,7 @@ atirador:
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(cenário.configuraçãoEsperada, cenário.erroEsperado)
-		if err := verificadorResultado.VerificaResultado(configuração, err); err != nil {
+		if err = verificadorResultado.VerificaResultado(configuração, err); err != nil {
 			t.Error(err)
 		}
 	}

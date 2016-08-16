@@ -58,19 +58,19 @@ func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.Frequ
 
 func (s serviço) ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
 	dao := novaFrequênciaDAO(s.sqlogger)
-	frequência, err := dao.resgatar(frequênciaConfirmaçãoPedidoCompleta.NúmeroControle.ID())
+	f, err := dao.resgatar(frequênciaConfirmaçãoPedidoCompleta.NúmeroControle.ID())
 	if err != nil {
 		return erros.Novo(err)
 	}
 
 	if mensagens := protocolo.JuntarMensagens(
-		validarCR(frequênciaConfirmaçãoPedidoCompleta.CR, frequência),
-		validarNúmeroControle(frequênciaConfirmaçãoPedidoCompleta.NúmeroControle, frequência),
-		validarIntervaloMáximoConfirmação(frequência, s.configuração.Atirador.PrazoConfirmação),
+		validarCR(frequênciaConfirmaçãoPedidoCompleta.CR, f),
+		validarNúmeroControle(frequênciaConfirmaçãoPedidoCompleta.NúmeroControle, f),
+		validarIntervaloMáximoConfirmação(f, s.configuração.Atirador.PrazoConfirmação),
 	); len(mensagens) > 0 {
 		return mensagens
 	}
 
-	frequência.confirmar(frequênciaConfirmaçãoPedidoCompleta)
-	return erros.Novo(dao.atualizar(&frequência))
+	f.confirmar(frequênciaConfirmaçãoPedidoCompleta)
+	return erros.Novo(dao.atualizar(&f))
 }
