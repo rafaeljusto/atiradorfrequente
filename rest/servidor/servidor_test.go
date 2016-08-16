@@ -104,6 +104,7 @@ func TestIniciar(t *testing.T) {
 		escuta             net.Listener
 		configuração       config.Configuração
 		conexãoBD          func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error
+		fecharConexãoLog   func() error
 		inicializar        func()
 		finalizar          func()
 		erroEsperado       error
@@ -137,7 +138,8 @@ func TestIniciar(t *testing.T) {
 				}
 				return nil
 			},
-			erroEsperado: errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
+			fecharConexãoLog: gostklog.Close,
+			erroEsperado:     errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
 			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
 .*Inicializando conexão com o banco de dados
 .*Inicializando servidor
@@ -172,9 +174,49 @@ $`),
 				}
 				return nil
 			},
-			erroEsperado: gostklog.ErrDialTimeout,
+			fecharConexãoLog: gostklog.Close,
+			erroEsperado:     gostklog.ErrDialTimeout,
 			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
 .*Erro ao conectar servidor de log. Detalhes: .*dial timeout
+$`),
+		},
+		{
+			descrição: "deve detectar um erro ao encerrar a conexão do log",
+			escuta: func() net.Listener {
+				escuta, err := net.Listen("tcp", "localhost:0")
+				if err != nil {
+					t.Fatalf("Erro ao inicializar o servidor. Detalhes: %s", err)
+				}
+				endereçoServidor = escuta.Addr().String()
+				return escuta
+			}(),
+			configuração: func() config.Configuração {
+				var c config.Configuração
+				c.Servidor.Endereço = endereçoServidor
+				c.Servidor.TLS.Habilitado = true
+				c.Servidor.TLS.ArquivoCertificado = arquivoCertificado.Name()
+				c.Servidor.TLS.ArquivoChave = arquivoChave.Name()
+				c.Syslog.Endereço = syslog.Addr().String()
+				c.Syslog.TempoEsgotadoConexão = 1 * time.Second
+				return c
+			}(),
+			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
+				bd.Conexão = simulador.BD{
+					SimulaClose: func() error {
+						return nil
+					},
+				}
+				return nil
+			},
+			fecharConexãoLog: func() error {
+				return fmt.Errorf("erro ao encerrar a conexão")
+			},
+			erroEsperado: errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
+			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
+.*Inicializando conexão com o banco de dados
+.*Inicializando servidor
+.*Erro ao iniciar o servidor\. Detalhes: .*use of closed network connection
+.*Erro ao fechar a conexão do log. Detalhes: .*erro ao encerrar a conexão
 $`),
 		},
 		{
@@ -200,7 +242,8 @@ $`),
 			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
 				return errors.Errorf("erro de conexão")
 			},
-			erroEsperado: errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
+			fecharConexãoLog: gostklog.Close,
+			erroEsperado:     errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
 			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
 .*Inicializando conexão com o banco de dados
 .*Erro ao conectar o banco de dados. Detalhes: .*erro de conexão
@@ -236,7 +279,8 @@ $`),
 				}
 				return nil
 			},
-			erroEsperado: errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
+			fecharConexãoLog: gostklog.Close,
+			erroEsperado:     errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
 			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
 .*Inicializando conexão com o banco de dados
 .*Inicializando servidor
@@ -272,6 +316,7 @@ $`),
 				}
 				return nil
 			},
+			fecharConexãoLog: gostklog.Close,
 			inicializar: func() {
 				handler.Rotas["/teste"] = handy.Constructor(func() handy.Handler {
 					return &simulador.Handler{
@@ -321,6 +366,7 @@ $`),
 				}
 				return nil
 			},
+			fecharConexãoLog: gostklog.Close,
 			erroEsperado: &os.PathError{
 				Op:   "open",
 				Path: "/tmp/atiradorfrequente/nao-existo.crt",
@@ -344,12 +390,19 @@ $`),
 		bd.IniciarConexão = conexãoBDOriginal
 	}()
 
+	fecharConexãoLogOriginal := gostklog.Close
+	defer func() {
+		gostklog.Close = fecharConexãoLogOriginal
+	}()
+
 	for i, cenário := range cenários {
 		mensagens.Reset()
 		config.AtualizarConfiguração(&cenário.configuração)
 
 		bd.Conexão = nil
 		bd.IniciarConexão = cenário.conexãoBD
+
+		gostklog.Close = cenário.fecharConexãoLog
 
 		if cenário.inicializar != nil {
 			cenário.inicializar()
