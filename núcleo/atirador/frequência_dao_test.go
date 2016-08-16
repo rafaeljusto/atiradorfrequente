@@ -448,11 +448,11 @@ func TestFrequênciaDAOImpl_resgatar(t *testing.T) {
 		cenário.simulação()
 
 		dao := novaFrequênciaDAO(bd.NovoSQLogger(conexão, nil))
-		frequência, err := dao.resgatar(cenário.id)
+		f, err := dao.resgatar(cenário.id)
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(cenário.frequênciaEsperada, cenário.erroEsperado)
-		if err = verificadorResultado.VerificaResultado(frequência, err); err != nil {
+		if err = verificadorResultado.VerificaResultado(f, err); err != nil {
 			t.Error(err)
 		}
 	}
