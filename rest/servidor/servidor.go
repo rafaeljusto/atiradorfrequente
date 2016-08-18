@@ -70,6 +70,7 @@ func iniciarConexãoBancoDados() error {
 		Password:           config.Atual().BancoDados.Senha,
 		DatabaseName:       config.Atual().BancoDados.Nome,
 		Host:               config.Atual().BancoDados.Endereço,
+		Port:               config.Atual().BancoDados.Porta,
 		ConnectTimeout:     config.Atual().BancoDados.TempoEsgotadoConexão,
 		StatementTimeout:   config.Atual().BancoDados.TempoEsgotadoComando,
 		MaxIdleConnections: config.Atual().BancoDados.MáximoNúmeroConexõesInativas,

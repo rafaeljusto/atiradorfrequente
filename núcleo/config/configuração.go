@@ -23,59 +23,73 @@ type Configuração struct {
 	Atirador struct {
 		// PrazoConfirmação define o tempo máximo permitido para confirmar uma
 		// frequência a partir do momento de sua criação.
-		PrazoConfirmação time.Duration `yaml:"prazo confirmacao"`
+		PrazoConfirmação time.Duration `yaml:"prazo confirmacao" envconfig:"prazo_confirmacao"`
 
 		// ImagemNúmeroControle define as propriedades para geração da imagem que
 		// contém o número de controle.
 		ImagemNúmeroControle struct {
 			// Largura define a largura em pixels da imagem.
-			Largura int `yaml:"largura"`
+			Largura int `yaml:"largura" envconfig:"largura"`
 			// Altura define a altura em pixels da imagem.
-			Altura int `yaml:"altura"`
+			Altura int `yaml:"altura" envconfig:"altura"`
 			// CorFundo define a cor de fundo da imagem. As possível opções são:
 			// "preto", "branco", "verde", "azul", "vermelho", "amarelo" e "cinza"
-			CorFundo cor `yaml:"cor fundo"`
+			CorFundo cor `yaml:"cor fundo" envconfig:"cor_fundo"`
 			// Fonte define as propriedades da fonte utilizada na imagem.
-			Fonte fonte `yaml:"fonte"`
+			Fonte fonte `yaml:"fonte" envconfig:"fonte"`
 			// Logo define o logo a ser exibido na imagem no canto superior esquerdo.
 			Logo struct {
 				// Imagem caminho para o arquivo que contém a imagem, são suportados os
 				// formatos: JPEG, PNG e GIF. Caso o campo esteja indefinido a imagem
 				// não será exibida. Esta opção tende a deixar a impressão da imagem
 				// mais lenta.
-				Imagem imagem `yaml:"imagem"`
+				Imagem imagem `yaml:"imagem" envconfig:"imagem"`
 				// Espaçamento define o espaço em pixels entre a borda superior e a
 				// borda esquerda da imagem do logo.
-				Espaçamento int `yaml:"espacamento"`
-			} `yaml:"logo"`
+				Espaçamento int `yaml:"espacamento" envconfig:"espacamento"`
+			} `yaml:"logo" envconfig:"logo"`
 			// Borda define as características da borda. Esta opção tende a deixar a
 			// impressão da imagem mais lenta.
 			Borda struct {
 				// Largura define a espessura da borda. Caso o valor seja 0 a borda não
 				// será exibida.
-				Largura int `yaml:"largura"`
+				Largura int `yaml:"largura" envconfig:"largura"`
 				// Espaçamento define o espeço em pixels entre a borda e as margens da
 				// imagem.
-				Espaçamento int `yaml:"espacamento"`
+				Espaçamento int `yaml:"espacamento" envconfig:"espacamento"`
 				// Cor define a cor da borda. As possível opções são:
 				// "preto", "branco", "verde", "azul", "vermelho", "amarelo" e "cinza"
-				Cor cor `yaml:"cor"`
-			} `yaml:"borda"`
+				Cor cor `yaml:"cor" envconfig:"cor"`
+			} `yaml:"borda" envconfig:"borda"`
 			// LinhaFundo define as características da linha que é exibida
 			// repetidamente no fundo da imagem. Esta opção tende a deixar a impressão
 			// da imagem mais lenta.
 			LinhaFundo struct {
 				// Largura define a espessura da linha. Caso o valor seja 0 a borda não
 				// será exibida.
-				Largura int `yaml:"largura"`
+				Largura int `yaml:"largura" envconfig:"largura"`
 				// Espaçamento define o espeço em pixels entre as linhas.
-				Espaçamento int `yaml:"espacamento"`
+				Espaçamento int `yaml:"espacamento" envconfig:"espacamento"`
 				// Cor define a cor da linha. As possível opções são:
 				// "preto", "branco", "verde", "azul", "vermelho", "amarelo" e "cinza"
-				Cor cor `yaml:"cor"`
-			} `yaml:"linha fundo"`
-		} `yaml:"imagem numero controle"`
-	} `yaml:"atirador"`
+				Cor cor `yaml:"cor" envconfig:"cor"`
+			} `yaml:"linha fundo" envconfig:"linha_fundo"`
+		} `yaml:"imagem numero controle" envconfig:"imagem_numero_controle"`
+	} `yaml:"atirador" envconfig:"atirador"`
+}
+
+func DefinirValoresPadrão(c *Configuração) {
+	c.Atirador.PrazoConfirmação = 30 * time.Minute
+	c.Atirador.ImagemNúmeroControle.Largura = 3508
+	c.Atirador.ImagemNúmeroControle.Altura = 2480
+	c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+	c.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+	c.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+	c.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+	c.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+	c.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+	c.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+	c.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
 }
 
 type imagem struct {
