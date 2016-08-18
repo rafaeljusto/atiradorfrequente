@@ -78,6 +78,9 @@ type Configuração struct {
 	} `yaml:"atirador" envconfig:"atirador"`
 }
 
+// DefinirValoresPadrão utiliza valores padrão em todos os campos da
+// configuração caso o usuário não informe. O usuário também tem a opção de
+// sobrescrever somente alguns valores, mantendo os demais com valores padrão.
 func DefinirValoresPadrão(c *Configuração) {
 	c.Atirador.PrazoConfirmação = 30 * time.Minute
 	c.Atirador.ImagemNúmeroControle.Largura = 3508

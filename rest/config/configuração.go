@@ -101,6 +101,9 @@ func AtualizarConfiguração(c *Configuração) {
 	atomic.StorePointer(&configuração, unsafe.Pointer(c))
 }
 
+// DefinirValoresPadrão utiliza valores padrão em todos os campos da
+// configuração caso o usuário não informe. O usuário também tem a opção de
+// sobrescrever somente alguns valores, mantendo os demais com valores padrão.
 func DefinirValoresPadrão() {
 	c := Atual()
 	if c == nil {
@@ -128,6 +131,9 @@ func DefinirValoresPadrão() {
 	AtualizarConfiguração(c)
 }
 
+// CarregarDeArquivo interpreta um arquivo de configuração em formato YAML e
+// preenche as variáveis da configuração global do servidor REST. O que não for
+// informado no arquivo de configuração YAML não será sobrescrito.
 func CarregarDeArquivo(arquivo string) error {
 	conteúdo, err := ioutil.ReadFile(arquivo)
 	if err != nil {
@@ -147,6 +153,9 @@ func CarregarDeArquivo(arquivo string) error {
 	return nil
 }
 
+// CarregarDeVariávelAmbiente analisa as variáveis de ambiente e preenche as
+// variáveis da configuração global do servidor REST. O que não for informado
+// nas variáveis de ambiente não será sobrescrito.
 func CarregarDeVariávelAmbiente() error {
 	c := Atual()
 	if c == nil {
