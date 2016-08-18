@@ -2,13 +2,25 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/jpillora/overseer"
 	"github.com/jpillora/overseer/fetcher"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/rest/config"
 	"github.com/rafaeljusto/atiradorfrequente/rest/servidor"
 	"github.com/urfave/cli"
 )
+
+const (
+	códigoSaídaAplicação códigoSaída = 1
+)
+
+type códigoSaída int
+
+func (c códigoSaída) Código() int {
+	return int(c)
+}
 
 func main() {
 	app := cli.NewApp()
@@ -25,19 +37,17 @@ func main() {
 		},
 	}
 
-	app.Action = func(c *cli.Context) {
+	app.Action = cli.ActionFunc(func(c *cli.Context) error {
 		config.DefinirValoresPadrão()
 
 		if arquivo := c.String("config"); arquivo != "" {
 			if err := config.CarregarDeArquivo(arquivo); err != nil {
-				fmt.Printf("Erro ao carregar o arquivo de configuração. Detalhes: %s", err)
-				return
+				return erros.Novo(err)
 			}
 		}
 
 		if err := config.CarregarDeVariávelAmbiente(); err != nil {
-			fmt.Printf("Erro ao carregar variáveis de ambiente. Detalhes: %s", err)
-			return
+			return erros.Novo(err)
 		}
 
 		// TODO(rafaeljusto): Mover o carregamento da configuração para dentro da
@@ -46,7 +56,7 @@ func main() {
 		// descobrir como obter os valores necessários para iniciar o overseer que
 		// hoje estão dentro da própria configuração.
 
-		overseer.Run(overseer.Config{
+		err := overseer.RunErr(overseer.Config{
 			Program: executor,
 			Address: config.Atual().Servidor.Endereço,
 			Fetcher: &fetcher.HTTP{
@@ -54,6 +64,13 @@ func main() {
 				Interval: config.Atual().Binário.TempoAtualização,
 			},
 		})
+
+		return erros.Novo(err)
+	})
+
+	if err := app.Run(os.Args); err != nil {
+		fmt.Fprintf(os.Stderr, "Erro ao executar a aplicação. Detalhes: %s\n", err)
+		os.Exit(códigoSaídaAplicação.Código())
 	}
 }
 
