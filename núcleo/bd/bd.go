@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"time"
 
+	_ "github.com/lib/pq"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/registrobr/gostk/db"
 )
