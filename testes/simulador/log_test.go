@@ -139,7 +139,7 @@ func TestServidorLog(t *testing.T) {
 
 	log.Debug("Teste1")
 
-	if err := log.Dial("tcp", escuta.Addr().String(), "teste", 2*time.Second); err != nil {
+	if err = log.Dial("tcp", escuta.Addr().String(), "teste", 2*time.Second); err != nil {
 		t.Fatalf("Erro ao conectar-se ao servidor de log. Detalhes: %s", err)
 	}
 	defer log.Close()
