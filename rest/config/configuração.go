@@ -10,9 +10,9 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/kelseyhightower/envconfig"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/config"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
-	"github.com/rafaeljusto/envconfig"
 	"gopkg.in/yaml.v2"
 )
 
