@@ -1,5 +1,15 @@
 package simulador
 
+import (
+	"bytes"
+	golog "log"
+	"net"
+	"strings"
+	"sync"
+
+	gostklog "github.com/registrobr/gostk/log"
+)
+
 // Logger simula uma estrutura de log.
 type Logger struct {
 	SimulaEmerg     func(m ...interface{})
@@ -106,4 +116,94 @@ func (l Logger) Debugf(m string, a ...interface{}) {
 // deve ser modificado somente em casos muito específicos.
 func (l Logger) SetCaller(n int) {
 	l.SimulaSetCaller(n)
+}
+
+// ServidorLog simula um servidor de log remoto escutando em uma porta TCP.
+type ServidorLog struct {
+	mensagens logMensagens
+}
+
+// Executar inicia o servidor de log retornando a escuta. Para encerrar o
+// servidor basta fechar a escuta.
+func (s *ServidorLog) Executar(endereço string) (net.Listener, error) {
+	gostklog.LocalLogger = golog.New(&s.mensagens, "", golog.Lshortfile)
+
+	syslog, err := net.Listen("tcp", endereço)
+	if err != nil {
+		return nil, err
+	}
+
+	go func(l net.Listener) {
+		for {
+			conn, err := l.Accept()
+			if err != nil {
+				return
+			}
+
+			go func(conn net.Conn) {
+				defer conn.Close()
+
+				for {
+					var buffer [1024]byte
+					n, err := conn.Read(buffer[:])
+					if err != nil {
+						break
+					}
+
+					linhas := strings.Split(string(buffer[:n]), "\n")
+					for _, linha := range linhas {
+						linha = strings.TrimSpace(linha)
+						if linha == "" {
+							continue
+						}
+
+						if i := strings.Index(linha, "[]"); i != -1 && len(linha)-i > 3 {
+							s.mensagens.WriteString(linha[i+3:])
+						} else {
+							s.mensagens.WriteString(linha)
+						}
+
+						s.mensagens.WriteString("\n")
+					}
+				}
+			}(conn)
+		}
+	}(syslog)
+
+	return syslog, nil
+}
+
+// Mensagens retorna as mensagens obtidas pelo servidor de logs.
+func (s *ServidorLog) Mensagens() string {
+	s.mensagens.Lock()
+	defer s.mensagens.Unlock()
+
+	return s.mensagens.Buffer.String()
+}
+
+// Limpar remove as mensagens obtidas pelo servidor de logs.
+func (s *ServidorLog) Limpar() {
+	s.mensagens.Lock()
+	defer s.mensagens.Unlock()
+	s.mensagens.Buffer.Reset()
+}
+
+// logMensagens armazena os logs garantindo a concorrência.
+type logMensagens struct {
+	sync.Mutex
+	bytes.Buffer
+}
+
+// Write escreve a mensagem de log tratando problemas de concorrência.
+func (l *logMensagens) Write(p []byte) (int, error) {
+	l.Lock()
+	defer l.Unlock()
+	return l.Buffer.Write(p)
+}
+
+// WriteString escreve a mensagem de log tratando problemas de concorrência.
+func (l *logMensagens) WriteString(s string) (int, error) {
+	l.Lock()
+	defer l.Unlock()
+	return l.Buffer.WriteString(s)
 }

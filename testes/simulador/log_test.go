@@ -5,8 +5,14 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
+
+	"regexp"
+
+	"log/syslog"
 
 	"github.com/rafaeljusto/atiradorfrequente/testes/simulador"
+	"github.com/registrobr/gostk/log"
 )
 
 func TestLogger(t *testing.T) {
@@ -120,5 +126,55 @@ func TestLogger(t *testing.T) {
 
 	if len(métodosSimulados) > 0 {
 		t.Errorf("métodos %#v não foram chamados", métodosSimulados)
+	}
+}
+
+func TestServidorLog(t *testing.T) {
+	var servidorLog simulador.ServidorLog
+	escuta, err := servidorLog.Executar("localhost:0")
+	if err != nil {
+		t.Fatalf("Erro ao inicializar o servidor de log. Detalhes: %s", err)
+	}
+	defer escuta.Close()
+
+	log.Debug("Teste1")
+
+	if err := log.Dial("tcp", escuta.Addr().String(), "teste", 2*time.Second); err != nil {
+		t.Fatalf("Erro ao conectar-se ao servidor de log. Detalhes: %s", err)
+	}
+	defer log.Close()
+
+	log.Debug("Teste2\nTeste3")
+
+	s, err := syslog.Dial("tcp", escuta.Addr().String(), syslog.LOG_INFO|syslog.LOG_LOCAL0, "teste")
+	if err != nil {
+		t.Fatalf("Erro ao conectar-se ao servidor de log. Detalhes: %s", err)
+	}
+
+	s.Debug("Teste4")
+
+	// aguarda o servidor escrever a mensagem
+	time.Sleep(10 * time.Millisecond)
+
+	mensagensEsperadas := regexp.MustCompile(`.* Teste1
+.* Teste2
+.* Teste3
+.* Teste4`)
+
+	if !mensagensEsperadas.MatchString(servidorLog.Mensagens()) {
+		t.Errorf("Mensagens inesperadas: %s", servidorLog.Mensagens())
+	}
+
+	servidorLog.Limpar()
+
+	if servidorLog.Mensagens() != "" {
+		t.Errorf("Mensagens inesperadas: %s", servidorLog.Mensagens())
+	}
+}
+
+func TestServidorLog_endereçoInválido(t *testing.T) {
+	var servidorLog simulador.ServidorLog
+	if _, err := servidorLog.Executar("xxxxx"); err == nil {
+		t.Fatal("Servidor de log não detectou um endereço inválido")
 	}
 }

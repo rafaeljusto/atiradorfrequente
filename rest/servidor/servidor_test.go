@@ -1,16 +1,13 @@
 package servidor_test
 
 import (
-	"bytes"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
-	golog "log"
 	"net"
 	"net/http"
 	"os"
 	"regexp"
-	"strings"
 	"testing"
 	"time"
 
@@ -41,56 +38,17 @@ func TestIniciar(t *testing.T) {
 	defer arquivoChave.Close()
 	arquivoChave.WriteString(chave)
 
-	syslog, err := net.Listen("tcp", "localhost:0")
-	if err != nil {
-		t.Fatalf("Erro ao inicializar o servidor de log. Detalhes: %s", err)
-	}
-	defer syslog.Close()
-
 	loggerOriginal := gostklog.LocalLogger
 	defer func() {
 		gostklog.LocalLogger = loggerOriginal
 	}()
 
-	var mensagens bytes.Buffer
-	gostklog.LocalLogger = golog.New(&mensagens, "", golog.Lshortfile)
-
-	go func(l net.Listener) {
-		for {
-			conn, err := l.Accept()
-			if err != nil {
-				return
-			}
-
-			go func(conn net.Conn) {
-				defer conn.Close()
-
-				for {
-					var buffer [1024]byte
-					n, err := conn.Read(buffer[:])
-					if err != nil {
-						break
-					}
-
-					linhas := strings.Split(string(buffer[:n]), "\n")
-					for _, linha := range linhas {
-						linha = strings.TrimSpace(linha)
-						if linha == "" {
-							continue
-						}
-
-						if i := strings.Index(linha, "[]"); i != -1 && len(linha)-i > 3 {
-							mensagens.WriteString(linha[i+3:])
-						} else {
-							mensagens.WriteString(linha)
-						}
-
-						mensagens.WriteString("\n")
-					}
-				}
-			}(conn)
-		}
-	}(syslog)
+	var servidorLog simulador.ServidorLog
+	syslog, err := servidorLog.Executar("localhost:0")
+	if err != nil {
+		t.Fatalf("Erro ao inicializar o servidor de log. Detalhes: %s", err)
+	}
+	defer syslog.Close()
 
 	iniciarConexãoOriginal := bd.IniciarConexão
 	defer func() {
@@ -396,7 +354,7 @@ $`),
 	}()
 
 	for i, cenário := range cenários {
-		mensagens.Reset()
+		servidorLog.Limpar()
 		config.AtualizarConfiguração(&cenário.configuração)
 
 		bd.Conexão = nil
@@ -441,9 +399,9 @@ $`),
 		// aguarda as últimas mensagens serem escritas no log
 		time.Sleep(10 * time.Millisecond)
 
-		if !cenário.mensagensEsperadas.MatchString(mensagens.String()) {
+		if !cenário.mensagensEsperadas.MatchString(servidorLog.Mensagens()) {
 			t.Errorf("Item %d, “%s”: mensagem inesperada. Detalhes: %s",
-				i, cenário.descrição, mensagens.String())
+				i, cenário.descrição, servidorLog.Mensagens())
 		}
 
 		if cenário.finalizar != nil {
