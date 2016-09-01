@@ -19,7 +19,7 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/testes/simulador"
 	"github.com/registrobr/gostk/db"
 	"github.com/registrobr/gostk/errors"
-	gostklog "github.com/registrobr/gostk/log"
+	"github.com/registrobr/gostk/log"
 	"github.com/trajber/handy"
 )
 
@@ -38,9 +38,9 @@ func TestIniciar(t *testing.T) {
 	defer arquivoChave.Close()
 	arquivoChave.WriteString(chave)
 
-	loggerOriginal := gostklog.LocalLogger
+	loggerOriginal := log.LocalLogger
 	defer func() {
-		gostklog.LocalLogger = loggerOriginal
+		log.LocalLogger = loggerOriginal
 	}()
 
 	var servidorLog simulador.ServidorLog
@@ -49,11 +49,6 @@ func TestIniciar(t *testing.T) {
 		t.Fatalf("Erro ao inicializar o servidor de log. Detalhes: %s", err)
 	}
 	defer syslog.Close()
-
-	iniciarConexãoOriginal := bd.IniciarConexão
-	defer func() {
-		bd.IniciarConexão = iniciarConexãoOriginal
-	}()
 
 	var endereçoServidor string
 
@@ -96,7 +91,7 @@ func TestIniciar(t *testing.T) {
 				}
 				return nil
 			},
-			fecharConexãoLog: gostklog.Close,
+			fecharConexãoLog: log.Close,
 			erroEsperado:     errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
 			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
 .*Inicializando conexão com o banco de dados
@@ -132,8 +127,8 @@ $`),
 				}
 				return nil
 			},
-			fecharConexãoLog: gostklog.Close,
-			erroEsperado:     gostklog.ErrDialTimeout,
+			fecharConexãoLog: log.Close,
+			erroEsperado:     log.ErrDialTimeout,
 			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
 .*Erro ao conectar servidor de log. Detalhes: .*dial timeout
 $`),
@@ -200,7 +195,7 @@ $`),
 			conexãoBD: func(parâmetrosConexão db.ConnParams, txTempoEsgotado time.Duration) error {
 				return errors.Errorf("erro de conexão")
 			},
-			fecharConexãoLog: gostklog.Close,
+			fecharConexãoLog: log.Close,
 			erroEsperado:     errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
 			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
 .*Inicializando conexão com o banco de dados
@@ -237,7 +232,7 @@ $`),
 				}
 				return nil
 			},
-			fecharConexãoLog: gostklog.Close,
+			fecharConexãoLog: log.Close,
 			erroEsperado:     errors.Errorf("accept tcp %s: use of closed network connection", endereçoServidor),
 			mensagensEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o servidor de log
 .*Inicializando conexão com o banco de dados
@@ -274,7 +269,7 @@ $`),
 				}
 				return nil
 			},
-			fecharConexãoLog: gostklog.Close,
+			fecharConexãoLog: log.Close,
 			inicializar: func() {
 				handler.Rotas["/teste"] = handy.Constructor(func() handy.Handler {
 					return &simulador.Handler{
@@ -324,7 +319,7 @@ $`),
 				}
 				return nil
 			},
-			fecharConexãoLog: gostklog.Close,
+			fecharConexãoLog: log.Close,
 			erroEsperado: &os.PathError{
 				Op:   "open",
 				Path: "/tmp/atiradorfrequente/nao-existo.crt",
@@ -348,9 +343,9 @@ $`),
 		bd.IniciarConexão = conexãoBDOriginal
 	}()
 
-	fecharConexãoLogOriginal := gostklog.Close
+	fecharConexãoLogOriginal := log.Close
 	defer func() {
-		gostklog.Close = fecharConexãoLogOriginal
+		log.Close = fecharConexãoLogOriginal
 	}()
 
 	for i, cenário := range cenários {
@@ -360,7 +355,7 @@ $`),
 		bd.Conexão = nil
 		bd.IniciarConexão = cenário.conexãoBD
 
-		gostklog.Close = cenário.fecharConexãoLog
+		log.Close = cenário.fecharConexãoLog
 
 		if cenário.inicializar != nil {
 			cenário.inicializar()
