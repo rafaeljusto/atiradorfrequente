@@ -129,6 +129,15 @@ func TestLogger(t *testing.T) {
 	}
 }
 
+// TODO(rafaeljusto): Detectar problemas na ordem dos resultados encontrados em
+// algumas execuções deste teste.
+//
+//     --- FAIL: TestServidorLog (0.01s)
+//       log_test.go:174: Mensagens inesperadas: log.go:518: [] testes/simulador/log_test.go:149: Teste1
+//         <135>2016-09-01T09:40:18-03:00 rafael.in.registro.br teste[32752]: Teste4
+//         testes/simulador/log_test.go:156: Teste2
+//         testes/simulador/log_test.go:156: Teste3
+//
 func TestServidorLog(t *testing.T) {
 	var servidorLog simulador.ServidorLog
 	escuta, err := servidorLog.Executar("localhost:0")
