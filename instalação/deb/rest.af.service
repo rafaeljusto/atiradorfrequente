@@ -1,0 +1,17 @@
+[Unit]
+Description=REST - Atirador Frequente
+Requires=network.target rsyslog.service
+After=network.target rsyslog.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/atiradorfrequente/rest/rest.af
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=10m
+StartLimitBurst=5
+User=atiradorfrequente
+ExecStopPost=/usr/share/atiradorfrequente/rest.af.postscript
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+# Upstart job configuration file
+
+description   "REST - Atirador Frequente"
+author        "Rafael Dantas Justo"
+
+start on filesystem and (started networking) and (started rsyslog)
+
+respawn
+respawn limit 3 10
+
+exec start-stop-daemon \
+  --start \
+  -c atiradorfrequente \
+  --exec /usr/local/atiradorfrequente/rest/rest.af
+
+post-stop exec /usr/share/atiradorfrequente/rest.af.postscript
