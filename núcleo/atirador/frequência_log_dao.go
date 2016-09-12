@@ -39,6 +39,10 @@ func (f frequênciaLogDAOImpl) criar(frequência frequência, ação bd.AçãoLo
 		frequência.DataInício.UTC(),
 		frequência.DataTérmino.UTC(),
 		frequência.DataCriação.UTC(),
+		frequência.DataAtualização.UTC(),
+		frequência.DataConfirmação.UTC(),
+		frequência.ImagemNúmeroControle,
+		frequência.ImagemConfirmação,
 		frequência.revisão,
 	)
 
@@ -52,7 +56,7 @@ var (
 		"id",
 		"id_log",
 		"acao",
-		"id_frequencia",
+		"id_frequencia_atirador",
 		"controle",
 		"cr",
 		"calibre",
@@ -63,6 +67,10 @@ var (
 		"data_inicio",
 		"data_termino",
 		"data_criacao",
+		"data_atualizacao",
+		"data_confirmacao",
+		"imagem_numero_controle",
+		"imagem_confirmacao",
 		"revisao",
 	}
 	frequênciaLogCriaçãoCamposTexto = strings.Join(frequênciaLogCriaçãoCampos, ", ")
