@@ -2,8 +2,11 @@ package config_test
 
 import (
 	"encoding/base64"
+	"fmt"
 	"image/color"
 	"io/ioutil"
+	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -184,7 +187,11 @@ atirador:
 				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
 				return configuração
 			}(),
-			erroEsperado: errors.Errorf("open /tmp/eunaoexisto321.ttf: no such file or directory"),
+			erroEsperado: &os.PathError{
+				Op:   "open",
+				Path: "/tmp/eunaoexisto321.ttf",
+				Err:  fmt.Errorf("no such file or directory"),
+			},
 		},
 		{
 			descrição: "deve detectar quando o arquivo de fonte esta no formato inválido",
@@ -273,7 +280,11 @@ atirador:
 				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
 				return configuração
 			}(),
-			erroEsperado: errors.Errorf("open /tmp/eunaoexisto321.png: no such file or directory"),
+			erroEsperado: &os.PathError{
+				Op:   "open",
+				Path: "/tmp/eunaoexisto321.png",
+				Err:  fmt.Errorf("no such file or directory"),
+			},
 		},
 		{
 			descrição: "deve detectar quando a imagem do logo esta em um formato inválido",
@@ -390,6 +401,28 @@ atirador:
 		if err = verificadorResultado.VerificaResultado(configuração, err); err != nil {
 			t.Error(err)
 		}
+	}
+}
+
+func TestDefinirValoresPadrão(t *testing.T) {
+	var esperado config.Configuração
+	esperado.Atirador.PrazoConfirmação = 30 * time.Minute
+	esperado.Atirador.ImagemNúmeroControle.Largura = 3508
+	esperado.Atirador.ImagemNúmeroControle.Altura = 2480
+	esperado.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+	esperado.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+	esperado.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+	esperado.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+	esperado.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+	esperado.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+	esperado.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+	esperado.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+
+	var c config.Configuração
+	config.DefinirValoresPadrão(&c)
+
+	if !reflect.DeepEqual(c, esperado) {
+		t.Errorf("Resultados não batem.\n%s", testes.Diff(esperado, c))
 	}
 }
 

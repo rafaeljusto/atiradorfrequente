@@ -20,8 +20,9 @@ import (
 // Iniciar realiza todas as inicializações iniciais e sobe o servidor REST.
 // Supõe que a configuração já foi carregada. Está função fica bloqueada
 // enquanto o servidor estiver executando. Recebe como argumento a conexão TCP
-// que esta escutando, podendo ser promovida a conexão TLS por está função.
-func Iniciar(escuta net.Listener) error {
+// que esta escutando, podendo ser promovida a conexão TLS por está função. Para
+// facilitar o teste do binário, esta função pode ser substituída.
+var Iniciar = func(escuta net.Listener) error {
 	if err := iniciarConexãoSyslog(); err != nil {
 		log.Critf("Erro ao conectar servidor de log. Detalhes: %s", erros.Novo(err))
 		return erros.Novo(err)
@@ -70,6 +71,7 @@ func iniciarConexãoBancoDados() error {
 		Password:           config.Atual().BancoDados.Senha,
 		DatabaseName:       config.Atual().BancoDados.Nome,
 		Host:               config.Atual().BancoDados.Endereço,
+		Port:               config.Atual().BancoDados.Porta,
 		ConnectTimeout:     config.Atual().BancoDados.TempoEsgotadoConexão,
 		StatementTimeout:   config.Atual().BancoDados.TempoEsgotadoComando,
 		MaxIdleConnections: config.Atual().BancoDados.MáximoNúmeroConexõesInativas,
