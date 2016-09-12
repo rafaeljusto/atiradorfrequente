@@ -4,23 +4,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jpillora/overseer"
-	"github.com/jpillora/overseer/fetcher"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/rest/config"
 	"github.com/rafaeljusto/atiradorfrequente/rest/servidor"
+	"github.com/rafaeljusto/overseer"
+	"github.com/rafaeljusto/overseer/fetcher"
 	"github.com/urfave/cli"
 )
 
-const (
-	códigoSaídaAplicação códigoSaída = 1
-)
-
-type códigoSaída int
-
-func (c códigoSaída) Código() int {
-	return int(c)
-}
+// teste define o modo de execução sem criar um sub-processo e permitindo uma
+// execução única.
+var teste = false
 
 func main() {
 	app := cli.NewApp()
@@ -42,12 +36,14 @@ func main() {
 
 		if arquivo := c.String("config"); arquivo != "" {
 			if err := config.CarregarDeArquivo(arquivo); err != nil {
-				return erros.Novo(err)
+				fmt.Fprintf(os.Stderr, "Erro ao carregar o arquivo de configuração. Detalhes: %s\n", erros.Novo(err))
+				return nil
 			}
 		}
 
 		if err := config.CarregarDeVariávelAmbiente(); err != nil {
-			return erros.Novo(err)
+			fmt.Fprintf(os.Stderr, "Erro ao carregar as variáveis de ambiente. Detalhes: %s\n", erros.Novo(err))
+			return nil
 		}
 
 		// TODO(rafaeljusto): Mover o carregamento da configuração para dentro da
@@ -63,15 +59,22 @@ func main() {
 				URL:      config.Atual().Binário.URL,
 				Interval: config.Atual().Binário.TempoAtualização,
 			},
+			Test: teste,
 		})
 
-		return erros.Novo(err)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Erro ao executar a aplicação. Detalhes: %s\n", erros.Novo(err))
+		}
+
+		return nil
 	})
 
-	if err := app.Run(os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "Erro ao executar a aplicação. Detalhes: %s\n", err)
-		os.Exit(códigoSaídaAplicação.Código())
-	}
+	// não verificamos o erro de retorno aqui, pois por padrão a biblioteca já
+	// encerra a aplicação em caso de erro. A única situação em que seria
+	// interessante analisar o erro seria no caso de configurar argumentos
+	// repetidos ou inválidos, mas isto pode ser resolvido no ambiente de
+	// desenvolvimento.
+	app.Run(os.Args)
 }
 
 func executor(estado overseer.State) {

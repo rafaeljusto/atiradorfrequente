@@ -1,73 +1,371 @@
 package main
 
 import (
-	"fmt"
+	"bytes"
+	"image/color"
+	"io"
 	"io/ioutil"
+	"net"
 	"os"
-	"os/exec"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/rafaeljusto/atiradorfrequente/testes/simulador"
-	"github.com/registrobr/gostk/log"
+	"github.com/rafaeljusto/atiradorfrequente/rest/config"
+	"github.com/rafaeljusto/atiradorfrequente/rest/servidor"
+	"github.com/rafaeljusto/atiradorfrequente/testes"
 )
 
 func Test_main(t *testing.T) {
-	if os.Getenv("EXECUTAR_TESTE_REST_AF") == "1" {
-		for i := len(os.Args) - 1; i >= 0; i-- {
-			// remove o argumento utilizado para o ambiente de teste
-			if os.Args[i] == "-test.run=Test_main" {
-				os.Args = append(os.Args[:i], os.Args[i+1:]...)
-				break
-			}
-		}
-
-		main()
-		return
-	}
-
-	loggerOriginal := log.LocalLogger
-	defer func() {
-		log.LocalLogger = loggerOriginal
-	}()
-
-	var servidorLog simulador.ServidorLog
-	syslog, err := servidorLog.Executar("localhost:0")
-	if err != nil {
-		t.Fatalf("Erro ao inicializar o servidor de log. Detalhes: %s", err)
-	}
-	defer syslog.Close()
-
 	cenários := []struct {
-		descrição             string
-		variáveisAmbiente     map[string]string
-		arquivoConfiguração   string
-		sucesso               bool
-		mensagensEsperadas    *regexp.Regexp
-		mensagensLogEsperadas *regexp.Regexp
+		descrição            string
+		variáveisAmbiente    map[string]string
+		arquivoConfiguração  string
+		configuraçãoEsperada *config.Configuração
+		saídaPadrãoEsperada  *regexp.Regexp
+		saídaErroEsperada    *regexp.Regexp
 	}{
+		{
+			descrição: "deve iniciar o servidor REST carregando o arquivo de configuração",
+			arquivoConfiguração: `
+binario:
+  url: http://localhost:8080/binarios/rest.af
+  tempo atualizacao: 1s
+servidor:
+  endereco: 0.0.0.0:0
+  tls:
+    habilitado: true
+    arquivo certificado: teste.crt
+    arquivo chave: teste.key
+  tempo esgotado leitura: 5s
+syslog:
+  endereco: 192.0.2.2:514
+  tempo esgotado conexao: 5s
+banco de dados:
+  endereco: 192.0.2.3
+  porta: 5432
+  nome: teste
+  usuario: usuario_teste
+  senha: abc123
+  tempo esgotado conexao: 5s
+  tempo esgotado comando: 20s
+  tempo esgotado transacao: 5s
+  maximo numero conexoes inativas: 10
+  maximo numero conexoes abertas: 40
+proxies:
+  - 192.0.2.4
+  - 192.0.2.5
+  - 192.0.2.6
+atirador:
+  prazo confirmacao: 10m
+  imagem numero controle:
+    largura: 3508
+    altura: 2480
+    cor fundo: branco
+    fonte:
+      tamanho: 48
+      dpi: 300
+      cor: preto
+    borda:
+      largura: 50
+      espacamento: 50
+      cor: preto
+    linha fundo:
+      largura: 50
+      espacamento: 50
+      cor: cinza
+`,
+			configuraçãoEsperada: func() *config.Configuração {
+				c := new(config.Configuração)
+				c.Atirador.PrazoConfirmação = 10 * time.Minute
+				c.Atirador.ImagemNúmeroControle.Largura = 3508
+				c.Atirador.ImagemNúmeroControle.Altura = 2480
+				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				c.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				c.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				c.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				c.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
+				c.Binário.TempoAtualização = 1 * time.Second
+				c.Servidor.Endereço = "0.0.0.0:0"
+				c.Servidor.TLS.Habilitado = true
+				c.Servidor.TLS.ArquivoCertificado = "teste.crt"
+				c.Servidor.TLS.ArquivoChave = "teste.key"
+				c.Servidor.TempoEsgotadoLeitura = 5 * time.Second
+				c.Syslog.Endereço = "192.0.2.2:514"
+				c.Syslog.TempoEsgotadoConexão = 5 * time.Second
+				c.BancoDados.Endereço = "192.0.2.3"
+				c.BancoDados.Porta = 5432
+				c.BancoDados.Nome = "teste"
+				c.BancoDados.Usuário = "usuario_teste"
+				c.BancoDados.Senha = "abc123"
+				c.BancoDados.TempoEsgotadoConexão = 5 * time.Second
+				c.BancoDados.TempoEsgotadoComando = 20 * time.Second
+				c.BancoDados.TempoEsgotadoTransação = 5 * time.Second
+				c.BancoDados.MáximoNúmeroConexõesInativas = 10
+				c.BancoDados.MáximoNúmeroConexõesAbertas = 40
+				c.Proxies = []net.IP{
+					net.ParseIP("192.0.2.4"),
+					net.ParseIP("192.0.2.5"),
+					net.ParseIP("192.0.2.6"),
+				}
+				return c
+			}(),
+			saídaPadrãoEsperada: regexp.MustCompile(`^$`),
+			saídaErroEsperada:   regexp.MustCompile(`^$`),
+		},
+		{
+			descrição: "deve detectar um problema no arquivo de configuração",
+			arquivoConfiguração: `
+- binario:
+url: http://localhost:8080/binarios/rest.af
+`,
+			configuraçãoEsperada: func() *config.Configuração {
+				c := new(config.Configuração)
+				c.Atirador.PrazoConfirmação = 30 * time.Minute
+				c.Atirador.ImagemNúmeroControle.Largura = 3508
+				c.Atirador.ImagemNúmeroControle.Altura = 2480
+				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				c.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				c.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				c.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				c.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				c.Binário.URL = "http://localhost:4000/binarios/rest.af"
+				c.Binário.TempoAtualização = 5 * time.Second
+				c.Servidor.Endereço = "0.0.0.0:443"
+				c.Servidor.TLS.Habilitado = false
+				c.Servidor.TLS.ArquivoCertificado = "teste.crt"
+				c.Servidor.TLS.ArquivoChave = "teste.key"
+				c.Servidor.TempoEsgotadoLeitura = 5 * time.Second
+				c.Syslog.Endereço = "127.0.0.1:514"
+				c.Syslog.TempoEsgotadoConexão = 2 * time.Second
+				c.BancoDados.Endereço = "127.0.0.1"
+				c.BancoDados.Porta = 5432
+				c.BancoDados.Nome = "atiradorfrequente"
+				c.BancoDados.Usuário = "atiradorfrequente"
+				c.BancoDados.Senha = "abc123"
+				c.BancoDados.TempoEsgotadoConexão = 3 * time.Second
+				c.BancoDados.TempoEsgotadoComando = 10 * time.Second
+				c.BancoDados.TempoEsgotadoTransação = 3 * time.Second
+				c.BancoDados.MáximoNúmeroConexõesInativas = 16
+				c.BancoDados.MáximoNúmeroConexõesAbertas = 32
+				c.Proxies = []net.IP{
+					net.ParseIP("192.0.2.4"),
+					net.ParseIP("192.0.2.5"),
+					net.ParseIP("192.0.2.6"),
+				}
+				return c
+			}(),
+			saídaPadrãoEsperada: regexp.MustCompile(`^$`),
+			saídaErroEsperada:   regexp.MustCompile(`^Erro ao carregar o arquivo de configuração. Detalhes: .*yaml: line 2: did not find expected '-' indicator$`),
+		},
 		{
 			descrição: "deve iniciar o servidor REST carregando as configurações de variáveis de ambiente",
 			variáveisAmbiente: map[string]string{
-				"AF_SERVIDOR_ENDERECO": "0.0.0.0:0",
-				"AF_SYSLOG_ENDERECO":   syslog.Addr().String(),
+				"AF_BINARIO_URL":                                             "http://localhost:8080/binarios/rest.af",
+				"AF_BINARIO_TEMPO_ATUALIZACAO":                               "1s",
+				"AF_SERVIDOR_ENDERECO":                                       "0.0.0.0:0",
+				"AF_SERVIDOR_TLS_HABILITADO":                                 "true",
+				"AF_SERVIDOR_TLS_ARQUIVO_CERTIFICADO":                        "teste.crt",
+				"AF_SERVIDOR_TLS_ARQUIVO_CHAVE":                              "teste.key",
+				"AF_SERVIDOR_TEMPO_ESGOTADO_LEITURA":                         "5s",
+				"AF_SYSLOG_ENDERECO":                                         "192.0.2.2:514",
+				"AF_SYSLOG_TEMPO_ESGOTADO_CONEXAO":                           "5s",
+				"AF_BD_ENDERECO":                                             "192.0.2.3",
+				"AF_BD_PORTA":                                                "5432",
+				"AF_BD_NOME":                                                 "teste",
+				"AF_BD_USUARIO":                                              "usuario_teste",
+				"AF_BD_SENHA":                                                "abc123",
+				"AF_BD_TEMPO_ESGOTADO_CONEXAO":                               "5s",
+				"AF_BD_TEMPO_ESGOTADO_COMANDO":                               "20s",
+				"AF_BD_TEMPO_ESGOTADO_TRANSACAO":                             "5s",
+				"AF_BD_MAXIMO_NUMERO_CONEXOES_INATIVAS":                      "10",
+				"AF_BD_MAXIMO_NUMERO_CONEXOES_ABERTAS":                       "40",
+				"AF_PROXIES":                                                 "192.0.2.4,192.0.2.5,192.0.2.6",
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "10m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "cinza",
 			},
-			sucesso:            true,
-			mensagensEsperadas: regexp.MustCompile(`^$`),
-			mensagensLogEsperadas: regexp.MustCompile(`^.*Inicializando conexão com o banco de dados
-.*Erro ao conectar o banco de dados. Detalhes: .*getsockopt: connection refused
-.*Inicializando servidor
-$`),
+			configuraçãoEsperada: func() *config.Configuração {
+				c := new(config.Configuração)
+				c.Atirador.PrazoConfirmação = 10 * time.Minute
+				c.Atirador.ImagemNúmeroControle.Largura = 3508
+				c.Atirador.ImagemNúmeroControle.Altura = 2480
+				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				c.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				c.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				c.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				c.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
+				c.Binário.TempoAtualização = 1 * time.Second
+				c.Servidor.Endereço = "0.0.0.0:0"
+				c.Servidor.TLS.Habilitado = true
+				c.Servidor.TLS.ArquivoCertificado = "teste.crt"
+				c.Servidor.TLS.ArquivoChave = "teste.key"
+				c.Servidor.TempoEsgotadoLeitura = 5 * time.Second
+				c.Syslog.Endereço = "192.0.2.2:514"
+				c.Syslog.TempoEsgotadoConexão = 5 * time.Second
+				c.BancoDados.Endereço = "192.0.2.3"
+				c.BancoDados.Porta = 5432
+				c.BancoDados.Nome = "teste"
+				c.BancoDados.Usuário = "usuario_teste"
+				c.BancoDados.Senha = "abc123"
+				c.BancoDados.TempoEsgotadoConexão = 5 * time.Second
+				c.BancoDados.TempoEsgotadoComando = 20 * time.Second
+				c.BancoDados.TempoEsgotadoTransação = 5 * time.Second
+				c.BancoDados.MáximoNúmeroConexõesInativas = 10
+				c.BancoDados.MáximoNúmeroConexõesAbertas = 40
+				c.Proxies = []net.IP{
+					net.ParseIP("192.0.2.4"),
+					net.ParseIP("192.0.2.5"),
+					net.ParseIP("192.0.2.6"),
+				}
+				return c
+			}(),
+			saídaPadrãoEsperada: regexp.MustCompile(`^$`),
+			saídaErroEsperada:   regexp.MustCompile(`^$`),
+		},
+		{
+			descrição: "deve detectar um erro ao carregar as variáveis de ambiente",
+			variáveisAmbiente: map[string]string{
+				"AF_BD_PORTA": "XXXX",
+			},
+			configuraçãoEsperada: func() *config.Configuração {
+				c := new(config.Configuração)
+				c.Atirador.PrazoConfirmação = 30 * time.Minute
+				c.Atirador.ImagemNúmeroControle.Largura = 3508
+				c.Atirador.ImagemNúmeroControle.Altura = 2480
+				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				c.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				c.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				c.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				c.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				c.Binário.URL = "http://localhost:4000/binarios/rest.af"
+				c.Binário.TempoAtualização = 5 * time.Second
+				c.Servidor.Endereço = "0.0.0.0:443"
+				c.Servidor.TLS.Habilitado = false
+				c.Servidor.TLS.ArquivoCertificado = "teste.crt"
+				c.Servidor.TLS.ArquivoChave = "teste.key"
+				c.Servidor.TempoEsgotadoLeitura = 5 * time.Second
+				c.Syslog.Endereço = "127.0.0.1:514"
+				c.Syslog.TempoEsgotadoConexão = 2 * time.Second
+				c.BancoDados.Endereço = "127.0.0.1"
+				c.BancoDados.Porta = 5432
+				c.BancoDados.Nome = "atiradorfrequente"
+				c.BancoDados.Usuário = "atiradorfrequente"
+				c.BancoDados.Senha = "abc123"
+				c.BancoDados.TempoEsgotadoConexão = 3 * time.Second
+				c.BancoDados.TempoEsgotadoComando = 10 * time.Second
+				c.BancoDados.TempoEsgotadoTransação = 3 * time.Second
+				c.BancoDados.MáximoNúmeroConexõesInativas = 16
+				c.BancoDados.MáximoNúmeroConexõesAbertas = 32
+				c.Proxies = []net.IP{
+					net.ParseIP("192.0.2.4"),
+					net.ParseIP("192.0.2.5"),
+					net.ParseIP("192.0.2.6"),
+				}
+				return c
+			}(),
+			saídaPadrãoEsperada: regexp.MustCompile(`^$`),
+			saídaErroEsperada:   regexp.MustCompile(`^Erro ao carregar as variáveis de ambiente. Detalhes: .*envconfig.Process: assigning AF_BD_PORTA to porta: converting 'XXXX' to type int$`),
+		},
+		{
+			descrição: "deve detectar um erro ao escutar em uma interface inválida",
+			variáveisAmbiente: map[string]string{
+				"AF_BINARIO_URL":               "http://localhost:8080/binarios/rest.af",
+				"AF_BINARIO_TEMPO_ATUALIZACAO": "1s",
+				"AF_SERVIDOR_ENDERECO":         "X.X.X.X:X",
+			},
+			configuraçãoEsperada: func() *config.Configuração {
+				c := new(config.Configuração)
+				c.Atirador.PrazoConfirmação = 30 * time.Minute
+				c.Atirador.ImagemNúmeroControle.Largura = 3508
+				c.Atirador.ImagemNúmeroControle.Altura = 2480
+				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				c.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				c.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				c.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				c.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				c.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
+				c.Binário.TempoAtualização = 1 * time.Second
+				c.Servidor.Endereço = "X.X.X.X:X"
+				c.Servidor.TLS.Habilitado = false
+				c.Servidor.TLS.ArquivoCertificado = "teste.crt"
+				c.Servidor.TLS.ArquivoChave = "teste.key"
+				c.Servidor.TempoEsgotadoLeitura = 5 * time.Second
+				c.Syslog.Endereço = "127.0.0.1:514"
+				c.Syslog.TempoEsgotadoConexão = 2 * time.Second
+				c.BancoDados.Endereço = "127.0.0.1"
+				c.BancoDados.Porta = 5432
+				c.BancoDados.Nome = "atiradorfrequente"
+				c.BancoDados.Usuário = "atiradorfrequente"
+				c.BancoDados.Senha = "abc123"
+				c.BancoDados.TempoEsgotadoConexão = 3 * time.Second
+				c.BancoDados.TempoEsgotadoComando = 10 * time.Second
+				c.BancoDados.TempoEsgotadoTransação = 3 * time.Second
+				c.BancoDados.MáximoNúmeroConexõesInativas = 16
+				c.BancoDados.MáximoNúmeroConexõesAbertas = 32
+				c.Proxies = []net.IP{
+					net.ParseIP("192.0.2.4"),
+					net.ParseIP("192.0.2.5"),
+					net.ParseIP("192.0.2.6"),
+				}
+				return c
+			}(),
+			saídaPadrãoEsperada: regexp.MustCompile(`^$`),
+			saídaErroEsperada:   regexp.MustCompile(`^Erro ao executar a aplicação\. Detalhes: .* Invalid address X\.X\.X\.X:X \(unknown port tcp/X\)$`),
 		},
 	}
 
+	teste = true
+	defer func() {
+		teste = false
+	}()
+
+	iniciarOriginal := servidor.Iniciar
+	defer func() {
+		servidor.Iniciar = iniciarOriginal
+	}()
+
+	servidor.Iniciar = func(escuta net.Listener) error {
+		time.Sleep(100 * time.Millisecond)
+		return nil
+	}
+
+	argumentosOriginais := os.Args
+	defer func() {
+		os.Args = argumentosOriginais
+	}()
+
 	for i, cenário := range cenários {
-		cmd := exec.Command(os.Args[0], "-test.run=Test_main")
-		cmd.Env = append(os.Environ(), "EXECUTAR_TESTE_REST_AF=1")
+		os.Args = os.Args[:1]
+		os.Clearenv()
 
 		for chave, valor := range cenário.variáveisAmbiente {
-			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", chave, valor))
+			os.Setenv(chave, valor)
 		}
 
 		if cenário.arquivoConfiguração != "" {
@@ -80,42 +378,64 @@ $`),
 			arquivoConfiguração.WriteString(cenário.arquivoConfiguração)
 			arquivoConfiguração.Close()
 
-			cmd.Args = append(cmd.Args, []string{"--config", arquivoConfiguração.Name()}...)
+			os.Args = append(os.Args, []string{"-config", arquivoConfiguração.Name()}...)
 		}
 
-		var mensagens []byte
+		saídaPadrão, saídaErro := capturarSaídas(main)
 
-		go func() {
-			mensagens, err = cmd.CombinedOutput()
-
-			if erroSaída, ok := err.(*exec.ExitError); ok && erroSaída.Success() != cenário.sucesso {
-				t.Errorf("Item %d, “%s”: resultado da execução inesperado. Resultado: %t",
-					i, cenário.descrição, erroSaída.Success())
-			} else if err != nil {
-				t.Errorf("Item %d, “%s”: erro inesperado ao executar o servidor REST. Resultado: %s",
-					i, cenário.descrição, err)
-			}
-		}()
-
-		// aguarda os serviços serem executados
-		time.Sleep(100 * time.Millisecond)
-
-		if err := cmd.Process.Kill(); err != nil {
-			// ignora o erro que informa que o processo já foi encerrado
-			if err.Error() != "os: process already finished" {
-				t.Fatalf("Item %d, “%s”: erro ao matar o servidor REST. Detalhes: %s",
-					i, cenário.descrição, err)
-			}
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.configuraçãoEsperada, nil)
+		if err := verificadorResultado.VerificaResultado(config.Atual(), nil); err != nil {
+			t.Error(err)
 		}
 
-		if !cenário.mensagensEsperadas.Match(mensagens) {
-			t.Errorf("Item %d, “%s”: mensagem inesperada. Detalhes: %s",
-				i, cenário.descrição, mensagens)
+		if !cenário.saídaPadrãoEsperada.MatchString(saídaPadrão) {
+			t.Errorf("Item %d, “%s”: saída padrão inesperada. Detalhes: %s",
+				i, cenário.descrição, saídaPadrão)
 		}
 
-		if !cenário.mensagensLogEsperadas.MatchString(servidorLog.Mensagens()) {
-			t.Errorf("Item %d, “%s”: mensagens de log inesperadas. Detalhes: %s",
-				i, cenário.descrição, servidorLog.Mensagens())
+		if !cenário.saídaErroEsperada.MatchString(saídaErro) {
+			t.Errorf("Item %d, “%s”: saída de erro inesperada. Detalhes: %s",
+				i, cenário.descrição, saídaErro)
 		}
 	}
+}
+
+func capturarSaídas(f func()) (string, string) {
+	saídaPadrãoOriginal := os.Stdout
+	defer func() {
+		os.Stdout = saídaPadrãoOriginal
+	}()
+
+	saídaErroOriginal := os.Stderr
+	defer func() {
+		os.Stderr = saídaErroOriginal
+	}()
+
+	leituraPadrão, escritaPadrão, _ := os.Pipe()
+	os.Stdout = escritaPadrão
+
+	canalLeituraPadrão := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, leituraPadrão)
+		canalLeituraPadrão <- buf.String()
+	}()
+
+	leituraErro, escritaErro, _ := os.Pipe()
+	os.Stderr = escritaErro
+
+	canalLeituraErro := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, leituraErro)
+		canalLeituraErro <- buf.String()
+	}()
+
+	f()
+
+	escritaPadrão.Close()
+	escritaErro.Close()
+
+	return strings.TrimSpace(<-canalLeituraPadrão), strings.TrimSpace(<-canalLeituraErro)
 }
