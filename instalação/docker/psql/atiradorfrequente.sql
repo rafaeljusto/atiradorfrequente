@@ -1,6 +1,3 @@
-CREATE ROLE atiradorfrequente;
-ALTER ROLE atiradorfrequente WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION NOBYPASSRLS PASSWORD 'md578e0745d7f14ffd47c0a6bff808da2a4';
-
 CREATE TYPE LogAcao AS ENUM ('CRIACAO', 'ATUALIZACAO');
 
 CREATE TABLE log (
@@ -8,8 +5,6 @@ CREATE TABLE log (
   data_criacao TIMESTAMP,
   endereco_remoto INET
 );
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE log TO atiradorfrequente;
 
 CREATE TABLE frequencia_atirador (
   id SERIAL PRIMARY KEY,
@@ -29,8 +24,6 @@ CREATE TABLE frequencia_atirador (
   imagem_confirmacao VARCHAR,
   revisao INT
 );
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE frequencia_atirador TO atiradorfrequente;
 
 CREATE TABLE frequencia_atirador_log (
   id SERIAL PRIMARY KEY,
@@ -53,5 +46,3 @@ CREATE TABLE frequencia_atirador_log (
   imagem_confirmacao VARCHAR,
   revisao INT
 );
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE frequencia_atirador_log TO atiradorfrequente;
