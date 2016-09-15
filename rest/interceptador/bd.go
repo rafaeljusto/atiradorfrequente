@@ -90,6 +90,10 @@ func (i *BD) After(status int) int {
 			return http.StatusInternalServerError
 		}
 	} else {
+		// TODO(rafaeljsuto): Panic detectado nesta linha quando a conexão com o
+		// banco de dados falha (rest/interceptador/bd.go:68: dial tcp
+		// X.X.X.X:5432: getsockopt: connection refused). O estranho é que
+		// tratamos o caso de tx == nil
 		if err := i.tx.Rollback(); err != nil {
 			i.handler.Logger().Errorf("Erro ao desfazer uma transação. Detalhes: %s", erros.Novo(err))
 		}

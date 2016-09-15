@@ -87,6 +87,8 @@ func (c *Codificador) After(códigoHTTP int) int {
 	if respostaGenérica != nil && !reflect.ValueOf(respostaGenérica).IsNil() {
 		resposta = respostaGenérica
 	} else if respostaEspecífica := c.handler.Field("response", método); respostaEspecífica != nil {
+		// TODO(rafaeljusto): Não estamos tratando corretamente quando o conteúdo da
+		// interface é nil. O corpo da resposta fica com o texto "null"
 		resposta = respostaEspecífica
 	}
 
