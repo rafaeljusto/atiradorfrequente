@@ -2,15 +2,13 @@ version: "2"
 services:
   bd:
     build: ./psql
-    volumes:
-      - ./logs/psql:/var/log/
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=abc123
   rsyslog:
     build: ./rsyslog
     volumes:
-      - ./logs/rsyslog:/var/log/
+      - ./logs:/var/log/
   restaf:
     build: ./restaf
     ports: ["80:80"]
