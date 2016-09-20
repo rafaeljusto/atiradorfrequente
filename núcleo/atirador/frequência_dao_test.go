@@ -32,7 +32,7 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 		{
 			descrição: "deve criar corretamente a frequência",
 			simulação: func() {
-				testdb.StubExec(frequênciaCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				testdb.StubQuery(frequênciaCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
 				testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 
 				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
@@ -72,7 +72,7 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 		{
 			descrição: "deve detectar um erro ao criar a frequência",
 			simulação: func() {
-				testdb.StubExecError(frequênciaCriaçãoComando, fmt.Errorf("erro de execução"))
+				testdb.StubQueryError(frequênciaCriaçãoComando, fmt.Errorf("erro de execução"))
 			},
 			frequência: &frequência{
 				Controle:          98765,
@@ -91,7 +91,7 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 		{
 			descrição: "deve detectar um erro ao obter a identificação da frequência",
 			simulação: func() {
-				testdb.StubExec(frequênciaCriaçãoComando, testdb.NewResult(0, fmt.Errorf("erro com o ID"), 1, nil))
+				testdb.StubQuery(frequênciaCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{"xxx"}}))
 			},
 			frequência: &frequência{
 				Controle:          98765,
@@ -105,12 +105,12 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 				DataTérmino:       data.Add(-10 * time.Minute),
 				revisão:           2, // revisão sempre inicia com zero
 			},
-			erroEsperado: errors.Errorf("erro com o ID"),
+			erroEsperado: errors.Errorf(`sql: Scan error on column index 0: converting driver.Value type string ("xxx") to a int64: invalid syntax`),
 		},
 		{
 			descrição: "deve detectar um erro ao gerar uma identificação de log",
 			simulação: func() {
-				testdb.StubExec(frequênciaCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				testdb.StubQuery(frequênciaCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
 				testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 
 				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
@@ -133,7 +133,7 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 		{
 			descrição: "deve detectar um erro ao gerar uma entrada de log",
 			simulação: func() {
-				testdb.StubExec(frequênciaCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				testdb.StubQuery(frequênciaCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
 				testdb.StubExecError(frequênciaLogCriaçãoComando, fmt.Errorf("erro na criação do log"))
 
 				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`

@@ -31,7 +31,7 @@ func (f frequênciaDAOImpl) criar(frequência *frequência) error {
 	frequência.DataCriação = time.Now().UTC()
 	frequência.revisão = 0
 
-	resultado, err := f.sqlogger.Exec(frequênciaCriaçãoComando,
+	resultado := f.sqlogger.QueryRow(frequênciaCriaçãoComando,
 		frequência.Controle,
 		frequência.CR,
 		frequência.Calibre,
@@ -45,11 +45,7 @@ func (f frequênciaDAOImpl) criar(frequência *frequência) error {
 		frequência.revisão,
 	)
 
-	if err != nil {
-		return erros.Novo(err)
-	}
-
-	if frequência.ID, err = resultado.LastInsertId(); err != nil {
+	if err := resultado.Scan(&frequência.ID); err != nil {
 		return erros.Novo(err)
 	}
 
@@ -137,7 +133,7 @@ var (
 		"revisao",
 	}
 	frequênciaCriaçãoCamposTexto = strings.Join(frequênciaCriaçãoCampos, ", ")
-	frequênciaCriaçãoComando     = fmt.Sprintf(`INSERT INTO %s (%s) VALUES (DEFAULT, %s)`,
+	frequênciaCriaçãoComando     = fmt.Sprintf(`INSERT INTO %s (%s) VALUES (DEFAULT, %s) RETURNING id`,
 		frequênciaTabela, frequênciaCriaçãoCamposTexto, bd.MarcadoresPSQL(len(frequênciaCriaçãoCampos)-1))
 
 	frequênciaAtualizaçãoComando = fmt.Sprintf(`UPDATE %s SET
