@@ -68,20 +68,12 @@ func (s *SQLogger) Gerar() error {
 	// TODO(rafaeljusto): E se o endereço remoto estiver indefinido?
 
 	s.Log.DataCriação = time.Now().UTC()
-	resultado, err := s.Exec(logCriaçãoComando,
+	resultado := s.QueryRow(logCriaçãoComando,
 		s.Log.DataCriação,
 		s.Log.EndereçoRemoto.String(),
 	)
 
-	if err != nil {
-		return erros.Novo(err)
-	}
-
-	if s.Log.ID, err = resultado.LastInsertId(); err != nil {
-		return erros.Novo(err)
-	}
-
-	return nil
+	return erros.Novo(resultado.Scan(&s.Log.ID))
 }
 
 var (
@@ -93,6 +85,6 @@ var (
 		"endereco_remoto",
 	}
 	logCriaçãoCamposTexto = strings.Join(logCriaçãoCampos, ", ")
-	logCriaçãoComando     = fmt.Sprintf(`INSERT INTO %s (%s) VALUES (DEFAULT, %s)`,
+	logCriaçãoComando     = fmt.Sprintf(`INSERT INTO %s (%s) VALUES (DEFAULT, %s) RETURNING id`,
 		logTabela, logCriaçãoCamposTexto, MarcadoresPSQL(len(logCriaçãoCampos)-1))
 )

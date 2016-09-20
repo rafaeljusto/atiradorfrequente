@@ -91,8 +91,8 @@ func TestSQLogger_Gerar(t *testing.T) {
 		{
 			descrição: "deve gerar um log corretamente",
 			simulação: func() {
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
-				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2) RETURNING id`
+				testdb.StubQuery(logCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
 			},
 			logEsperado: bd.Log{
 				ID:             1,
@@ -103,8 +103,8 @@ func TestSQLogger_Gerar(t *testing.T) {
 		{
 			descrição: "deve ignorar se já existir um log gerado",
 			simulação: func() {
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
-				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2) RETURNING id`
+				testdb.StubQuery(logCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
 			},
 			log: &bd.Log{
 				ID:             1,
@@ -120,18 +120,18 @@ func TestSQLogger_Gerar(t *testing.T) {
 		{
 			descrição: "deve detectar um erro ao criar um log",
 			simulação: func() {
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
-				testdb.StubExecError(logCriaçãoComando, fmt.Errorf("erro ao gerar o log"))
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2) RETURNING id`
+				testdb.StubQueryError(logCriaçãoComando, fmt.Errorf("erro ao gerar o log"))
 			},
 			erroEsperado: errors.Errorf("erro ao gerar o log"),
 		},
 		{
 			descrição: "deve detectar um erro ao obter o número de identificação do log",
 			simulação: func() {
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
-				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, fmt.Errorf("erro ao obter id"), 1, nil))
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2) RETURNING id`
+				testdb.StubQuery(logCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{"xxx"}}))
 			},
-			erroEsperado: errors.Errorf("erro ao obter id"),
+			erroEsperado: errors.Errorf(`sql: Scan error on column index 0: converting driver.Value type string ("xxx") to a int64: invalid syntax`),
 		},
 	}
 

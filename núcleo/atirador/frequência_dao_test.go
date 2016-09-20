@@ -35,8 +35,8 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 				testdb.StubQuery(frequênciaCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
 				testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
-				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2) RETURNING id`
+				testdb.StubQuery(logCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
 			},
 			frequência: &frequência{
 				Controle:          98765,
@@ -113,8 +113,8 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 				testdb.StubQuery(frequênciaCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
 				testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
-				testdb.StubExecError(logCriaçãoComando, fmt.Errorf("erro na criação do id log"))
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2) RETURNING id`
+				testdb.StubQueryError(logCriaçãoComando, fmt.Errorf("erro na criação do id log"))
 			},
 			frequência: &frequência{
 				Controle:          98765,
@@ -136,8 +136,8 @@ func TestFrequênciaDAOImpl_criar(t *testing.T) {
 				testdb.StubQuery(frequênciaCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
 				testdb.StubExecError(frequênciaLogCriaçãoComando, fmt.Errorf("erro na criação do log"))
 
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
-				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2) RETURNING id`
+				testdb.StubQuery(logCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
 			},
 			frequência: &frequência{
 				Controle:          98765,
@@ -205,8 +205,8 @@ func TestFrequênciaDAOImpl_atualizar(t *testing.T) {
 				testdb.StubExec(frequênciaAtualizaçãoComando, testdb.NewResult(1, nil, 1, nil))
 				testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
 
-				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2)`
-				testdb.StubExec(logCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+				logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2) RETURNING id`
+				testdb.StubQuery(logCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
 			},
 			frequência: &frequência{
 				ID:                1,
