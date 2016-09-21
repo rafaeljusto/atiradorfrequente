@@ -361,6 +361,7 @@ $`),
 			cenário.inicializar()
 		}
 
+		canalRequisição := make(chan bool, 1)
 		go func() {
 			// aguarda para o servidor ser iniciado
 			time.Sleep(10 * time.Millisecond)
@@ -373,6 +374,7 @@ $`),
 
 			cliente := http.Client{
 				Transport: &transporte,
+				Timeout:   100 * time.Millisecond,
 			}
 
 			cliente.Get(fmt.Sprintf("https://%s/teste", cenário.escuta.Addr()))
@@ -381,6 +383,8 @@ $`),
 				// fecha o escutador para desbloquear a função Iniciar
 				cenário.escuta.Close()
 			}
+
+			close(canalRequisição)
 		}()
 
 		err := servidor.Iniciar(cenário.escuta)
@@ -390,6 +394,9 @@ $`),
 		if err = verificadorResultado.VerificaResultado(nil, err); err != nil {
 			t.Error(err)
 		}
+
+		// aguarda a rotina da requisição encerrar
+		<-canalRequisição
 
 		// aguarda as últimas mensagens serem escritas no log
 		time.Sleep(10 * time.Millisecond)

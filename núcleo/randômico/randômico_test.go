@@ -8,10 +8,10 @@ import (
 func TestTravaFonteRandômica_Int63(t *testing.T) {
 	iterações := 50
 	númeroRandômicoCh := make(chan int, iterações)
+	FonteRandômica.Seed(time.Now().UnixNano())
 
 	for i := 0; i < iterações; i++ {
 		go func() {
-			FonteRandômica.Seed(time.Now().UnixNano())
 			númeroRandômicoCh <- FonteRandômica.Intn(100)
 		}()
 	}
