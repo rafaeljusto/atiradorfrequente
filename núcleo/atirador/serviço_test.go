@@ -175,6 +175,47 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 			erroEsperado: errors.Errorf("png: invalid format: invalid image size: 0x0"),
 		},
 		{
+			descrição: "deve detectar quando a fonte da imagem não esta definida",
+			configuração: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.ImagemNúmeroControle.Largura = 0
+				configuração.Atirador.ImagemNúmeroControle.Altura = 0
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Imagem.Image = imagemLogo
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				return configuração
+			}(),
+			frequênciaPedidoCompleta: protocolo.FrequênciaPedidoCompleta{
+				CR: "123456789",
+				FrequênciaPedido: protocolo.FrequênciaPedido{
+					Calibre:           ".380",
+					ArmaUtilizada:     "Arma do Clube",
+					QuantidadeMunição: 50,
+					DataInício:        data,
+					DataTérmino:       data.Add(30 * time.Minute),
+				},
+			},
+			frequênciaDAO: simulaFrequênciaDAO{
+				simulaCriar: func(frequência *frequência) error {
+					if frequência.Controle == 0 {
+						t.Errorf("Número aleatório para controle não gerado")
+					}
+
+					frequência.ID = 1
+					frequência.Controle = 123
+					return nil
+				},
+			},
+			erroEsperado: errors.Errorf("fonte da imagem do número de controle indefinida"),
+		},
+		{
 			descrição: "deve detectar um erro ao atualizar uma frequência",
 			configuração: func() config.Configuração {
 				var configuração config.Configuração

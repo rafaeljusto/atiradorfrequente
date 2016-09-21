@@ -10,6 +10,7 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/config"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
+	"github.com/registrobr/gostk/errors"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
@@ -36,6 +37,11 @@ func gerarImagemNúmeroControle(númeroControle protocolo.NúmeroControle, confi
 		logo            = configuração.Atirador.ImagemNúmeroControle.Logo.Imagem
 		logoEspaçamento = configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento
 	)
+
+	// não é possível gerar a imagem sem uma fonte definida
+	if fonte == nil {
+		return "", errors.Errorf("fonte da imagem do número de controle indefinida")
+	}
 
 	// define o fundo
 	imagem := image.NewRGBA(image.Rect(0, 0, imagemLargura, imagemAltura))
