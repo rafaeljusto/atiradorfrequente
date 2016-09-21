@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/registrobr/gostk/log"
+	"github.com/registrobr/gostk/reflect"
 )
 
 type codificador interface {
@@ -84,11 +84,9 @@ func (c *Codificador) After(códigoHTTP int) int {
 	método := strings.ToLower(c.handler.Req().Method)
 
 	respostaGenérica := c.handler.Field("response", "all")
-	if respostaGenérica != nil && !reflect.ValueOf(respostaGenérica).IsNil() {
+	if reflect.IsDefined(respostaGenérica) {
 		resposta = respostaGenérica
 	} else if respostaEspecífica := c.handler.Field("response", método); respostaEspecífica != nil {
-		// TODO(rafaeljusto): Não estamos tratando corretamente quando o conteúdo da
-		// interface é nil. O corpo da resposta fica com o texto "null"
 		resposta = respostaEspecífica
 	}
 

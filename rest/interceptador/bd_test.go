@@ -1,6 +1,7 @@
 package interceptador_test
 
 import (
+	"database/sql"
 	"fmt"
 	"net"
 	"net/http"
@@ -286,7 +287,8 @@ func TestBD_After(t *testing.T) {
 			códigoHTTP: http.StatusNoContent,
 			conexão: simulador.BD{
 				SimulaBegin: func() (bd.Tx, error) {
-					return nil, fmt.Errorf("erro na transação")
+					var tx *sql.Tx
+					return tx, fmt.Errorf("erro na transação")
 				},
 			},
 			logger: simulador.Logger{

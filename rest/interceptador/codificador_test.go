@@ -286,10 +286,7 @@ func TestCodificador_After(t *testing.T) {
 						return requisição
 					}(),
 				},
-				Resposta: &codificadorObjetoSimulada{
-					Campo1: "valor1",
-					Campo2: []int{1, 2, 3, 4, 5},
-				},
+				Resposta: codificadorObjetoGenéricoSimulado{"valor1", "valor2", "valor3"},
 				CabeçalhoCompatível: interceptador.CabeçalhoCompatível{
 					Cabeçalho: http.Header{
 						"E-Tag": []string{"ABC123"},
@@ -305,7 +302,7 @@ func TestCodificador_After(t *testing.T) {
 				},
 				SimulaDebugf: func(m string, a ...interface{}) {
 					mensagem := fmt.Sprintf(m, a...)
-					if mensagem != `Resposta corpo: “{"campo1":"valor1","campo2":[1,2,3,4,5]}”` {
+					if mensagem != `Resposta corpo: “["valor1","valor2","valor3"]”` {
 						t.Errorf("mensagem inesperada: %s", mensagem)
 					}
 				},
@@ -313,11 +310,45 @@ func TestCodificador_After(t *testing.T) {
 			tipoConteúdo:               "application/json",
 			códigoHTTP:                 http.StatusOK,
 			códigoHTTPEsperado:         http.StatusOK,
-			respostaCodificadaEsperada: `{"campo1":"valor1","campo2":[1,2,3,4,5]}` + "\n",
+			respostaCodificadaEsperada: `["valor1","valor2","valor3"]` + "\n",
 			cabeçalhoEsperado: http.Header{
 				"Content-Type": []string{"application/json"},
 				"E-Tag":        []string{"ABC123"},
 			},
+		},
+		{
+			descrição: "deve ignorar a resposta genérica quando não definida",
+			handler: &codificadorRespostaGenéricaSimulado{
+				Handler: simulador.Handler{
+					SimulaRequisição: func() *http.Request {
+						requisição, err := http.NewRequest("GET", "https://exemplo.com.br/teste", nil)
+
+						if err != nil {
+							t.Fatalf("Erro ao criar a requisição. Detalhes: %s", err)
+						}
+
+						return requisição
+					}(),
+				},
+			},
+			logger: &simulador.Logger{
+				SimulaDebug: func(m ...interface{}) {
+					mensagem := fmt.Sprint(m...)
+					if mensagem != "Interceptador Depois: Codificador" {
+						t.Errorf("mensagem inesperada: %s", mensagem)
+					}
+				},
+				SimulaDebugf: func(m string, a ...interface{}) {
+					mensagem := fmt.Sprintf(m, a...)
+					if mensagem != `Resposta corpo: “”` {
+						t.Errorf("mensagem inesperada: %s", mensagem)
+					}
+				},
+			},
+			tipoConteúdo:       "application/json",
+			códigoHTTP:         http.StatusInternalServerError,
+			códigoHTTPEsperado: http.StatusInternalServerError,
+			cabeçalhoEsperado:  http.Header{},
 		},
 		{
 			descrição: "deve detectar um erro ao codificar a resposta",
@@ -448,8 +479,8 @@ type codificadorRespostaGenéricaSimulado struct {
 	interceptador.CabeçalhoCompatível
 	simulador.Handler
 
-	Requisição codificadorObjetoSimulada  `request:"post"`
-	Resposta   *codificadorObjetoSimulada `response:"all"`
+	Requisição codificadorObjetoSimulada         `request:"post"`
+	Resposta   codificadorObjetoGenéricoSimulado `response:"all"`
 }
 
 func (c *codificadorRespostaGenéricaSimulado) DefineResposta(w http.ResponseWriter) {
@@ -474,6 +505,8 @@ type codificadorObjetoSimulada struct {
 	Campo1 string `json:"campo1"`
 	Campo2 []int  `json:"campo2"`
 }
+
+type codificadorObjetoGenéricoSimulado []string
 
 type codificadorObjetoInválidoSimulada struct {
 	Campo1 string `json:"campo1"`

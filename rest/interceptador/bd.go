@@ -9,6 +9,7 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/rest/config"
 	"github.com/registrobr/gostk/db"
 	"github.com/registrobr/gostk/log"
+	"github.com/registrobr/gostk/reflect"
 )
 
 type sqler interface {
@@ -79,7 +80,7 @@ func (i *BD) Before() int {
 func (i *BD) After(status int) int {
 	i.handler.Logger().Debug("Interceptador Depois: BD")
 
-	if i.tx == nil {
+	if !reflect.IsDefined(i.tx) {
 		i.handler.Logger().Errorf("Transação não inicializada detectada")
 		return status
 	}
@@ -89,14 +90,9 @@ func (i *BD) After(status int) int {
 			i.handler.Logger().Errorf("Erro ao confirmar uma transação. Detalhes: %s", erros.Novo(err))
 			return http.StatusInternalServerError
 		}
-	} else {
-		// TODO(rafaeljsuto): Panic detectado nesta linha quando a conexão com o
-		// banco de dados falha (rest/interceptador/bd.go:68: dial tcp
-		// X.X.X.X:5432: getsockopt: connection refused). O estranho é que
-		// tratamos o caso de tx == nil
-		if err := i.tx.Rollback(); err != nil {
-			i.handler.Logger().Errorf("Erro ao desfazer uma transação. Detalhes: %s", erros.Novo(err))
-		}
+
+	} else if err := i.tx.Rollback(); err != nil {
+		i.handler.Logger().Errorf("Erro ao desfazer uma transação. Detalhes: %s", erros.Novo(err))
 	}
 
 	return status
