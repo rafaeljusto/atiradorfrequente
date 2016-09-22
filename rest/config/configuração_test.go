@@ -306,6 +306,7 @@ func TestCarregarDeVariávelAmbiente(t *testing.T) {
 				FieldName: "porta",
 				TypeName:  "int",
 				Value:     "XXX",
+				Err:       fmt.Errorf(`strconv.ParseInt: parsing "XXX": invalid syntax`),
 			},
 		},
 	}

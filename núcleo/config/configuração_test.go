@@ -12,11 +12,12 @@ import (
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/config"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
+	"github.com/rafaeljusto/envconfig"
 	"github.com/registrobr/gostk/errors"
 	"gopkg.in/yaml.v2"
 )
 
-func TestConfiguração(t *testing.T) {
+func TestConfiguração_yaml(t *testing.T) {
 	arquivoQualquer, err := ioutil.TempFile("", "teste-nucleo-config-")
 	if err != nil {
 		t.Fatalf("Erro gerar um arquivo qualquer. Detalhes: %s", err)
@@ -380,6 +381,471 @@ atirador:
 	for i, cenário := range cenários {
 		var configuração config.Configuração
 		err := yaml.Unmarshal([]byte(cenário.conteúdoArquivo), &configuração)
+
+		if cenário.deveConterFonte && configuração.Atirador.ImagemNúmeroControle.Fonte.Face == nil {
+			t.Errorf("Item %d, “%s”: fonte não foi carregada corretamente",
+				i, cenário.descrição)
+		}
+
+		if cenário.deveConterImagemLogo && configuração.Atirador.ImagemNúmeroControle.Logo.Imagem.Image == nil {
+			t.Errorf("Item %d, “%s”: imagem do logo não foi carregada corretamente",
+				i, cenário.descrição)
+		}
+
+		// a comparação de fonte e imagem consome muita memória, portanto nos
+		// restringimos a uma verificação simples
+		configuração.Atirador.ImagemNúmeroControle.Fonte.Face = nil
+		configuração.Atirador.ImagemNúmeroControle.Logo.Imagem.Image = nil
+
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.configuraçãoEsperada, cenário.erroEsperado)
+		if err = verificadorResultado.VerificaResultado(configuração, err); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
+	arquivoQualquer, err := ioutil.TempFile("", "teste-nucleo-config-")
+	if err != nil {
+		t.Fatalf("Erro gerar um arquivo qualquer. Detalhes: %s", err)
+	}
+	arquivoQualquer.Close()
+
+	arquivoFonte, err := ioutil.TempFile("", "teste-nucleo-config-")
+	if err != nil {
+		t.Fatalf("Erro gerar o arquivo da fonte. Detalhes: %s", err)
+	}
+
+	fonteExtraída, err := base64.StdEncoding.DecodeString(fonteTTF)
+	if err != nil {
+		t.Fatalf("Erro ao extrair a imagem de teste do logo. Detalhes: %s", err)
+	}
+
+	arquivoFonte.Write(fonteExtraída)
+	arquivoFonte.Close()
+
+	arquivoImagemLogo, err := ioutil.TempFile("", "teste-nucleo-config-")
+	if err != nil {
+		t.Fatalf("Erro gerar o arquivo do logo. Detalhes: %s", err)
+	}
+
+	imagemLogoExtraída, err := base64.StdEncoding.DecodeString(imagemLogoPNG)
+	if err != nil {
+		t.Fatalf("Erro ao extrair a imagem de teste do logo. Detalhes: %s", err)
+	}
+
+	arquivoImagemLogo.Write(imagemLogoExtraída)
+	arquivoImagemLogo.Close()
+
+	cenários := []struct {
+		descrição            string
+		variáveisAmbiente    map[string]string
+		deveConterFonte      bool
+		deveConterImagemLogo bool
+		configuraçãoEsperada config.Configuração
+		erroEsperado         error
+	}{
+		{
+			descrição: "deve carregar a configuração corretamente",
+			variáveisAmbiente: map[string]string{
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                   arquivoFonte.Name() + " 48 300 preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_IMAGEM":             arquivoImagemLogo.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_ESPACAMENTO":        "100",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "cinza",
+			},
+			deveConterFonte:      true,
+			deveConterImagemLogo: true,
+			configuraçãoEsperada: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				return configuração
+			}(),
+		},
+		{
+			descrição: "deve ignorar quando a imagem ou a fonte não são informados",
+			variáveisAmbiente: map[string]string{
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "verde",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_ESPACAMENTO":        "100",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "vermelho",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "amarelo",
+			},
+			configuraçãoEsperada: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0x00, 0xff, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0xff, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xff, 0xff, 0x00, 0xff}
+				return configuração
+			}(),
+		},
+		{
+			descrição: "deve detectar quando a quantidade de argumentos da fonte é menor do que a necessária",
+			variáveisAmbiente: map[string]string{
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                   "48 300 preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_IMAGEM":             arquivoImagemLogo.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_ESPACAMENTO":        "100",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "vermelho",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "amarelo",
+			},
+			configuraçãoEsperada: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0x00, 0xff, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0xff, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xff, 0xff, 0x00, 0xff}
+				return configuração
+			}(),
+			erroEsperado: errors.Errorf("fonte não contém as informações necessárias"),
+		},
+		{
+			descrição: "deve detectar quando o arquivo da fonte não existe",
+			variáveisAmbiente: map[string]string{
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                   "/tmp/eunaoexisto321.ttf 48 300 preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_IMAGEM":             arquivoImagemLogo.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_ESPACAMENTO":        "100",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "cinza",
+			},
+			configuraçãoEsperada: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				return configuração
+			}(),
+			erroEsperado: errors.Errorf("open /tmp/eunaoexisto321.ttf: no such file or directory"),
+		},
+		{
+			descrição: "deve detectar quando o arquivo de fonte esta no formato inválido",
+			variáveisAmbiente: map[string]string{
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                   arquivoQualquer.Name() + " 48 300 preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_IMAGEM":             arquivoImagemLogo.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_ESPACAMENTO":        "100",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "cinza",
+			},
+			configuraçãoEsperada: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				return configuração
+			}(),
+			erroEsperado: errors.Errorf("freetype: invalid TrueType format: TTF data is too short"),
+		},
+		{
+			descrição: "deve detectar quando a fonte possui um tamanho inválido",
+			variáveisAmbiente: map[string]string{
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                   arquivoFonte.Name() + " XX 300 preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_IMAGEM":             arquivoImagemLogo.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_ESPACAMENTO":        "100",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "cinza",
+			},
+			configuraçãoEsperada: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				return configuração
+			}(),
+			erroEsperado: errors.Errorf(`strconv.ParseFloat: parsing "XX": invalid syntax`),
+		},
+		{
+			descrição: "deve detectar quando a fonte possui um DPI inválido",
+			variáveisAmbiente: map[string]string{
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                   arquivoFonte.Name() + " 48 XXX preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_IMAGEM":             arquivoImagemLogo.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_ESPACAMENTO":        "100",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "cinza",
+			},
+			configuraçãoEsperada: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				return configuração
+			}(),
+			erroEsperado: errors.Errorf(`strconv.ParseFloat: parsing "XXX": invalid syntax`),
+		},
+		{
+			descrição: "deve detectar quando a fonte possui uma cor inválida",
+			variáveisAmbiente: map[string]string{
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                   arquivoFonte.Name() + " 48 300 roxo",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_IMAGEM":             arquivoImagemLogo.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_ESPACAMENTO":        "100",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "cinza",
+			},
+			configuraçãoEsperada: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				return configuração
+			}(),
+			erroEsperado: errors.Errorf(`cor “roxo” desconhecida`),
+		},
+		{
+			descrição: "deve detectar quando o arquivo de imagem do logo não existe",
+			variáveisAmbiente: map[string]string{
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                   arquivoFonte.Name() + " 48 300 preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_IMAGEM":             "/tmp/eunaoexisto321.png",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_ESPACAMENTO":        "100",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "cinza",
+			},
+			deveConterFonte: true,
+			configuraçãoEsperada: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				return configuração
+			}(),
+			erroEsperado: errors.Errorf("open /tmp/eunaoexisto321.png: no such file or directory"),
+		},
+		{
+			descrição: "deve detectar quando a imagem do logo esta em um formato inválido",
+			variáveisAmbiente: map[string]string{
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                   arquivoFonte.Name() + " 48 300 preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_IMAGEM":             arquivoQualquer.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_ESPACAMENTO":        "100",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "cinza",
+			},
+			deveConterFonte: true,
+			configuraçãoEsperada: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				return configuração
+			}(),
+			erroEsperado: errors.Errorf("image: unknown format"),
+		},
+		{
+			descrição: "deve detectar uma cor desconhecida",
+			variáveisAmbiente: map[string]string{
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "roxo",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                   arquivoFonte.Name() + " 48 300 preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_IMAGEM":             arquivoImagemLogo.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LOGO_ESPACAMENTO":        "100",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "preto",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "cinza",
+			},
+			configuraçãoEsperada: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				return configuração
+			}(),
+			erroEsperado: errors.Errorf("cor “roxo” desconhecida"),
+		},
+	}
+
+	for i, cenário := range cenários {
+		os.Clearenv()
+		for chave, valor := range cenário.variáveisAmbiente {
+			os.Setenv(chave, valor)
+		}
+
+		var configuração config.Configuração
+		err := envconfig.Process("AF", &configuração)
+
+		// para facilitar a comparação dos erros, vamos extrair o erro de baixo
+		// nível da biblioteca que interpreta as variáveis de ambiente
+		if erroEspecífico, ok := err.(*envconfig.ParseError); ok {
+			err = erroEspecífico.Err
+		}
 
 		if cenário.deveConterFonte && configuração.Atirador.ImagemNúmeroControle.Fonte.Face == nil {
 			t.Errorf("Item %d, “%s”: fonte não foi carregada corretamente",

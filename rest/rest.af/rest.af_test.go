@@ -287,7 +287,7 @@ url: http://localhost:8080/binarios/rest.af
 				return c
 			}(),
 			saídaPadrãoEsperada: regexp.MustCompile(`^$`),
-			saídaErroEsperada:   regexp.MustCompile(`^Erro ao carregar as variáveis de ambiente. Detalhes: .*envconfig.Process: assigning AF_BD_PORTA to porta: converting 'XXXX' to type int$`),
+			saídaErroEsperada:   regexp.MustCompile(`^Erro ao carregar as variáveis de ambiente. Detalhes: .*envconfig.Process: assigning AF_BD_PORTA to porta: converting 'XXXX' to type int\. details: strconv.ParseInt: parsing "XXXX": invalid syntax$`),
 		},
 		{
 			descrição: "deve detectar um erro ao escutar em uma interface inválida",

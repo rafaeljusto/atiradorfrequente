@@ -8,6 +8,7 @@ import (
 	_ "image/png"  // adiciona o suporte para imagens PNG no image.Decode
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -121,9 +122,51 @@ type fonte struct {
 }
 
 // UnmarshalYAML agrupa as propriedades da fonte para gerar o tipo font.Face.
+// Utilizado ao interpretar um arquivo YAML.
 func (f *fonte) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var detalhes fonteDetalhes
 	if err := unmarshal(&detalhes); err != nil {
+		return erros.Novo(err)
+	}
+
+	f.Cor = detalhes.Cor
+
+	if detalhes.Família.Font != nil {
+		f.Face = truetype.NewFace(detalhes.Família.Font, &truetype.Options{
+			Size:    detalhes.Tamanho,
+			DPI:     detalhes.DPI,
+			Hinting: font.HintingNone,
+		})
+	}
+
+	return nil
+}
+
+// UnmarshalText agrupa as propriedades da fonte para gerar o tipo font.Face.
+// Utilizado ao interpretar variáveis de ambiente. É esperado que o texto seja
+// definido por 4 valores separados por espaço: <família> <tamanho> <dpi> <cor>
+func (f *fonte) UnmarshalText(texto []byte) error {
+	partes := strings.Split(string(texto), " ")
+	if len(partes) != 4 {
+		return errors.Errorf("fonte não contém as informações necessárias")
+	}
+
+	var detalhes fonteDetalhes
+	var err error
+
+	if err = detalhes.Família.UnmarshalText([]byte(partes[0])); err != nil {
+		return erros.Novo(err)
+	}
+
+	if detalhes.Tamanho, err = strconv.ParseFloat(partes[1], 64); err != nil {
+		return erros.Novo(err)
+	}
+
+	if detalhes.DPI, err = strconv.ParseFloat(partes[2], 64); err != nil {
+		return erros.Novo(err)
+	}
+
+	if err = detalhes.Cor.UnmarshalText([]byte(partes[3])); err != nil {
 		return erros.Novo(err)
 	}
 
