@@ -31,6 +31,7 @@ func TestFrequênciaAtirador_Post(t *testing.T) {
 		códigoHTTPEsperado int
 		esperado           *protocolo.FrequênciaPendenteResposta
 		mensagensEsperadas protocolo.Mensagens
+		cabeçalhoEsperado  http.Header
 	}{
 		{
 			descrição: "deve cadastrar corretamente os dados de frequência do atirador",
@@ -65,6 +66,9 @@ IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
 dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
 dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
 ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+			},
+			cabeçalhoEsperado: http.Header{
+				"Location": []string{"/frequencia-atirador/123456789/7654-918273645"},
 			},
 		},
 		{
@@ -184,6 +188,11 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 
 		verificadorResultado.DefinirEsperado(cenário.mensagensEsperadas, nil)
 		if err := verificadorResultado.VerificaResultado(handler.Mensagens, nil); err != nil {
+			t.Error(err)
+		}
+
+		verificadorResultado.DefinirEsperado(cenário.cabeçalhoEsperado, nil)
+		if err := verificadorResultado.VerificaResultado(handler.Cabeçalho, nil); err != nil {
 			t.Error(err)
 		}
 	}
