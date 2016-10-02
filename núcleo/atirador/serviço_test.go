@@ -64,7 +64,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				return configuração
 			}(),
 			frequênciaPedidoCompleta: protocolo.FrequênciaPedidoCompleta{
-				CR: "123456789",
+				CR: 123456789,
 				FrequênciaPedido: protocolo.FrequênciaPedido{
 					Calibre:           ".380",
 					ArmaUtilizada:     "Arma do Clube",
@@ -116,7 +116,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				return configuração
 			}(),
 			frequênciaPedidoCompleta: protocolo.FrequênciaPedidoCompleta{
-				CR: "123456789",
+				CR: 123456789,
 				FrequênciaPedido: protocolo.FrequênciaPedido{
 					Calibre:           ".380",
 					ArmaUtilizada:     "Arma do Clube",
@@ -152,7 +152,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				return configuração
 			}(),
 			frequênciaPedidoCompleta: protocolo.FrequênciaPedidoCompleta{
-				CR: "123456789",
+				CR: 123456789,
 				FrequênciaPedido: protocolo.FrequênciaPedido{
 					Calibre:           ".380",
 					ArmaUtilizada:     "Arma do Clube",
@@ -193,7 +193,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				return configuração
 			}(),
 			frequênciaPedidoCompleta: protocolo.FrequênciaPedidoCompleta{
-				CR: "123456789",
+				CR: 123456789,
 				FrequênciaPedido: protocolo.FrequênciaPedido{
 					Calibre:           ".380",
 					ArmaUtilizada:     "Arma do Clube",
@@ -235,7 +235,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				return configuração
 			}(),
 			frequênciaPedidoCompleta: protocolo.FrequênciaPedidoCompleta{
-				CR: "123456789",
+				CR: 123456789,
 				FrequênciaPedido: protocolo.FrequênciaPedido{
 					Calibre:           ".380",
 					ArmaUtilizada:     "Arma do Clube",
@@ -296,7 +296,7 @@ func TestServiço_ConfirmarFrequência(t *testing.T) {
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             "123456789",
+				CR:             123456789,
 				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
@@ -326,11 +326,11 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 					return frequência{
 						ID:                7654,
 						Controle:          918273645,
-						CR:                "123456789",
+						CR:                123456789,
 						Calibre:           ".380",
 						ArmaUtilizada:     "Arma do Clube",
 						NúmeroSérie:       "ZA785671",
-						GuiaDeTráfego:     "XYZ12345",
+						GuiaDeTráfego:     762556223,
 						QuantidadeMunição: 50,
 						DataInício:        data.Add(-40 * time.Minute),
 						DataTérmino:       data.Add(-10 * time.Minute),
@@ -352,7 +352,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             "123456789",
+				CR:             123456789,
 				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
@@ -377,7 +377,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             "12345678X",
+				CR:             123456781,
 				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273640),
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
@@ -392,11 +392,11 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 					return frequência{
 						ID:                7654,
 						Controle:          918273645,
-						CR:                "123456789",
+						CR:                123456789,
 						Calibre:           ".380",
 						ArmaUtilizada:     "Arma do Clube",
 						NúmeroSérie:       "ZA785671",
-						GuiaDeTráfego:     "XYZ12345",
+						GuiaDeTráfego:     762556223,
 						QuantidadeMunição: 50,
 						DataInício:        data.Add(-40 * time.Minute),
 						DataTérmino:       data.Add(-10 * time.Minute),
@@ -410,7 +410,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				},
 			},
 			erroEsperado: protocolo.NovasMensagens(
-				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoCRInválido, "12345678X"),
+				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoCRInválido, "123456781"),
 				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoNúmeroControleInválido, "7654-918273640"),
 			),
 		},
@@ -422,7 +422,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             "123456789",
+				CR:             123456789,
 				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
@@ -437,11 +437,11 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 					return frequência{
 						ID:                7654,
 						Controle:          918273645,
-						CR:                "123456789",
+						CR:                123456789,
 						Calibre:           ".380",
 						ArmaUtilizada:     "Arma do Clube",
 						NúmeroSérie:       "ZA785671",
-						GuiaDeTráfego:     "XYZ12345",
+						GuiaDeTráfego:     762556223,
 						QuantidadeMunição: 50,
 						DataInício:        data.Add(-60 * time.Minute),
 						DataTérmino:       data.Add(-30 * time.Minute),
@@ -467,7 +467,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             "123456789",
+				CR:             123456789,
 				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
@@ -485,11 +485,11 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 					return frequência{
 						ID:                7654,
 						Controle:          918273645,
-						CR:                "123456789",
+						CR:                123456789,
 						Calibre:           ".380",
 						ArmaUtilizada:     "Arma do Clube",
 						NúmeroSérie:       "ZA785671",
-						GuiaDeTráfego:     "XYZ12345",
+						GuiaDeTráfego:     762556223,
 						QuantidadeMunição: 50,
 						DataInício:        data.Add(-40 * time.Minute),
 						DataTérmino:       data.Add(-10 * time.Minute),

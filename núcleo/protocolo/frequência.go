@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+var númeroSérieFormato = regexp.MustCompile(`^([A-Z]+[0-9]+)?$`)
 var númeroControleFormato = regexp.MustCompile(`^[0-9]+\-[0-9]+$`)
 
 // FrequênciaPedido armazena os dados exigidos pelo Exército ao utilizar um
@@ -16,7 +17,7 @@ type FrequênciaPedido struct {
 	Calibre           string `json:"calibre"`
 	ArmaUtilizada     string `json:"armaUtilizada"`
 	NúmeroSérie       string `json:"numeroSerie"`
-	GuiaDeTráfego     string `json:"guiaTrafego"`
+	GuiaDeTráfego     int    `json:"guiaTrafego"`
 	QuantidadeMunição int    `json:"quantidadeMunicao"`
 
 	// DataInício data e hora do início do treino de tiro no estande do clube.
@@ -26,19 +27,57 @@ type FrequênciaPedido struct {
 	DataTérmino time.Time `json:"dataTermino"`
 }
 
-// TODO(rafaeljusto): Criar métodos de normalização e validação para o
-// FrequênciaPedido
+// Normalizar padroniza o formato dos campos da requisição. Remove espaços e mantém alguns conteúdos
+// em caixa alta.
+func (f *FrequênciaPedido) Normalizar() {
+	f.Calibre = strings.TrimSpace(f.Calibre)
+	f.Calibre = strings.ToUpper(f.Calibre)
+
+	f.ArmaUtilizada = strings.TrimSpace(f.ArmaUtilizada)
+	f.ArmaUtilizada = strings.ToUpper(f.ArmaUtilizada)
+
+	f.NúmeroSérie = strings.TrimSpace(f.NúmeroSérie)
+	f.NúmeroSérie = strings.ToUpper(f.NúmeroSérie)
+}
+
+// Validar analisa se os dados informados possuem o formato correto e se os campos obrigatórios
+// foram preenchidos.
+func (f FrequênciaPedido) Validar() Mensagens {
+	var mensagens Mensagens
+
+	if f.Calibre == "" {
+		mensagens = append(mensagens, NovaMensagemComCampo(MensagemCódigoCampoNãoPreenchido, "calibre", ""))
+	}
+
+	if f.ArmaUtilizada == "" {
+		mensagens = append(mensagens, NovaMensagemComCampo(MensagemCódigoCampoNãoPreenchido, "armaUtilizada", ""))
+	}
+
+	if !númeroSérieFormato.MatchString(f.NúmeroSérie) {
+		mensagens = append(mensagens, NovaMensagemComValor(MensagemCódigoNúmeroSérieInválido, f.NúmeroSérie))
+	}
+
+	if f.QuantidadeMunição == 0 {
+		mensagens = append(mensagens, NovaMensagemComCampo(MensagemCódigoCampoNãoPreenchido, "quantidadeMunicao", "0"))
+	}
+
+	if f.DataInício.After(f.DataTérmino) {
+		mensagens = append(mensagens, NovaMensagem(MensagemCódigoDatasPeríodoIncorreto))
+	}
+
+	return mensagens
+}
 
 // FrequênciaPedidoCompleta é uma extensão do tipo FrequênciaPedido incluindo o
 // CR enviado no endereço.
 type FrequênciaPedidoCompleta struct {
-	CR string
+	CR int
 	FrequênciaPedido
 }
 
 // NovaFrequênciaPedidoCompleta inicializa o tipo FrequênciaPedidoCompleta a
 // partir do CR e do tipo FrequênciaPedido.
-func NovaFrequênciaPedidoCompleta(cr string, frequênciaPedido FrequênciaPedido) FrequênciaPedidoCompleta {
+func NovaFrequênciaPedidoCompleta(cr int, frequênciaPedido FrequênciaPedido) FrequênciaPedidoCompleta {
 	return FrequênciaPedidoCompleta{
 		CR:               cr,
 		FrequênciaPedido: frequênciaPedido,
@@ -65,7 +104,7 @@ type FrequênciaConfirmaçãoPedido struct {
 // FrequênciaConfirmaçãoPedido incluindo o CR e o número de controle encontrados
 // no endereço.
 type FrequênciaConfirmaçãoPedidoCompleta struct {
-	CR             string
+	CR             int
 	NúmeroControle NúmeroControle
 	FrequênciaConfirmaçãoPedido
 }
@@ -73,7 +112,7 @@ type FrequênciaConfirmaçãoPedidoCompleta struct {
 // NovaFrequênciaConfirmaçãoPedidoCompleta inicializa o tipo
 // FrequênciaConfirmaçãoPedidoCompleta a partir do CR, número de controle e do
 // tipo FrequênciaConfirmaçãoPedido.
-func NovaFrequênciaConfirmaçãoPedidoCompleta(cr string, númeroControle NúmeroControle, frequênciaConfirmaçãoPedido FrequênciaConfirmaçãoPedido) FrequênciaConfirmaçãoPedidoCompleta {
+func NovaFrequênciaConfirmaçãoPedidoCompleta(cr int, númeroControle NúmeroControle, frequênciaConfirmaçãoPedido FrequênciaConfirmaçãoPedido) FrequênciaConfirmaçãoPedidoCompleta {
 	return FrequênciaConfirmaçãoPedidoCompleta{
 		CR:                          cr,
 		NúmeroControle:              númeroControle,

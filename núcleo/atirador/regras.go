@@ -1,6 +1,7 @@
 package atirador
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
@@ -8,10 +9,10 @@ import (
 
 // validarCR garante que a frequência referente ao ID bate com o CR informado
 // pelo usuário.
-func validarCR(cr string, frequência frequência) protocolo.Mensagens {
+func validarCR(cr int, frequência frequência) protocolo.Mensagens {
 	if cr != frequência.CR {
 		return protocolo.NovasMensagens(
-			protocolo.NovaMensagemComValor(protocolo.MensagemCódigoCRInválido, cr),
+			protocolo.NovaMensagemComValor(protocolo.MensagemCódigoCRInválido, strconv.Itoa(cr)),
 		)
 	}
 

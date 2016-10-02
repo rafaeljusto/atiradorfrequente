@@ -8,18 +8,94 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/testes"
 )
 
+func TestFrequênciaPedido_Normalizar(t *testing.T) {
+	data := time.Now()
+
+	cenários := []struct {
+		descrição        string
+		frequênciaPedido protocolo.FrequênciaPedido
+		esperado         protocolo.FrequênciaPedido
+	}{
+		{
+			descrição: "deve normalizar os campos corretamente",
+			frequênciaPedido: protocolo.FrequênciaPedido{
+				Calibre:           "  calibre .380  ",
+				ArmaUtilizada:     "  arma do clube  ",
+				NúmeroSérie:       "  za785671  ",
+				GuiaDeTráfego:     762556223,
+				QuantidadeMunição: 50,
+				DataInício:        data,
+				DataTérmino:       data.Add(30 * time.Minute),
+			},
+			esperado: protocolo.FrequênciaPedido{
+				Calibre:           "CALIBRE .380",
+				ArmaUtilizada:     "ARMA DO CLUBE",
+				NúmeroSérie:       "ZA785671",
+				GuiaDeTráfego:     762556223,
+				QuantidadeMunição: 50,
+				DataInício:        data,
+				DataTérmino:       data.Add(30 * time.Minute),
+			},
+		},
+	}
+
+	for i, cenário := range cenários {
+		cenário.frequênciaPedido.Normalizar()
+
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.esperado, nil)
+		if err := verificadorResultado.VerificaResultado(cenário.frequênciaPedido, nil); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func TestFrequênciaPedido_Validar(t *testing.T) {
+	data := time.Now()
+
+	cenários := []struct {
+		descrição        string
+		frequênciaPedido protocolo.FrequênciaPedido
+		esperado         protocolo.Mensagens
+	}{
+		{
+			descrição: "deve detectar erros de validação na maioria dos campos",
+			frequênciaPedido: protocolo.FrequênciaPedido{
+				NúmeroSérie: "785671",
+				DataInício:  data.Add(30 * time.Minute),
+				DataTérmino: data,
+			},
+			esperado: protocolo.Mensagens{
+				protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoCampoNãoPreenchido, "calibre", ""),
+				protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoCampoNãoPreenchido, "armaUtilizada", ""),
+				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoNúmeroSérieInválido, "785671"),
+				protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoCampoNãoPreenchido, "quantidadeMunicao", "0"),
+				protocolo.NovaMensagem(protocolo.MensagemCódigoDatasPeríodoIncorreto),
+			},
+		},
+	}
+
+	for i, cenário := range cenários {
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.esperado, nil)
+		if err := verificadorResultado.VerificaResultado(cenário.frequênciaPedido.Validar(), nil); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
 func TestNovaFrequênciaPedidoCompleta(t *testing.T) {
 	data := time.Now()
 
 	cenários := []struct {
 		descrição        string
-		cr               string
+		cr               int
 		frequênciaPedido protocolo.FrequênciaPedido
 		esperado         protocolo.FrequênciaPedidoCompleta
 	}{
 		{
 			descrição: "deve inicializar um objeto do tipo FrequênciaPedidoCompleta corretamente",
-			cr:        "123456789",
+			cr:        123456789,
 			frequênciaPedido: protocolo.FrequênciaPedido{
 				Calibre:           ".380",
 				ArmaUtilizada:     "Arma do Clube",
@@ -28,7 +104,7 @@ func TestNovaFrequênciaPedidoCompleta(t *testing.T) {
 				DataTérmino:       data.Add(30 * time.Minute),
 			},
 			esperado: protocolo.FrequênciaPedidoCompleta{
-				CR: "123456789",
+				CR: 123456789,
 				FrequênciaPedido: protocolo.FrequênciaPedido{
 					Calibre:           ".380",
 					ArmaUtilizada:     "Arma do Clube",
@@ -54,14 +130,14 @@ func TestNovaFrequênciaPedidoCompleta(t *testing.T) {
 func TestNovaFrequênciaConfirmaçãoPedidoCompleta(t *testing.T) {
 	cenários := []struct {
 		descrição                   string
-		cr                          string
+		cr                          int
 		númeroControle              protocolo.NúmeroControle
 		frequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedido
 		esperado                    protocolo.FrequênciaConfirmaçãoPedidoCompleta
 	}{
 		{
 			descrição:      "deve inicializar um objeto do tipo FrequênciaPedidoCompleta corretamente",
-			cr:             "123456789",
+			cr:             123456789,
 			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 			frequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
@@ -71,7 +147,7 @@ dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
 ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
 			esperado: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             "123456789",
+				CR:             123456789,
 				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz

@@ -23,7 +23,7 @@ func TestFrequênciaAtirador_Post(t *testing.T) {
 
 	cenários := []struct {
 		descrição          string
-		cr                 string
+		cr                 int
 		frequênciaPedido   protocolo.FrequênciaPedido
 		logger             log.Logger
 		configuração       *configREST.Configuração
@@ -35,7 +35,7 @@ func TestFrequênciaAtirador_Post(t *testing.T) {
 	}{
 		{
 			descrição: "deve cadastrar corretamente os dados de frequência do atirador",
-			cr:        "123456789",
+			cr:        123456789,
 			frequênciaPedido: protocolo.FrequênciaPedido{
 				Calibre:           ".380",
 				ArmaUtilizada:     "Arma do Clube",
@@ -73,7 +73,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		},
 		{
 			descrição: "deve detectar quando a configuração não foi inicializada",
-			cr:        "123456789",
+			cr:        123456789,
 			frequênciaPedido: protocolo.FrequênciaPedido{
 				Calibre:           ".380",
 				ArmaUtilizada:     "Arma do Clube",
@@ -98,7 +98,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		},
 		{
 			descrição: "deve detectar um erro na camada de serviço do atirador",
-			cr:        "123456789",
+			cr:        123456789,
 			frequênciaPedido: protocolo.FrequênciaPedido{
 				Calibre:           ".380",
 				ArmaUtilizada:     "Arma do Clube",
@@ -125,7 +125,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		},
 		{
 			descrição: "deve detectar mensagens na camada de serviço do atirador",
-			cr:        "123456789",
+			cr:        123456789,
 			frequênciaPedido: protocolo.FrequênciaPedido{
 				Calibre:           ".380",
 				ArmaUtilizada:     "Arma do Clube",
@@ -203,9 +203,9 @@ func TestFrequênciaAtirador_Interceptors(t *testing.T) {
 		"*interceptador.EndereçoRemoto",
 		"*interceptador.Log",
 		"*interceptor.Introspector",
+		"*interceptador.Codificador",
 		"*interceptador.VariáveisEndereço",
 		"*interceptador.Padronizador",
-		"*interceptador.Codificador",
 		"*interceptador.BD",
 	}
 

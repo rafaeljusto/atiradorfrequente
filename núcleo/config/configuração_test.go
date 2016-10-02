@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kelseyhightower/envconfig"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/config"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
-	"github.com/rafaeljusto/envconfig"
 	"github.com/registrobr/gostk/errors"
 	"gopkg.in/yaml.v2"
 )

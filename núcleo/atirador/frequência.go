@@ -10,11 +10,11 @@ import (
 type frequência struct {
 	ID                   int64
 	Controle             int64
-	CR                   string
+	CR                   int
 	Calibre              string
 	ArmaUtilizada        string
 	NúmeroSérie          string
-	GuiaDeTráfego        string
+	GuiaDeTráfego        int
 	QuantidadeMunição    int
 	DataInício           time.Time
 	DataTérmino          time.Time

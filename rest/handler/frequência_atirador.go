@@ -20,8 +20,7 @@ type frequênciaAtirador struct {
 	básico
 	interceptador.BDCompatível
 
-	// TODO(rafaeljusto): Criar um tipo para o CR para padronizar a entrada
-	CR                         string                                `urivar:"cr"`
+	CR                         int                                   `urivar:"cr"`
 	FrequênciaPedido           protocolo.FrequênciaPedido            `request:"post"`
 	FrequênciaPendenteResposta *protocolo.FrequênciaPendenteResposta `response:"post"`
 }
@@ -47,7 +46,7 @@ func (f *frequênciaAtirador) Post() int {
 	}
 
 	f.FrequênciaPendenteResposta = &frequênciaPendenteResposta
-	f.DefinirCabeçalho("Location", fmt.Sprintf("/frequencia-atirador/%s/%s", f.CR, f.FrequênciaPendenteResposta.NúmeroControle))
+	f.DefinirCabeçalho("Location", fmt.Sprintf("/frequencia-atirador/%d/%s", f.CR, f.FrequênciaPendenteResposta.NúmeroControle))
 	return http.StatusCreated
 }
 

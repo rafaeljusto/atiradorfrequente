@@ -20,7 +20,7 @@ import (
 func TestFrequênciaAtiradorConfirmação_Put(t *testing.T) {
 	cenários := []struct {
 		descrição                   string
-		cr                          string
+		cr                          int
 		númeroControle              protocolo.NúmeroControle
 		frequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedido
 		logger                      log.Logger
@@ -31,7 +31,7 @@ func TestFrequênciaAtiradorConfirmação_Put(t *testing.T) {
 	}{
 		{
 			descrição:      "deve confirmar corretamente os dados de frequência do atirador",
-			cr:             "123456789",
+			cr:             123456789,
 			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 			frequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
@@ -52,7 +52,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		},
 		{
 			descrição:      "deve detectar quando a configuração não foi inicializada",
-			cr:             "123456789",
+			cr:             123456789,
 			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 			frequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
@@ -78,7 +78,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		},
 		{
 			descrição:      "deve detectar um erro na camada de serviço do atirador",
-			cr:             "123456789",
+			cr:             123456789,
 			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 			frequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
@@ -106,7 +106,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		},
 		{
 			descrição:      "deve detectar mensagens na camada de serviço do atirador",
-			cr:             "123456789",
+			cr:             123456789,
 			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 			frequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
@@ -176,9 +176,9 @@ func TestFrequênciaAtiradorConfirmação_Interceptors(t *testing.T) {
 		"*interceptador.EndereçoRemoto",
 		"*interceptador.Log",
 		"*interceptor.Introspector",
+		"*interceptador.Codificador",
 		"*interceptador.VariáveisEndereço",
 		"*interceptador.Padronizador",
-		"*interceptador.Codificador",
 		"*interceptador.BD",
 	}
 

@@ -20,6 +20,15 @@ const (
 	// MensagemCódigoPrazoConfirmaçãoExpirado prazo limite para envio da
 	// confirmação de sequência expirado.
 	MensagemCódigoPrazoConfirmaçãoExpirado MensagemCódigo = "prazo-confirmacao-expirado"
+
+	// MensagemCódigoDatasPeríodoIncorreto datas informadas de ínico e fim não tem coerência.
+	MensagemCódigoDatasPeríodoIncorreto = "datas-periodo-incorreto"
+
+	// MensagemCódigoNúmeroSérieInválido número de série informado não é válido.
+	MensagemCódigoNúmeroSérieInválido = "numero-serie-invalido"
+
+	// MensagemCódigoCampoNãoPreenchido indica um campo que possue preenchimento obrigatório.
+	MensagemCódigoCampoNãoPreenchido = "campo-nao-preenchido"
 )
 
 // MensagemCódigo tipo que define as possíveis mensagens a serem retornadas. A
