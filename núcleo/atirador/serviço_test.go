@@ -299,11 +299,10 @@ func TestServiço_ConfirmarFrequência(t *testing.T) {
 				CR:             123456789,
 				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
-					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
-IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
-dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
-dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
-ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+					Imagem: `iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAP1BMVEX///8AezAAzhcIziD//5sA
+aygIzos5zoPGpQAArQAArSj/zpsxzkkAWgBCnAAAlBcAvQAApTi1zgApjACMYwCTUqAuAAAAT0lE
+QVQImR2MyQ3AMAzDpNjO3bv7z1o1ehEiQABIGv6d/SC3vgu7uTEzZC93HyxRkWK9ozShLJObcMuR
+7fZZAWOx4ZMqPIxik+8q19Zk8QFkhgHrQUAyGgAAAABJRU5ErkJggg==`,
 				},
 			},
 			frequênciaDAO: simulaFrequênciaDAO{
@@ -355,11 +354,10 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				CR:             123456789,
 				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
-					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
-IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
-dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
-dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
-ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+					Imagem: `iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAP1BMVEX///8AezAAzhcIziD//5sA
+aygIzos5zoPGpQAArQAArSj/zpsxzkkAWgBCnAAAlBcAvQAApTi1zgApjACMYwCTUqAuAAAAT0lE
+QVQImR2MyQ3AMAzDpNjO3bv7z1o1ehEiQABIGv6d/SC3vgu7uTEzZC93HyxRkWK9ozShLJObcMuR
+7fZZAWOx4ZMqPIxik+8q19Zk8QFkhgHrQUAyGgAAAABJRU5ErkJggg==`,
 				},
 			},
 			frequênciaDAO: simulaFrequênciaDAO{
@@ -380,11 +378,10 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				CR:             123456781,
 				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273640),
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
-					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
-IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
-dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
-dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
-ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+					Imagem: `iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAP1BMVEX///8AezAAzhcIziD//5sA
+aygIzos5zoPGpQAArQAArSj/zpsxzkkAWgBCnAAAlBcAvQAApTi1zgApjACMYwCTUqAuAAAAT0lE
+QVQImR2MyQ3AMAzDpNjO3bv7z1o1ehEiQABIGv6d/SC3vgu7uTEzZC93HyxRkWK9ozShLJObcMuR
+7fZZAWOx4ZMqPIxik+8q19Zk8QFkhgHrQUAyGgAAAABJRU5ErkJggg==`,
 				},
 			},
 			frequênciaDAO: simulaFrequênciaDAO{
@@ -425,11 +422,10 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				CR:             123456789,
 				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
-					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
-IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
-dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
-dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
-ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+					Imagem: `iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAP1BMVEX///8AezAAzhcIziD//5sA
+aygIzos5zoPGpQAArQAArSj/zpsxzkkAWgBCnAAAlBcAvQAApTi1zgApjACMYwCTUqAuAAAAT0lE
+QVQImR2MyQ3AMAzDpNjO3bv7z1o1ehEiQABIGv6d/SC3vgu7uTEzZC93HyxRkWK9ozShLJObcMuR
+7fZZAWOx4ZMqPIxik+8q19Zk8QFkhgHrQUAyGgAAAABJRU5ErkJggg==`,
 				},
 			},
 			frequênciaDAO: simulaFrequênciaDAO{
@@ -460,7 +456,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			),
 		},
 		{
-			descrição: "deve detectar um erro ao persistir a frequência existente",
+			descrição: "deve detectar quando a imagem de confirmação for igual a imagem do número de controle",
 			configuração: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 20 * time.Minute
@@ -475,6 +471,54 @@ IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
 dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
 dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
 ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+				},
+			},
+			frequênciaDAO: simulaFrequênciaDAO{
+				simulaResgatar: func(id int64) (frequência, error) {
+					return frequência{
+						ID:                7654,
+						Controle:          918273645,
+						CR:                123456789,
+						Calibre:           ".380",
+						ArmaUtilizada:     "Arma do Clube",
+						NúmeroSérie:       "ZA785671",
+						GuiaDeTráfego:     762556223,
+						QuantidadeMunição: 50,
+						DataInício:        data.Add(-40 * time.Minute),
+						DataTérmino:       data.Add(-10 * time.Minute),
+						DataCriação:       data.Add(-5 * time.Minute),
+						ImagemNúmeroControle: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+					}, nil
+				},
+			},
+			erroEsperado: protocolo.NovasMensagens(
+				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoImagemNãoAceita,
+					`TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`),
+			),
+		},
+		{
+			descrição: "deve detectar um erro ao persistir a frequência existente",
+			configuração: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.PrazoConfirmação = 20 * time.Minute
+				return configuração
+			}(),
+			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
+				CR:             123456789,
+				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
+					Imagem: `iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAP1BMVEX///8AezAAzhcIziD//5sA
+aygIzos5zoPGpQAArQAArSj/zpsxzkkAWgBCnAAAlBcAvQAApTi1zgApjACMYwCTUqAuAAAAT0lE
+QVQImR2MyQ3AMAzDpNjO3bv7z1o1ehEiQABIGv6d/SC3vgu7uTEzZC93HyxRkWK9ozShLJObcMuR
+7fZZAWOx4ZMqPIxik+8q19Zk8QFkhgHrQUAyGgAAAABJRU5ErkJggg==`,
 				},
 			},
 			frequênciaDAO: simulaFrequênciaDAO{

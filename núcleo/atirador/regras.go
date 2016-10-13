@@ -44,5 +44,14 @@ func validarIntervaloMáximoConfirmação(frequência frequência, prazoConfirma
 	return nil
 }
 
-// TODO(rafaeljusto): Validar imagem de confirmação. Podemos validar o formato.
-// Não deve ser igual a imagem do número de controle (MD5?)
+// validarImagemConfirmação evita que a imagem gerada com o número de controle
+// seja a mesma utilizada na confirmação da frequência do atirador.
+func validarImagemConfirmação(frequência frequência, imagem string) protocolo.Mensagens {
+	if frequência.ImagemNúmeroControle == imagem {
+		return protocolo.NovasMensagens(
+			protocolo.NovaMensagemComValor(protocolo.MensagemCódigoImagemNãoAceita, imagem),
+		)
+	}
+
+	return nil
+}

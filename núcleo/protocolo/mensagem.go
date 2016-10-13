@@ -38,6 +38,11 @@ const (
 	// formato inválido ou não suportado. Ao gerar este erro a imagem já foi
 	// extraída corretamente de um base64.
 	MensagemCódigoImagemFormatoInválido = "imagem-formato-invalido"
+
+	// MensagemCódigoImagemNãoAceita imagem não foi aceita por alguma análise da
+	// imagem enviada. Geralmente ocorre quando se envia a imagem de número de
+	// controle na confirmação da frequência do atirador.
+	MensagemCódigoImagemNãoAceita = "imagem-nao-aceita"
 )
 
 // MensagemCódigo tipo que define as possíveis mensagens a serem retornadas. A
