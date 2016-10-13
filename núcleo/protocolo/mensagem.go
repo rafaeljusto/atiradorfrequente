@@ -29,6 +29,15 @@ const (
 
 	// MensagemCódigoCampoNãoPreenchido indica um campo que possue preenchimento obrigatório.
 	MensagemCódigoCampoNãoPreenchido = "campo-nao-preenchido"
+
+	// MensagemCódigoImagemBase64Inválido imagem enviada na confirmação possuí um
+	// base64 inválido.
+	MensagemCódigoImagemBase64Inválido = "imagem-base64-invalido"
+
+	// MensagemCódigoImagemFormatoInválido imagem enviada na confirmação possuí um
+	// formato inválido ou não suportado. Ao gerar este erro a imagem já foi
+	// extraída corretamente de um base64.
+	MensagemCódigoImagemFormatoInválido = "imagem-formato-invalido"
 )
 
 // MensagemCódigo tipo que define as possíveis mensagens a serem retornadas. A

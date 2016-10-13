@@ -1,7 +1,10 @@
 package protocolo
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
+	"image"
 	"regexp"
 	"strconv"
 	"strings"
@@ -97,8 +100,27 @@ type FrequênciaConfirmaçãoPedido struct {
 	Imagem string `json:"imagem"` // base64
 }
 
-// TODO(rafaeljusto): Criar métodos de normalização e validação para o
-// FrequênciaConfirmaçãoPedido
+// Normalizar padroniza o formato dos campos da requisição. Remove espaços, mas
+// mantém a caixa alta ou baixa para respeitar o padrão do base64.
+func (f *FrequênciaConfirmaçãoPedido) Normalizar() {
+	f.Imagem = strings.TrimSpace(f.Imagem)
+}
+
+// Validar verifica se a imagem enviada na confirmação possuí um formato
+// correto.
+func (f FrequênciaConfirmaçãoPedido) Validar() Mensagens {
+	imagem, err := base64.StdEncoding.DecodeString(f.Imagem)
+	if err != nil {
+		return NovasMensagens(NovaMensagemComCampo(MensagemCódigoImagemBase64Inválido, "imagem", f.Imagem))
+	}
+
+	leitorImagem := bytes.NewReader(imagem)
+	if _, _, err = image.Decode(leitorImagem); err != nil {
+		return NovasMensagens(NovaMensagemComCampo(MensagemCódigoImagemFormatoInválido, "imagem", f.Imagem))
+	}
+
+	return nil
+}
 
 // FrequênciaConfirmaçãoPedidoCompleta extende o tipo
 // FrequênciaConfirmaçãoPedido incluindo o CR e o número de controle encontrados
