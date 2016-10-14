@@ -1,0 +1,22 @@
+version: "2"
+services:
+  bd:
+    build: ./psql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=abc123
+  rsyslog:
+    build: ../instalação/docker/rsyslog
+    volumes:
+      - ./logs:/var/log/
+  restaf:
+    build: ../instalação/docker/restaf
+    ports: ["80:80"]
+    environment:
+      - AF_SERVIDOR_ENDERECO=0.0.0.0:80
+      - AF_SYSLOG_ENDERECO=rsyslog:514
+      - AF_BD_ENDERECO=bd
+      - AF_BD_SENHA=abc123
+    depends_on:
+      - "bd"
+      - "rsyslog"

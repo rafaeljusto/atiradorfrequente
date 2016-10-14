@@ -1,0 +1,1 @@
+../../instalação/docker/psql/atiradorfrequente.sql
