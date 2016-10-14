@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# PROVIDE: restaf
+# REQUIRE: DAEMON ntpd rsyslogd
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="restaf"
+rcvar=`set_rcvar`
+command="/usr/local/atiradorfrequente/rest.af/rest.af"
+pidfile="/usr/local/atiradorfrequente/rest.af/rest.af.pid"
+
+: ${restaf_enable:=no}
+
+load_rc_config $name
+run_rc_command "$1"

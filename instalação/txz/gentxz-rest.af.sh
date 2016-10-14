@@ -30,7 +30,7 @@ copiar_arquivos() {
   local versao=`echo "$VERSAO" | awk -F "-" '{ print $1 }'`
   local lancamento=`echo "$VERSAO" | awk -F "-" '{ print $2 }'`
 
-  cp $diretorio_projeto/instalação/txz/rest.af.sh $DIRETORIO_SCRIPTS/rest.af.sh || erro_sair "Não foi possível copiar o script de execução ao reiniciar o servidor"
+  cp $diretorio_projeto/instalação/txz/rest.af $DIRETORIO_SCRIPTS/rest.af || erro_sair "Não foi possível copiar o script de execução ao reiniciar o servidor"
 
   # calcula tamanho total dos arquivos
   local tamanho_arquivos=0
@@ -85,7 +85,7 @@ EOF
 "files":{
 $arquivos_manifesto
 },
-"scripts":{"post-install":"chmod +x /usr/local/etc/rc.d/rest.af.sh;"}
+"scripts":{"post-install":"chmod +x /usr/local/etc/rc.d/rest.af;"}
 }
 EOF
 }
