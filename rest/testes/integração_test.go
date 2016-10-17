@@ -45,6 +45,8 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
 				}
 
+				// TODO(rafaeljusto): Obter uma porta livre ao invés de forçar a porta
+				// 8080 sempre.
 				r, err := http.NewRequest("POST", "http://127.0.0.1:8080/frequencia/380308", bytes.NewReader(corpo))
 				if err != nil {
 					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
@@ -75,7 +77,7 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 func TestMain(m *testing.M) {
 	flag.Parse()
 
-	project, err := docker.NewProject(&ctx.Context{
+	projeto, err := docker.NewProject(&ctx.Context{
 		Context: project.Context{
 			ComposeFiles: []string{"docker-compose.yml"},
 			ProjectName:  "atiradorfrequente",
@@ -87,10 +89,34 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	if err = project.Up(context.Background(), options.Up{}); err != nil {
+	err = projeto.Up(context.Background(), options.Up{
+		Create: options.Create{
+			ForceRecreate: true,
+			ForceBuild:    true,
+		},
+	})
+
+	if err != nil {
 		fmt.Printf("Erro ao executar o projeto para testes. Detalhes: %s", err)
 		os.Exit(2)
 	}
 
-	os.Exit(m.Run())
+	// temos que aguardar todos as dependências serem executadas antes de rodar o
+	// teste principal
+	time.Sleep(10 * time.Second)
+
+	exitCode := m.Run()
+	defer func() {
+		os.Exit(exitCode)
+	}()
+
+	err = projeto.Down(context.Background(), options.Down{
+		RemoveVolume:  true,
+		RemoveImages:  options.ImageType("all"),
+		RemoveOrphans: true,
+	})
+
+	if err != nil {
+		fmt.Printf("Erro ao finalizar o projeto de testes. Detalhes: %s", err)
+	}
 }

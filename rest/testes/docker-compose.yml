@@ -20,3 +20,6 @@ services:
     depends_on:
       - "bd"
       - "rsyslog"
+    links:
+      - "bd:bd"
+      - "rsyslog:rsyslog"
