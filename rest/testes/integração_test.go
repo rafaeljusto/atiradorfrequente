@@ -96,6 +96,18 @@ func TestMain(m *testing.M) {
 		return
 	}
 
+	defer func() {
+		err = projeto.Down(context.Background(), options.Down{
+			RemoveVolume:  true,
+			RemoveImages:  options.ImageType("all"),
+			RemoveOrphans: true,
+		})
+
+		if err != nil {
+			fmt.Printf("Erro ao finalizar o projeto de testes. Detalhes: %s\n", err)
+		}
+	}()
+
 	err = projeto.Up(context.Background(), options.Up{
 		Create: options.Create{
 			ForceRecreate: true,
@@ -108,18 +120,6 @@ func TestMain(m *testing.M) {
 		código = 2
 		return
 	}
-
-	defer func() {
-		err = projeto.Down(context.Background(), options.Down{
-			RemoveVolume:  true,
-			RemoveImages:  options.ImageType("all"),
-			RemoveOrphans: true,
-		})
-
-		if err != nil {
-			fmt.Printf("Erro ao finalizar o projeto de testes. Detalhes: %s\n", err)
-		}
-	}()
 
 	// temos que aguardar todos as dependências serem executadas antes de rodar o
 	// teste principal
