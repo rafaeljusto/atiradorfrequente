@@ -20,6 +20,8 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 )
 
+var endereçoServidor string
+
 func TestCriaçãoDeFrequência(t *testing.T) {
 	cenários := []struct {
 		descrição          string
@@ -45,9 +47,8 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
 				}
 
-				// TODO(rafaeljusto): Obter uma porta livre ao invés de forçar a porta
-				// 8080 sempre.
-				r, err := http.NewRequest("POST", "http://127.0.0.1:8080/frequencia/380308", bytes.NewReader(corpo))
+				url := fmt.Sprintf("http://%s/frequencia/380308", endereçoServidor)
+				r, err := http.NewRequest("POST", url, bytes.NewReader(corpo))
 				if err != nil {
 					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
 				}
@@ -77,6 +78,11 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 func TestMain(m *testing.M) {
 	flag.Parse()
 
+	código := 0
+	defer func() {
+		os.Exit(código)
+	}()
+
 	projeto, err := docker.NewProject(&ctx.Context{
 		Context: project.Context{
 			ComposeFiles: []string{"docker-compose.yml"},
@@ -85,8 +91,9 @@ func TestMain(m *testing.M) {
 	}, nil)
 
 	if err != nil {
-		fmt.Printf("Erro ao inicializar o projeto para testes. Detalhes: %s", err)
-		os.Exit(1)
+		fmt.Printf("Erro ao inicializar o projeto para testes. Detalhes: %s\n", err)
+		código = 1
+		return
 	}
 
 	err = projeto.Up(context.Background(), options.Up{
@@ -97,26 +104,33 @@ func TestMain(m *testing.M) {
 	})
 
 	if err != nil {
-		fmt.Printf("Erro ao executar o projeto para testes. Detalhes: %s", err)
-		os.Exit(2)
+		fmt.Printf("Erro ao executar o projeto para testes. Detalhes: %s\n", err)
+		código = 2
+		return
 	}
+
+	defer func() {
+		err = projeto.Down(context.Background(), options.Down{
+			RemoveVolume:  true,
+			RemoveImages:  options.ImageType("all"),
+			RemoveOrphans: true,
+		})
+
+		if err != nil {
+			fmt.Printf("Erro ao finalizar o projeto de testes. Detalhes: %s\n", err)
+		}
+	}()
 
 	// temos que aguardar todos as dependências serem executadas antes de rodar o
 	// teste principal
 	time.Sleep(10 * time.Second)
 
-	exitCode := m.Run()
-	defer func() {
-		os.Exit(exitCode)
-	}()
-
-	err = projeto.Down(context.Background(), options.Down{
-		RemoveVolume:  true,
-		RemoveImages:  options.ImageType("all"),
-		RemoveOrphans: true,
-	})
-
+	endereçoServidor, err = projeto.Port(context.Background(), 1, "tcp", "restaf", "80")
 	if err != nil {
-		fmt.Printf("Erro ao finalizar o projeto de testes. Detalhes: %s", err)
+		fmt.Printf("Erro ao obter informações da porta do servidor rest.af. Detalhes: %s\n", err)
+		código = 3
+		return
 	}
+
+	código = m.Run()
 }
