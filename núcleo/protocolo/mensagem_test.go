@@ -207,6 +207,39 @@ func TestMensagens_Error(t *testing.T) {
 	}
 }
 
+func TestMensagens_Expor(t *testing.T) {
+	cenários := []struct {
+		descrição string
+		mensagens protocolo.Mensagens
+		esperado  error
+	}{
+		{
+			descrição: "deve expor corretamente como erro um conjunto de mensagens definidas",
+			mensagens: protocolo.NovasMensagens(
+				protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoParâmetroInválido, "campo", "valor"),
+				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoParâmetroInválido, "valor"),
+				protocolo.NovaMensagem(protocolo.MensagemCódigoParâmetroInválido),
+			),
+			esperado: protocolo.NovasMensagens(
+				protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoParâmetroInválido, "campo", "valor"),
+				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoParâmetroInválido, "valor"),
+				protocolo.NovaMensagem(protocolo.MensagemCódigoParâmetroInválido),
+			),
+		},
+		{
+			descrição: "deve expor um erro indefinido quando não existem mensagens",
+		},
+	}
+
+	for i, cenário := range cenários {
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(nil, cenário.esperado)
+		if err := verificadorResultado.VerificaResultado(nil, cenário.mensagens.Expor()); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
 func TestJuntarMensagens(t *testing.T) {
 	cenários := []struct {
 		descrição string

@@ -151,7 +151,7 @@ type NúmeroControle string
 // NovoNúmeroControle gera um novo número de controle a partir do número de
 // identificação da frequência com um número gerado aleatoriamente, chamado de
 // controle.
-func NovoNúmeroControle(id int64, controle int64) NúmeroControle {
+func NovoNúmeroControle(id, controle int64) NúmeroControle {
 	return NúmeroControle(fmt.Sprintf("%d-%d", id, controle))
 }
 
@@ -216,5 +216,5 @@ func (n NúmeroControle) Validar() Mensagens {
 func (n *NúmeroControle) UnmarshalText(texto []byte) error {
 	*n = NúmeroControle(texto)
 	n.Normalizar()
-	return n.Validar()
+	return n.Validar().Expor()
 }

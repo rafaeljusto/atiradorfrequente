@@ -135,6 +135,16 @@ func (m Mensagens) Error() string {
 	return m.String()
 }
 
+// Expor retorna as mensagens em formato de erro. Evitamos de utiliza-las
+// diretamente para não criar uma instância de interface de algo indefinido.
+func (m Mensagens) Expor() error {
+	if m == nil {
+		return nil
+	}
+
+	return m
+}
+
 // JuntarMensagens concatena grupos de mensagens para facilitar a usabilidade.
 func JuntarMensagens(m ...Mensagens) Mensagens {
 	var mensagensJuntas Mensagens

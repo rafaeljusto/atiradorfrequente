@@ -473,7 +473,7 @@ func TestNúmeroControle_UnmarshalText(t *testing.T) {
 		descrição              string
 		texto                  []byte
 		númeroControleEsperado protocolo.NúmeroControle
-		mensagensEsperadas     protocolo.Mensagens
+		erroEsperado           error
 	}{
 		{
 			descrição: "deve aceitar um número de controle válido",
@@ -483,7 +483,7 @@ func TestNúmeroControle_UnmarshalText(t *testing.T) {
 		{
 			descrição: "deve detectar um número de controle inválido",
 			texto:     []byte("  1234567 7654321  "),
-			mensagensEsperadas: protocolo.NovasMensagens(
+			erroEsperado: protocolo.NovasMensagens(
 				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoNúmeroControleInválido, "1234567 7654321"),
 			),
 		},
@@ -494,7 +494,7 @@ func TestNúmeroControle_UnmarshalText(t *testing.T) {
 		mensagens := númeroControle.UnmarshalText(cenário.texto)
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
-		verificadorResultado.DefinirEsperado(cenário.númeroControleEsperado, cenário.mensagensEsperadas)
+		verificadorResultado.DefinirEsperado(cenário.númeroControleEsperado, cenário.erroEsperado)
 		if err := verificadorResultado.VerificaResultado(númeroControle, mensagens); err != nil {
 			t.Error(err)
 		}
