@@ -8,11 +8,13 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/libcompose/docker"
 	"github.com/docker/libcompose/docker/ctx"
 	"github.com/docker/libcompose/project"
@@ -83,6 +85,9 @@ func TestMain(m *testing.M) {
 		os.Exit(código)
 	}()
 
+	// descarta os logs da biblioteca de containers
+	logrus.SetOutput(ioutil.Discard)
+
 	projeto, err := docker.NewProject(&ctx.Context{
 		Context: project.Context{
 			ComposeFiles: []string{"docker-compose.yml"},
@@ -129,6 +134,11 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		fmt.Printf("Erro ao obter informações da porta do servidor rest.af. Detalhes: %s\n", err)
 		código = 3
+		return
+
+	} else if endereçoServidor == "" {
+		fmt.Println("Não foi possível obter o endereço do servidor")
+		código = 4
 		return
 	}
 
