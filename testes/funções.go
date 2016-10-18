@@ -55,6 +55,10 @@ func (c *VerificadorResultados) DefinirEsperado(resultado interface{}, err error
 // esperado.
 func (c *VerificadorResultados) VerificaResultado(resultado interface{}, err error) error {
 	if !errors.Equal(err, c.erroEsperado) {
+		if c.índice == 0 && c.descrição == "" {
+			return fmt.Errorf("erros não batem. Esperado “%v”; encontrado “%v”", c.erroEsperado, err)
+		}
+
 		return fmt.Errorf("Item %d, “%s”: erros não batem. Esperado “%v”; encontrado “%v”",
 			c.índice, c.descrição, c.erroEsperado, err)
 	}
@@ -69,6 +73,10 @@ func (c *VerificadorResultados) VerificaResultado(resultado interface{}, err err
 
 	if c.erroEsperado == nil || (verificaValor && valor.IsNil()) {
 		if !reflect.DeepEqual(resultado, c.resultadoEsperado) {
+			if c.índice == 0 && c.descrição == "" {
+				return fmt.Errorf("resultados não batem.\n%s", Diff(c.resultadoEsperado, resultado))
+			}
+
 			return fmt.Errorf("Item %d, “%s”: resultados não batem.\n%s",
 				c.índice, c.descrição, Diff(c.resultadoEsperado, resultado))
 		}

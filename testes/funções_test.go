@@ -139,5 +139,28 @@ func TestVerificadorResultados_VerificaResultado(t *testing.T) {
 	}
 }
 
+// TestVerificadorResultados_VerificaResultado2 cobre a situação onde não existe
+// índice ou descrição por utilizar o novo formato de sub-testes da biblioteca
+// Go.
+func TestVerificadorResultados_VerificaResultado2(t *testing.T) {
+	var verificadorResultados testes.VerificadorResultados
+
+	verificadorResultados.DefinirEsperado(nil, fmt.Errorf("erro 1"))
+	err := verificadorResultados.VerificaResultado(nil, fmt.Errorf("erro 2"))
+	esperado := "erros não batem. Esperado “erro 1”; encontrado “erro 2”"
+
+	if err == nil || err.Error() != esperado {
+		t.Errorf("resultados não batem. Esperado: %#v\nObtido: %#v", esperado, err)
+	}
+
+	verificadorResultados.DefinirEsperado("valor 1", nil)
+	err = verificadorResultados.VerificaResultado("valor 2", nil)
+	esperado = "resultados não batem.\n[- (string) (len=7) \"valor 1\"\n + (string) (len=7) \"valor 2\"\n   ]"
+
+	if err == nil || err.Error() != esperado {
+		t.Errorf("resultados não batem. Esperado: %#v\nObtido: %#v", esperado, err)
+	}
+}
+
 type test1 struct{}
 type test2 struct{}
