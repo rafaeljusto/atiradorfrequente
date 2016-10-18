@@ -68,7 +68,7 @@ dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
 ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
 			cabeçalhoEsperado: http.Header{
-				"Location": []string{"/frequencia-atirador/123456789/7654-918273645"},
+				"Location": []string{"/frequencia/123456789/7654-918273645"},
 			},
 		},
 		{

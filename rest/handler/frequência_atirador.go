@@ -46,7 +46,7 @@ func (f *frequênciaAtirador) Post() int {
 	}
 
 	f.FrequênciaPendenteResposta = &frequênciaPendenteResposta
-	f.DefinirCabeçalho("Location", fmt.Sprintf("/frequencia-atirador/%d/%s", f.CR, f.FrequênciaPendenteResposta.NúmeroControle))
+	f.DefinirCabeçalho("Location", fmt.Sprintf("/frequencia/%d/%s", f.CR, f.FrequênciaPendenteResposta.NúmeroControle))
 	return http.StatusCreated
 }
 
