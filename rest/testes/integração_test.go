@@ -86,6 +86,38 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 				return bytes.TrimSpace(corpoEsperado), nil
 			},
 		},
+		{
+			descrição: "deve detectar quando campos obrigatórios não foram preenchidos",
+			requisição: func() *http.Request {
+				url := fmt.Sprintf("http://%s/frequencia/380308", endereçoServidor)
+				r, err := http.NewRequest("POST", url, nil)
+				if err != nil {
+					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
+				}
+
+				return r
+			}(),
+			códigoHTTPEsperado: http.StatusBadRequest,
+			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
+				return http.Header{
+					"Content-Type": []string{"application/json; charset=utf-8"},
+				}, nil
+			},
+			corpoEsperado: func(corpo []byte) ([]byte, error) {
+				mensagens := protocolo.NovasMensagens(
+					protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoCampoNãoPreenchido, "calibre", ""),
+					protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoCampoNãoPreenchido, "armaUtilizada", ""),
+					protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoCampoNãoPreenchido, "quantidadeMunicao", "0"),
+				)
+
+				corpoEsperado, err := json.Marshal(mensagens)
+				if err != nil {
+					return nil, errors.Errorf("Erro ao gerar os dados da resposta. Detalhes: %s", err)
+				}
+
+				return bytes.TrimSpace(corpoEsperado), nil
+			},
+		},
 	}
 
 	for _, cenário := range cenários {
@@ -116,9 +148,16 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 					t.Fatal(err)
 				}
 
-				// como a data pode ser variável, sempre copia a da resposta definitiva
-				// para não causar problemas
-				cabeçalhoEsperado.Set("Date", resposta.Header.Get("Date"))
+				// copia campos variáveis da resposta definitiva para não causar
+				// problemas. Infelizmente não temos como prever os valores destes
+				// campos na resposta esperada.
+
+				if data := resposta.Header.Get("Date"); data != "" {
+					cabeçalhoEsperado.Set("Date", data)
+				}
+				if tamanhoConteúdo := resposta.Header.Get("Content-Length"); tamanhoConteúdo != "" {
+					cabeçalhoEsperado.Set("Content-Length", tamanhoConteúdo)
+				}
 
 				verificadorResultado.DefinirEsperado(cabeçalhoEsperado, nil)
 				if err = verificadorResultado.VerificaResultado(resposta.Header, nil); err != nil {
