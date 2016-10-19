@@ -20,6 +20,8 @@ import (
 	"github.com/docker/libcompose/project"
 	"github.com/docker/libcompose/project/options"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
+	"github.com/rafaeljusto/atiradorfrequente/testes"
+	"github.com/registrobr/gostk/errors"
 )
 
 var endereçoServidor string
@@ -29,7 +31,8 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 		descrição          string
 		requisição         *http.Request
 		códigoHTTPEsperado int
-		corpoEsperado      string
+		cabeçalhoEsperado  func(corpo []byte) (http.Header, error)
+		corpoEsperado      func(corpo []byte) ([]byte, error)
 	}{
 		{
 			descrição: "deve criar corretamente uma frequência",
@@ -58,6 +61,30 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 				return r
 			}(),
 			códigoHTTPEsperado: http.StatusCreated,
+			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
+				var frequênciaPendenteResposta protocolo.FrequênciaPendenteResposta
+				if err := json.Unmarshal(corpo, &frequênciaPendenteResposta); err != nil {
+					return nil, errors.Errorf("Erro ao interpretar o corpo da resposta. Detalhes: %s", err)
+				}
+
+				return http.Header{
+					"Content-Type": []string{"application/json; charset=utf-8"},
+					"Location":     []string{"/frequencia/380308/" + frequênciaPendenteResposta.NúmeroControle.String()},
+				}, nil
+			},
+			corpoEsperado: func(corpo []byte) ([]byte, error) {
+				var frequênciaPendenteResposta protocolo.FrequênciaPendenteResposta
+				if err := json.Unmarshal(corpo, &frequênciaPendenteResposta); err != nil {
+					return nil, errors.Errorf("Erro ao interpretar o corpo da resposta. Detalhes: %s", err)
+				}
+
+				corpoEsperado, err := json.Marshal(frequênciaPendenteResposta)
+				if err != nil {
+					return nil, errors.Errorf("Erro ao gerar os dados da resposta. Detalhes: %s", err)
+				}
+
+				return bytes.TrimSpace(corpoEsperado), nil
+			},
 		},
 	}
 
@@ -69,9 +96,55 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Erro inesperado ao enviar a requisição. Detalhes: %s", err)
 			}
+			defer resposta.Body.Close()
 
-			if resposta.StatusCode != cenário.códigoHTTPEsperado {
-				t.Errorf("Código HTTP inesperado. Esperava “%d” e obteve “%d”", cenário.códigoHTTPEsperado, resposta.StatusCode)
+			corpo, err := ioutil.ReadAll(resposta.Body)
+			if err != nil {
+				t.Fatalf("Erro inesperado ao ler o corpo da resposta. Detalhes: %s", err)
+			}
+
+			var verificadorResultado testes.VerificadorResultados
+
+			verificadorResultado.DefinirEsperado(cenário.códigoHTTPEsperado, nil)
+			if err = verificadorResultado.VerificaResultado(resposta.StatusCode, nil); err != nil {
+				t.Error(err)
+			}
+
+			if cenário.cabeçalhoEsperado != nil {
+				cabeçalhoEsperado, err := cenário.cabeçalhoEsperado(corpo)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				// como a data pode ser variável, sempre copia a da resposta definitiva
+				// para não causar problemas
+				cabeçalhoEsperado.Set("Date", resposta.Header.Get("Date"))
+
+				verificadorResultado.DefinirEsperado(cabeçalhoEsperado, nil)
+				if err = verificadorResultado.VerificaResultado(resposta.Header, nil); err != nil {
+					t.Error(err)
+				}
+			}
+
+			if cenário.corpoEsperado != nil {
+				corpoEsperado, err := cenário.corpoEsperado(corpo)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				if corpoEsperado == nil && corpo != nil {
+					t.Errorf("Corpo inesperado na resposta.\n%s", string(corpo))
+
+				} else if corpoEsperado != nil && corpo == nil {
+					t.Error("Corpo inexistente na resposta")
+
+				} else {
+					corpo = bytes.TrimSpace(corpo)
+					verificadorResultado.DefinirEsperado(string(corpoEsperado), nil)
+					if err = verificadorResultado.VerificaResultado(string(corpo), nil); err != nil {
+						t.Error(err)
+					}
+				}
 			}
 		})
 	}
