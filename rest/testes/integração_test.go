@@ -199,21 +199,42 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	// temos que aguardar todos as dependências serem executadas antes de rodar o
-	// teste principal
-	time.Sleep(10 * time.Second)
+	abortarInício := make(chan bool)
+	servidorRodando := make(chan bool)
 
-	endereçoServidor, err = projeto.Port(context.Background(), 1, "tcp", "restaf", "80")
-	if err != nil {
-		fmt.Printf("Erro ao obter informações da porta do servidor rest.af. Detalhes: %s\n", err)
+	go func() {
+		for {
+			select {
+			case <-time.Tick(100 * time.Millisecond):
+				break
+			case <-abortarInício:
+				return
+			}
+
+			if endereçoServidor == "" {
+				endereçoServidor, err = projeto.Port(context.Background(), 1, "tcp", "restaf", "80")
+				if err != nil || endereçoServidor == " " {
+					continue
+				}
+			}
+
+			url := fmt.Sprintf("http://%s/ping", endereçoServidor)
+			if resposta, err := http.Get(url); err != nil || resposta.StatusCode != http.StatusNoContent {
+				continue
+			}
+
+			close(servidorRodando)
+			return
+		}
+	}()
+
+	select {
+	case <-servidorRodando:
+		código = m.Run()
+
+	case <-time.Tick(20 * time.Second):
+		close(abortarInício)
+		fmt.Println("Tempo esgotado aguardando o servidor iniciar")
 		código = 3
-		return
-
-	} else if endereçoServidor == "" {
-		fmt.Println("Não foi possível obter o endereço do servidor")
-		código = 4
-		return
 	}
-
-	código = m.Run()
 }
