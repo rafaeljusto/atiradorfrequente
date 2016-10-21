@@ -1,10 +1,12 @@
 package atirador
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 )
@@ -93,6 +95,9 @@ func (f frequênciaDAOImpl) resgatar(id int64) (frequência, error) {
 	resultado := f.sqlogger.QueryRow(frequênciaResgateComando, id)
 
 	var freq frequência
+	var dataAtualização, dataConfirmação pq.NullTime
+	var imagemNúmeroControle, imagemConfirmação sql.NullString
+
 	err := resultado.Scan(
 		&freq.ID,
 		&freq.Controle,
@@ -105,12 +110,28 @@ func (f frequênciaDAOImpl) resgatar(id int64) (frequência, error) {
 		&freq.DataInício,
 		&freq.DataTérmino,
 		&freq.DataCriação,
-		&freq.DataAtualização,
-		&freq.DataConfirmação,
-		&freq.ImagemNúmeroControle,
-		&freq.ImagemConfirmação,
+		&dataAtualização,
+		&dataConfirmação,
+		&imagemNúmeroControle,
+		&imagemConfirmação,
 		&freq.revisão,
 	)
+
+	if dataAtualização.Valid {
+		freq.DataAtualização = dataAtualização.Time
+	}
+
+	if dataConfirmação.Valid {
+		freq.DataConfirmação = dataConfirmação.Time
+	}
+
+	if imagemNúmeroControle.Valid {
+		freq.ImagemNúmeroControle = imagemNúmeroControle.String
+	}
+
+	if imagemConfirmação.Valid {
+		freq.ImagemConfirmação = imagemConfirmação.String
+	}
 
 	return freq, erros.Novo(err)
 }
@@ -164,5 +185,5 @@ var (
 	}
 	frequênciaResgateCamposTexto = strings.Join(frequênciaResgateCampos, ", ")
 	frequênciaResgateComando     = fmt.Sprintf(`SELECT %s FROM %s WHERE id = $1`,
-		frequênciaTabela, frequênciaResgateCamposTexto)
+		frequênciaResgateCamposTexto, frequênciaTabela)
 )

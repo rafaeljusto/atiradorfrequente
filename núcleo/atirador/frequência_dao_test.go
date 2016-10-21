@@ -434,6 +434,32 @@ func TestFrequênciaDAOImpl_resgatar(t *testing.T) {
 			},
 		},
 		{
+			descrição: "deve resgatar corretamente uma frequência com campos indefinidos",
+			simulação: func() {
+				testdb.StubQuery(frequênciaResgateComando, testdb.RowsFromSlice(frequênciaResgateCampos, [][]driver.Value{
+					{
+						1, 98765, 1234567890, ".380", "Arma Clube", "ZA785671", 762556223, 50,
+						data.Add(-1 * time.Hour), data.Add(-10 * time.Minute), data, nil, nil, nil, nil, 0,
+					},
+				}))
+			},
+			id: 1,
+			frequênciaEsperada: frequência{
+				ID:                1,
+				Controle:          98765,
+				CR:                1234567890,
+				Calibre:           ".380",
+				ArmaUtilizada:     "Arma Clube",
+				NúmeroSérie:       "ZA785671",
+				GuiaDeTráfego:     762556223,
+				QuantidadeMunição: 50,
+				DataInício:        data.Add(-1 * time.Hour),
+				DataTérmino:       data.Add(-10 * time.Minute),
+				DataCriação:       data,
+				revisão:           0,
+			},
+		},
+		{
 			descrição: "deve detectar um erro ao resgatar uma frequência",
 			simulação: func() {
 				testdb.StubQueryError(frequênciaResgateComando, fmt.Errorf("erro de execução"))
