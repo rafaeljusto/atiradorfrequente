@@ -51,6 +51,7 @@ alterada.
 
 | Descrição                            | REST                     | WEB                   | URI                                         |
 | ------------------------------------ | :----------------------: | :-------------------: | ------------------------------------------- |
+| Teste do servidor                    | :white_check_mark:       | :white_medium_square: | /ping **[GET]**                             |
 | Criar uma freqência (clube)          | :hourglass_flowing_sand: | :white_medium_square: | /frequencia/{cr} **[POST]**                 |
 | Confirmar uma frequência (clube)     | :hourglass_flowing_sand: | :white_medium_square: | /frequencia/{cr}/{numeroControle} **[PUT]** |
 | Cadastrar um clube (administrativo?) | :white_medium_square:    | :white_medium_square: | /clube **[POST]**                           |
