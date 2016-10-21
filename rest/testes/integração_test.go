@@ -118,6 +118,52 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 				return bytes.TrimSpace(corpoEsperado), nil
 			},
 		},
+		{
+			descrição: "deve detectar campos com dados inválidos",
+			requisição: func() *http.Request {
+				frequênciaPedido := protocolo.FrequênciaPedido{
+					Calibre:           "calibre .380",
+					ArmaUtilizada:     "arma do clube",
+					NúmeroSérie:       "785671", // formato inválido
+					GuiaDeTráfego:     762556223,
+					QuantidadeMunição: 50,
+					DataInício:        time.Now().Add(-30 * time.Minute),
+					DataTérmino:       time.Now().Add(-40 * time.Minute), // término antes do inicio
+				}
+
+				corpo, err := json.Marshal(frequênciaPedido)
+				if err != nil {
+					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
+				}
+
+				url := fmt.Sprintf("http://%s/frequencia/380308", endereçoServidor)
+				r, err := http.NewRequest("POST", url, bytes.NewReader(corpo))
+				if err != nil {
+					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
+				}
+
+				return r
+			}(),
+			códigoHTTPEsperado: http.StatusBadRequest,
+			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
+				return http.Header{
+					"Content-Type": []string{"application/json; charset=utf-8"},
+				}, nil
+			},
+			corpoEsperado: func(corpo []byte) ([]byte, error) {
+				mensagens := protocolo.NovasMensagens(
+					protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoNúmeroSérieInválido, "", "785671"),
+					protocolo.NovaMensagem(protocolo.MensagemCódigoDatasPeríodoIncorreto),
+				)
+
+				corpoEsperado, err := json.Marshal(mensagens)
+				if err != nil {
+					return nil, errors.Errorf("Erro ao gerar os dados da resposta. Detalhes: %s", err)
+				}
+
+				return bytes.TrimSpace(corpoEsperado), nil
+			},
+		},
 	}
 
 	for _, cenário := range cenários {
@@ -170,6 +216,7 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
+				corpo = bytes.TrimSpace(corpo)
 
 				if corpoEsperado == nil && corpo != nil {
 					t.Errorf("Corpo inesperado na resposta.\n%s", string(corpo))
@@ -178,7 +225,113 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 					t.Error("Corpo inexistente na resposta")
 
 				} else {
-					corpo = bytes.TrimSpace(corpo)
+					verificadorResultado.DefinirEsperado(string(corpoEsperado), nil)
+					if err = verificadorResultado.VerificaResultado(string(corpo), nil); err != nil {
+						t.Error(err)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestCriaçãoFrequênciaConfirmação(t *testing.T) {
+	cenários := []struct {
+		descrição          string
+		requisição         *http.Request
+		códigoHTTPEsperado int
+		cabeçalhoEsperado  func(corpo []byte) (http.Header, error)
+		corpoEsperado      func(corpo []byte) ([]byte, error)
+	}{
+		{
+			descrição: "deve confirmar corretamente uma frequência",
+			requisição: func() *http.Request {
+				frequênciaConfirmaçãoPedido := protocolo.FrequênciaConfirmaçãoPedido{
+					Imagem: "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAATElEQVR4XpWPCwoAIAhDswPrWTyxMcKEBn2EwYPG0yQi2st0gJllO5kHRlUNBIwsrkzjbnN3AdPqc5lXV/gMNqYt7cn9Vvr+NT0k7xkVBY1RndW3lwAAAABJRU5ErkJggg==",
+				}
+
+				corpo, err := json.Marshal(frequênciaConfirmaçãoPedido)
+				if err != nil {
+					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
+				}
+
+				url := fmt.Sprintf("http://%s/frequencia/380308/1-1234", endereçoServidor)
+				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
+				if err != nil {
+					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
+				}
+
+				return r
+			}(),
+			códigoHTTPEsperado: http.StatusNoContent,
+			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
+				return make(http.Header), nil
+			},
+			corpoEsperado: func(corpo []byte) ([]byte, error) {
+				return nil, nil
+			},
+		},
+	}
+
+	for _, cenário := range cenários {
+		t.Run(cenário.descrição, func(t *testing.T) {
+			var cliente http.Client
+
+			resposta, err := cliente.Do(cenário.requisição)
+			if err != nil {
+				t.Fatalf("Erro inesperado ao enviar a requisição. Detalhes: %s", err)
+			}
+			defer resposta.Body.Close()
+
+			corpo, err := ioutil.ReadAll(resposta.Body)
+			if err != nil {
+				t.Fatalf("Erro inesperado ao ler o corpo da resposta. Detalhes: %s", err)
+			}
+
+			var verificadorResultado testes.VerificadorResultados
+
+			verificadorResultado.DefinirEsperado(cenário.códigoHTTPEsperado, nil)
+			if err = verificadorResultado.VerificaResultado(resposta.StatusCode, nil); err != nil {
+				t.Error(err)
+			}
+
+			if cenário.cabeçalhoEsperado != nil {
+				cabeçalhoEsperado, err := cenário.cabeçalhoEsperado(corpo)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				// copia campos variáveis da resposta definitiva para não causar
+				// problemas. Infelizmente não temos como prever os valores destes
+				// campos na resposta esperada.
+
+				if data := resposta.Header.Get("Date"); data != "" {
+					cabeçalhoEsperado.Set("Date", data)
+				}
+				if tamanhoConteúdo := resposta.Header.Get("Content-Length"); tamanhoConteúdo != "" {
+					cabeçalhoEsperado.Set("Content-Length", tamanhoConteúdo)
+				}
+
+				verificadorResultado.DefinirEsperado(cabeçalhoEsperado, nil)
+				if err = verificadorResultado.VerificaResultado(resposta.Header, nil); err != nil {
+					t.Error(err)
+				}
+			}
+
+			if cenário.corpoEsperado != nil {
+				corpoEsperado, err := cenário.corpoEsperado(corpo)
+				if err != nil {
+					t.Fatal(err)
+				}
+				corpo = bytes.TrimSpace(corpo)
+
+				if corpoEsperado == nil && corpo != nil {
+					t.Errorf("Corpo inesperado na resposta.\n%s", string(corpo))
+
+				} else if corpoEsperado != nil && corpo == nil {
+					t.Error("Corpo inexistente na resposta")
+
+				} else {
 					verificadorResultado.DefinirEsperado(string(corpoEsperado), nil)
 					if err = verificadorResultado.VerificaResultado(string(corpo), nil); err != nil {
 						t.Error(err)
