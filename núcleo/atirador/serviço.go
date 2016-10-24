@@ -68,6 +68,7 @@ func (s serviço) ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta pr
 		validarNúmeroControle(frequênciaConfirmaçãoPedidoCompleta.NúmeroControle, f),
 		validarIntervaloMáximoConfirmação(f, s.configuração.Atirador.PrazoConfirmação),
 		validarImagemConfirmação(f, frequênciaConfirmaçãoPedidoCompleta.Imagem),
+		validarEstadoFrequência(f),
 	); len(mensagens) > 0 {
 		return mensagens
 	}

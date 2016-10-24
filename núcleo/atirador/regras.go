@@ -37,7 +37,7 @@ func validarNúmeroControle(númeroControle protocolo.NúmeroControle, frequênc
 func validarIntervaloMáximoConfirmação(frequência frequência, prazoConfirmação time.Duration) protocolo.Mensagens {
 	if data := frequência.DataCriação.Add(prazoConfirmação); data.Before(time.Now()) {
 		return protocolo.NovasMensagens(
-			protocolo.NovaMensagemComValor(protocolo.MensagemCódigoPrazoConfirmaçãoExpirado, data.Format(time.RFC3339)),
+			protocolo.NovaMensagem(protocolo.MensagemCódigoPrazoConfirmaçãoExpirado),
 		)
 	}
 
@@ -50,6 +50,17 @@ func validarImagemConfirmação(frequência frequência, imagem string) protocol
 	if frequência.ImagemNúmeroControle == imagem {
 		return protocolo.NovasMensagens(
 			protocolo.NovaMensagemComValor(protocolo.MensagemCódigoImagemNãoAceita, imagem),
+		)
+	}
+
+	return nil
+}
+
+// validarEstadoFrequência verifica se a frequência já foi confirmada.
+func validarEstadoFrequência(frequência frequência) protocolo.Mensagens {
+	if !frequência.DataConfirmação.IsZero() && frequência.ImagemConfirmação != "" {
+		return protocolo.NovasMensagens(
+			protocolo.NovaMensagem(protocolo.MensagemCódigoFrequênciaJáConfirmada),
 		)
 	}
 

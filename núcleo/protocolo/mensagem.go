@@ -43,6 +43,10 @@ const (
 	// imagem enviada. Geralmente ocorre quando se envia a imagem de número de
 	// controle na confirmação da frequência do atirador.
 	MensagemCódigoImagemNãoAceita = "imagem-nao-aceita"
+
+	// MensagemCódigoFrequênciaJáConfirmada frequência referenciada já está
+	// confirmada e não faz sentido confirma-la novamente.
+	MensagemCódigoFrequênciaJáConfirmada = "frequencia-ja-confirmada"
 )
 
 // MensagemCódigo tipo que define as possíveis mensagens a serem retornadas. A
