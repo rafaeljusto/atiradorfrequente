@@ -271,6 +271,162 @@ func TestCriaçãoFrequênciaConfirmação(t *testing.T) {
 				return nil, nil
 			},
 		},
+		{
+			descrição: "deve detectar quando a imagem é inválida",
+			requisição: func() *http.Request {
+				frequênciaConfirmaçãoPedido := protocolo.FrequênciaConfirmaçãoPedido{
+					Imagem: "@@@",
+				}
+
+				corpo, err := json.Marshal(frequênciaConfirmaçãoPedido)
+				if err != nil {
+					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
+				}
+
+				url := fmt.Sprintf("http://%s/frequencia/380308/1-1234", endereçoServidor)
+				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
+				if err != nil {
+					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
+				}
+
+				return r
+			}(),
+			códigoHTTPEsperado: http.StatusBadRequest,
+			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
+				return http.Header{
+					"Content-Type": []string{"application/json; charset=utf-8"},
+				}, nil
+			},
+			corpoEsperado: func(corpo []byte) ([]byte, error) {
+				mensagens := protocolo.NovasMensagens(
+					protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoImagemBase64Inválido, "imagem", "@@@"),
+				)
+
+				corpoEsperado, err := json.Marshal(mensagens)
+				if err != nil {
+					return nil, errors.Errorf("Erro ao gerar os dados da resposta. Detalhes: %s", err)
+				}
+
+				return bytes.TrimSpace(corpoEsperado), nil
+			},
+		},
+		{
+			descrição: "deve detectar quando o formato da imagem não é suportado",
+			requisição: func() *http.Request {
+				frequênciaConfirmaçãoPedido := protocolo.FrequênciaConfirmaçãoPedido{
+					Imagem: "aXNzbyDDqSB1bSB0ZXN0ZQo=",
+				}
+
+				corpo, err := json.Marshal(frequênciaConfirmaçãoPedido)
+				if err != nil {
+					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
+				}
+
+				url := fmt.Sprintf("http://%s/frequencia/380308/1-1234", endereçoServidor)
+				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
+				if err != nil {
+					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
+				}
+
+				return r
+			}(),
+			códigoHTTPEsperado: http.StatusBadRequest,
+			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
+				return http.Header{
+					"Content-Type": []string{"application/json; charset=utf-8"},
+				}, nil
+			},
+			corpoEsperado: func(corpo []byte) ([]byte, error) {
+				mensagens := protocolo.NovasMensagens(
+					protocolo.NovaMensagemComCampo(protocolo.MensagemCódigoImagemFormatoInválido, "imagem", "aXNzbyDDqSB1bSB0ZXN0ZQo="),
+				)
+
+				corpoEsperado, err := json.Marshal(mensagens)
+				if err != nil {
+					return nil, errors.Errorf("Erro ao gerar os dados da resposta. Detalhes: %s", err)
+				}
+
+				return bytes.TrimSpace(corpoEsperado), nil
+			},
+		},
+		{
+			descrição: "deve detectar quando a confirmação já está expirada",
+			requisição: func() *http.Request {
+				frequênciaConfirmaçãoPedido := protocolo.FrequênciaConfirmaçãoPedido{
+					Imagem: "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAATElEQVR4XpWPCwoAIAhDswPrWTyxMcKEBn2EwYPG0yQi2st0gJllO5kHRlUNBIwsrkzjbnN3AdPqc5lXV/gMNqYt7cn9Vvr+NT0k7xkVBY1RndW3lwAAAABJRU5ErkJggg==",
+				}
+
+				corpo, err := json.Marshal(frequênciaConfirmaçãoPedido)
+				if err != nil {
+					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
+				}
+
+				url := fmt.Sprintf("http://%s/frequencia/923714/2-7344", endereçoServidor)
+				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
+				if err != nil {
+					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
+				}
+
+				return r
+			}(),
+			códigoHTTPEsperado: http.StatusBadRequest,
+			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
+				return http.Header{
+					"Content-Type": []string{"application/json; charset=utf-8"},
+				}, nil
+			},
+			corpoEsperado: func(corpo []byte) ([]byte, error) {
+				mensagens := protocolo.NovasMensagens(
+					protocolo.NovaMensagem(protocolo.MensagemCódigoPrazoConfirmaçãoExpirado),
+				)
+
+				corpoEsperado, err := json.Marshal(mensagens)
+				if err != nil {
+					return nil, errors.Errorf("Erro ao gerar os dados da resposta. Detalhes: %s", err)
+				}
+
+				return bytes.TrimSpace(corpoEsperado), nil
+			},
+		},
+		{
+			descrição: "deve detectar quando a confirmação já está confirmada",
+			requisição: func() *http.Request {
+				frequênciaConfirmaçãoPedido := protocolo.FrequênciaConfirmaçãoPedido{
+					Imagem: "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAATElEQVR4XpWPCwoAIAhDswPrWTyxMcKEBn2EwYPG0yQi2st0gJllO5kHRlUNBIwsrkzjbnN3AdPqc5lXV/gMNqYt7cn9Vvr+NT0k7xkVBY1RndW3lwAAAABJRU5ErkJggg==",
+				}
+
+				corpo, err := json.Marshal(frequênciaConfirmaçãoPedido)
+				if err != nil {
+					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
+				}
+
+				url := fmt.Sprintf("http://%s/frequencia/114239/3-1246", endereçoServidor)
+				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
+				if err != nil {
+					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
+				}
+
+				return r
+			}(),
+			códigoHTTPEsperado: http.StatusBadRequest,
+			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
+				return http.Header{
+					"Content-Type": []string{"application/json; charset=utf-8"},
+				}, nil
+			},
+			corpoEsperado: func(corpo []byte) ([]byte, error) {
+				mensagens := protocolo.NovasMensagens(
+					protocolo.NovaMensagem(protocolo.MensagemCódigoFrequênciaJáConfirmada),
+				)
+
+				corpoEsperado, err := json.Marshal(mensagens)
+				if err != nil {
+					return nil, errors.Errorf("Erro ao gerar os dados da resposta. Detalhes: %s", err)
+				}
+
+				return bytes.TrimSpace(corpoEsperado), nil
+			},
+		},
 	}
 
 	for _, cenário := range cenários {
@@ -369,7 +525,6 @@ func TestMain(m *testing.M) {
 	defer func() {
 		err = projeto.Down(context.Background(), options.Down{
 			RemoveVolume:  true,
-			RemoveImages:  options.ImageType("all"),
 			RemoveOrphans: true,
 		})
 
@@ -380,8 +535,7 @@ func TestMain(m *testing.M) {
 
 	err = projeto.Up(context.Background(), options.Up{
 		Create: options.Create{
-			ForceRecreate: true,
-			ForceBuild:    true,
+			ForceBuild: true,
 		},
 	})
 
