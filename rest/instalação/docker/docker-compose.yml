@@ -2,16 +2,64 @@ version: "2"
 services:
   bd:
     build: ./psql
+    cap_add:
+      - net_bind_service
+      - chown
+      - fowner
+      - setuid
+      - setgid
+      - dac_override
+    cap_drop:
+      - fsetid
+      - kill
+      - setpcap
+      - net_raw
+      - sys_chroot
+      - mknod
+      - audit_write
+      - setfcap
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=abc123
   rsyslog:
     build: ./rsyslog
+    cap_add:
+      - net_bind_service
+    cap_drop:
+      - chown
+      - dac_override
+      - fowner
+      - fsetid
+      - kill
+      - setgid
+      - setuid
+      - setpcap
+      - net_raw
+      - sys_chroot
+      - mknod
+      - audit_write
+      - setfcap
     volumes:
       - ./logs:/var/log/
   restaf:
     build: ./restaf
     ports: ["80:80"]
+    cap_add:
+      - net_bind_service
+    cap_drop:
+      - chown
+      - dac_override
+      - fowner
+      - fsetid
+      - kill
+      - setgid
+      - setuid
+      - setpcap
+      - net_raw
+      - sys_chroot
+      - mknod
+      - audit_write
+      - setfcap
     environment:
       - AF_SERVIDOR_ENDERECO=0.0.0.0:80
       - AF_SYSLOG_ENDERECO=rsyslog:514
