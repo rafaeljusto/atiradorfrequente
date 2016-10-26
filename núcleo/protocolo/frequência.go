@@ -64,7 +64,7 @@ func (f FrequênciaPedido) Validar() Mensagens {
 		mensagens = append(mensagens, NovaMensagemComCampo(MensagemCódigoCampoNãoPreenchido, "quantidadeMunicao", "0"))
 	}
 
-	if f.DataInício.After(f.DataTérmino) {
+	if f.DataInício.After(f.DataTérmino) || f.DataTérmino.After(time.Now()) {
 		mensagens = append(mensagens, NovaMensagem(MensagemCódigoDatasPeríodoIncorreto))
 	}
 
