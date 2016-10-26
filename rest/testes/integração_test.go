@@ -4,7 +4,6 @@ package testes
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -14,11 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/docker/libcompose/docker"
-	"github.com/docker/libcompose/docker/ctx"
-	"github.com/docker/libcompose/project"
-	"github.com/docker/libcompose/project/options"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
 	"github.com/registrobr/gostk/errors"
@@ -506,81 +500,13 @@ func TestMain(m *testing.M) {
 		os.Exit(código)
 	}()
 
-	// descarta os logs da biblioteca de containers
-	logrus.SetOutput(ioutil.Discard)
+	defer pararServidorREST()
 
-	projeto, err := docker.NewProject(&ctx.Context{
-		Context: project.Context{
-			ComposeFiles: []string{"docker-compose.yml"},
-			ProjectName:  "atiradorfrequente",
-		},
-	}, nil)
-
-	if err != nil {
-		fmt.Printf("Erro ao inicializar o projeto para testes. Detalhes: %s\n", err)
+	var err error
+	if endereçoServidor, err = iniciarServidorREST(); err != nil {
+		fmt.Println(err)
 		código = 1
-		return
 	}
 
-	defer func() {
-		err = projeto.Down(context.Background(), options.Down{
-			RemoveVolume:  true,
-			RemoveOrphans: true,
-		})
-
-		if err != nil {
-			fmt.Printf("Erro ao finalizar o projeto de testes. Detalhes: %s\n", err)
-		}
-	}()
-
-	err = projeto.Up(context.Background(), options.Up{
-		Create: options.Create{
-			ForceBuild: true,
-		},
-	})
-
-	if err != nil {
-		fmt.Printf("Erro ao executar o projeto para testes. Detalhes: %s\n", err)
-		código = 2
-		return
-	}
-
-	abortarInício := make(chan bool)
-	servidorRodando := make(chan bool)
-
-	go func() {
-		for {
-			select {
-			case <-time.Tick(100 * time.Millisecond):
-				break
-			case <-abortarInício:
-				return
-			}
-
-			if endereçoServidor == "" {
-				endereçoServidor, err = projeto.Port(context.Background(), 1, "tcp", "restaf", "80")
-				if err != nil || endereçoServidor == " " {
-					continue
-				}
-			}
-
-			url := fmt.Sprintf("http://%s/ping", endereçoServidor)
-			if resposta, err := http.Get(url); err != nil || resposta.StatusCode != http.StatusNoContent {
-				continue
-			}
-
-			close(servidorRodando)
-			return
-		}
-	}()
-
-	select {
-	case <-servidorRodando:
-		código = m.Run()
-
-	case <-time.Tick(20 * time.Second):
-		close(abortarInício)
-		fmt.Println("Tempo esgotado aguardando o servidor iniciar")
-		código = 3
-	}
+	código = m.Run()
 }
