@@ -4,11 +4,11 @@ set -e
 executar() {
   if [ "$CENARIO" = "cadastrarfrequencia" ]; then
     go-fuzz-build -o "fuzzer_cadastrarfrequência.zip" -func "FuzzCadastrarFrequência" github.com/rafaeljusto/atiradorfrequente/núcleo/atirador
-    go-fuzz -bin=./fuzzer_cadastrar_frequência.zip -dup -workdir=fuzzer/cadastrarfrequência
+    go-fuzz -bin=./fuzzer_cadastrarfrequência.zip -dup -workdir=fuzzer/cadastrarfrequência
 
   elif [ "$CENARIO" = "confirmarfrequencia" ]; then
     go-fuzz-build -o "fuzzer_confirmarfrequência.zip" -func "FuzzConfirmarFrequência" github.com/rafaeljusto/atiradorfrequente/núcleo/atirador
-    go-fuzz -bin=./fuzzer_confirmar_frequência.zip -dup -workdir=fuzzer/confirmarfrequência
+    go-fuzz -bin=./fuzzer_confirmarfrequência.zip -dup -workdir=fuzzer/confirmarfrequência
 
   else
     echo "Cenário não reconhecido!"
