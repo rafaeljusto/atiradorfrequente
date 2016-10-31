@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"time"
 
 	"github.com/erikstmartin/go-testdb"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
@@ -77,6 +78,60 @@ func FuzzCadastrarFrequência(dados []byte) int {
 
 	serviço := NovoServiço(bd.NovoSQLogger(conexão, nil), configuração)
 	if _, err := serviço.CadastrarFrequência(frequênciaPedidoCompleta); err != nil {
+		if _, ok := err.(protocolo.Mensagens); !ok {
+			panic(err)
+		}
+
+		return 0
+	}
+
+	return 1
+}
+
+// FuzzConfirmarFrequência é utilizado pela ferramenta go-fuzz, responsável por
+// testar a confirmar a frequência com dados aleatórios.
+func FuzzConfirmarFrequência(dados []byte) int {
+	dadosExtraídos, err := base64.StdEncoding.DecodeString(string(dados))
+	if err != nil {
+		return -1
+	}
+	decodificador := gob.NewDecoder(bytes.NewReader(dadosExtraídos))
+
+	var frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta
+	if decodificador.Decode(&frequênciaConfirmaçãoPedidoCompleta) != nil {
+		return -1
+	}
+
+	conexão, err := sql.Open("testdb", "")
+	if err != nil {
+		panic(err)
+	}
+
+	testdb.StubQuery(frequênciaResgateComando, testdb.RowsFromSlice(frequênciaResgateCampos, [][]driver.Value{
+		{
+			frequênciaConfirmaçãoPedidoCompleta.NúmeroControle.ID(),
+			frequênciaConfirmaçãoPedidoCompleta.NúmeroControle.Controle(),
+			frequênciaConfirmaçãoPedidoCompleta.CR, ".380", "Arma Clube", "ZA785671", 762556223, 50,
+			time.Now().Add(-1 * time.Hour), time.Now().Add(-10 * time.Minute), time.Now(), time.Time{}, time.Time{},
+			`TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`, "", 0,
+		},
+	}))
+
+	testdb.StubExec(frequênciaAtualizaçãoComando, testdb.NewResult(1, nil, 1, nil))
+	testdb.StubExec(frequênciaLogCriaçãoComando, testdb.NewResult(1, nil, 1, nil))
+
+	logCriaçãoComando := `INSERT INTO log (id, data_criacao, endereco_remoto) VALUES (DEFAULT, $1, $2) RETURNING id`
+	testdb.StubQuery(logCriaçãoComando, testdb.RowsFromSlice([]string{"id"}, [][]driver.Value{{1}}))
+
+	var configuração config.Configuração
+	configuração.Atirador.PrazoConfirmação = 20 * time.Minute
+
+	serviço := NovoServiço(bd.NovoSQLogger(conexão, nil), configuração)
+	if err := serviço.ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta); err != nil {
 		if _, ok := err.(protocolo.Mensagens); !ok {
 			panic(err)
 		}
