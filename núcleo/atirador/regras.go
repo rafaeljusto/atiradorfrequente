@@ -31,6 +31,17 @@ func validarNúmeroControle(númeroControle protocolo.NúmeroControle, frequênc
 	return nil
 }
 
+// validarDuraçãoTreino garante que o tempo de treino não seja algo anormal.
+func validarDuraçãoTreino(frequência frequência, duraçãoMáximaTreino time.Duration) protocolo.Mensagens {
+	if intervalo := frequência.DataTérmino.Sub(frequência.DataInício); intervalo > duraçãoMáximaTreino {
+		return protocolo.NovasMensagens(
+			protocolo.NovaMensagem(protocolo.MensagemCódigoTreinoMuitoLongo),
+		)
+	}
+
+	return nil
+}
+
 // validarIntervaloMáximoConfirmação verifique se o prazo máximo para envio da
 // confirmação já expirou. No caso de expirado a mensagem de erro retornada
 // informa qual foi a data limite.

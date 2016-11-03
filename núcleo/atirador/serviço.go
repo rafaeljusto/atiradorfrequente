@@ -37,6 +37,12 @@ type serviço struct {
 func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
 	f := novaFrequência(frequênciaPedidoCompleta)
 
+	if mensagens := protocolo.JuntarMensagens(
+		validarDuraçãoTreino(f, s.configuração.Atirador.DuraçãoMáximaTreino),
+	); len(mensagens) > 0 {
+		return protocolo.FrequênciaPendenteResposta{}, mensagens
+	}
+
 	dao := novaFrequênciaDAO(s.sqlogger)
 	if err := dao.criar(&f); err != nil {
 		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)

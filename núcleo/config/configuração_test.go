@@ -63,6 +63,7 @@ func TestConfiguração_yaml(t *testing.T) {
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  duracao maxima treino: 12h
   imagem numero controle:
     largura: 3508
     altura: 2480
@@ -89,6 +90,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -108,6 +110,7 @@ atirador:
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  duracao maxima treino: 12h
   imagem numero controle:
     largura: 3508
     altura: 2480
@@ -132,6 +135,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0x00, 0xff, 0x00, 0xff}
@@ -151,6 +155,7 @@ atirador:
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  duracao maxima treino: 12h
   imagem numero controle:
     largura: 3508
     altura: 2480
@@ -175,6 +180,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -199,6 +205,7 @@ atirador:
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  duracao maxima treino: 12h
   imagem numero controle:
     largura: 3508
     altura: 2480
@@ -223,6 +230,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -243,6 +251,7 @@ atirador:
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  duracao maxima treino: 12h
   imagem numero controle:
     largura: 3508
     altura: 2480
@@ -268,6 +277,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -292,6 +302,7 @@ atirador:
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  duracao maxima treino: 12h
   imagem numero controle:
     largura: 3508
     altura: 2480
@@ -317,6 +328,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -337,6 +349,7 @@ atirador:
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  duracao maxima treino: 12h
   imagem numero controle:
     largura: 3508
     altura: 2480
@@ -361,6 +374,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -450,6 +464,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve carregar a configuração corretamente",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
@@ -468,6 +483,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -486,6 +502,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve ignorar quando a imagem ou a fonte não são informados",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "verde",
@@ -500,6 +517,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0x00, 0xff, 0x00, 0xff}
@@ -517,6 +535,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando a quantidade de argumentos da fonte é menor do que a necessária",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
@@ -533,6 +552,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0x00, 0xff, 0x00, 0xff}
@@ -552,6 +572,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando o arquivo da fonte não existe",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
@@ -568,6 +589,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -587,6 +609,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando o arquivo de fonte esta no formato inválido",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
@@ -603,6 +626,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -622,6 +646,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando a fonte possui um tamanho inválido",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
@@ -638,6 +663,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -657,6 +683,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando a fonte possui um DPI inválido",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
@@ -673,6 +700,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -692,6 +720,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando a fonte possui uma cor inválida",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
@@ -708,6 +737,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -727,6 +757,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando o arquivo de imagem do logo não existe",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
@@ -744,6 +775,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -763,6 +795,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando a imagem do logo esta em um formato inválido",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
@@ -780,6 +813,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -799,6 +833,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar uma cor desconhecida",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "30m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "roxo",
@@ -815,6 +850,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -873,6 +909,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 func TestDefinirValoresPadrão(t *testing.T) {
 	var esperado config.Configuração
 	esperado.Atirador.PrazoConfirmação = 30 * time.Minute
+	esperado.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 	esperado.Atirador.ImagemNúmeroControle.Largura = 3508
 	esperado.Atirador.ImagemNúmeroControle.Altura = 2480
 	esperado.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
