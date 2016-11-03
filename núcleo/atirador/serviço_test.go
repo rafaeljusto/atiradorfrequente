@@ -8,6 +8,7 @@ import (
 	_ "image/png"
 	"strings"
 	"testing"
+	"testing/quick"
 	"time"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
@@ -48,6 +49,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 			descrição: "deve cadastrar corretamente uma frequência",
 			configuração: func() config.Configuração {
 				var configuração config.Configuração
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -97,9 +99,64 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 			},
 		},
 		{
+			descrição: "deve detectar quando o tempo de duração máxima do treino é excedida",
+			configuração: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
+				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Face = basicfont.Face7x13
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.Logo.Imagem.Image = imagemLogo
+				configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+				configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+				configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+				return configuração
+			}(),
+			frequênciaPedidoCompleta: protocolo.FrequênciaPedidoCompleta{
+				CR: 1234,
+				FrequênciaPedido: protocolo.FrequênciaPedido{
+					Calibre:           "",
+					ArmaUtilizada:     "Arma do Clube",
+					NúmeroSérie:       "XZ23456",
+					GuiaDeTráfego:     8734500,
+					QuantidadeMunição: 50,
+					DataInício:        data.Add(-13 * time.Hour),
+					DataTérmino:       data,
+				},
+			},
+			frequênciaDAO: simulaFrequênciaDAO{
+				simulaCriar: func(frequência *frequência) error {
+					if frequência.Controle == 0 {
+						t.Errorf("Número aleatório para controle não gerado")
+					}
+
+					frequência.ID = 1
+					frequência.Controle = 123
+					return nil
+				},
+				simulaAtualizar: func(frequência *frequência) error {
+					if frequência.ImagemNúmeroControle == "" {
+						t.Errorf("Imagem com o número de controle não gerada")
+					}
+
+					return nil
+				},
+			},
+			erroEsperado: protocolo.Mensagens{
+				protocolo.NovaMensagem(protocolo.MensagemCódigoTreinoMuitoLongo),
+			},
+		},
+		{
 			descrição: "deve detectar um erro ao persistir uma nova frequência",
 			configuração: func() config.Configuração {
 				var configuração config.Configuração
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -136,6 +193,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 			descrição: "deve detectar um erro ao gerar a imagem PNG",
 			configuração: func() config.Configuração {
 				var configuração config.Configuração
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 0
 				configuração.Atirador.ImagemNúmeroControle.Altura = 0
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -178,6 +236,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 			descrição: "deve detectar quando a fonte da imagem não esta definida",
 			configuração: func() config.Configuração {
 				var configuração config.Configuração
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 0
 				configuração.Atirador.ImagemNúmeroControle.Altura = 0
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -219,6 +278,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 			descrição: "deve detectar um erro ao atualizar uma frequência",
 			configuração: func() config.Configuração {
 				var configuração config.Configuração
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.Largura = 3508
 				configuração.Atirador.ImagemNúmeroControle.Altura = 2480
 				configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -275,6 +335,86 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 		if err := verificadorResultado.VerificaResultado(serviço.CadastrarFrequência(cenário.frequênciaPedidoCompleta)); err != nil {
 			t.Error(err)
 		}
+	}
+}
+
+func TestServiço_CadastrarFrequência_valoresAleatórios(t *testing.T) {
+	imagemLogoExtraída, err := base64.StdEncoding.DecodeString(imagemLogoPNG)
+
+	if err != nil {
+		t.Fatalf("Erro ao extrair a imagem de teste do logo. Detalhes: %s", err)
+	}
+
+	imagemLogoBuffer := bytes.NewBuffer(imagemLogoExtraída)
+	imagemLogo, _, err := image.Decode(imagemLogoBuffer)
+
+	if err != nil {
+		t.Fatalf("Erro ao interpretar imagem. Detalhes: %s", err)
+	}
+
+	daoOriginal := novaFrequênciaDAO
+	defer func() {
+		novaFrequênciaDAO = daoOriginal
+	}()
+
+	novaFrequênciaDAO = func(sqlogger *bd.SQLogger) frequênciaDAO {
+		return simulaFrequênciaDAO{
+			simulaCriar: func(frequência *frequência) error {
+				frequência.ID = 1
+				frequência.Controle = 123
+				return nil
+			},
+			simulaAtualizar: func(frequência *frequência) error {
+				return nil
+			},
+		}
+	}
+
+	// não utilizamos diretamente o objeto do protocolo, pois a biblioteca padrão
+	// não sabe preencher corretamente o tipo time.Time.
+	f := func(cr int, calibre, armaUtilizada, númeroSérie string, guiaDeTráfego, quantidadeMunição int, dataInício, dataTérmino int64) bool {
+		var configuração config.Configuração
+		configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
+		configuração.Atirador.ImagemNúmeroControle.Largura = 3508
+		configuração.Atirador.ImagemNúmeroControle.Altura = 2480
+		configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
+		configuração.Atirador.ImagemNúmeroControle.Fonte.Face = basicfont.Face7x13
+		configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+		configuração.Atirador.ImagemNúmeroControle.Logo.Imagem.Image = imagemLogo
+		configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
+		configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
+		configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
+		configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+		configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
+		configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
+		configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+
+		frequênciaPedidoCompleta := protocolo.FrequênciaPedidoCompleta{
+			CR: cr,
+			FrequênciaPedido: protocolo.FrequênciaPedido{
+				Calibre:           calibre,
+				ArmaUtilizada:     armaUtilizada,
+				NúmeroSérie:       númeroSérie,
+				GuiaDeTráfego:     guiaDeTráfego,
+				QuantidadeMunição: quantidadeMunição,
+				DataInício:        time.Unix(dataInício, 0),
+				DataTérmino:       time.Unix(dataTérmino, 0),
+			},
+		}
+
+		serviço := NovoServiço(nil, configuração)
+		if _, err := serviço.CadastrarFrequência(frequênciaPedidoCompleta); err != nil {
+			if _, ok := err.(protocolo.Mensagens); !ok {
+				t.Log(err)
+				return false
+			}
+		}
+
+		return true
+	}
+
+	if err := quick.Check(f, &quick.Config{MaxCount: 5}); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -619,6 +759,60 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		if err = verificadorResultado.VerificaResultado(nil, err); err != nil {
 			t.Error(err)
 		}
+	}
+}
+
+func TestServiço_ConfirmarFrequência_valoresAleatórios(t *testing.T) {
+	daoOriginal := novaFrequênciaDAO
+	defer func() {
+		novaFrequênciaDAO = daoOriginal
+	}()
+
+	f := func(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) bool {
+		novaFrequênciaDAO = func(sqlogger *bd.SQLogger) frequênciaDAO {
+			return simulaFrequênciaDAO{
+				simulaAtualizar: func(frequência *frequência) error {
+					return nil
+				},
+				simulaResgatar: func(id int64) (frequência, error) {
+					return frequência{
+						ID:                frequênciaConfirmaçãoPedidoCompleta.NúmeroControle.ID(),
+						Controle:          frequênciaConfirmaçãoPedidoCompleta.NúmeroControle.Controle(),
+						CR:                frequênciaConfirmaçãoPedidoCompleta.CR,
+						Calibre:           ".380",
+						ArmaUtilizada:     "Arma do Clube",
+						NúmeroSérie:       "ZA785671",
+						GuiaDeTráfego:     762556223,
+						QuantidadeMunição: 50,
+						DataInício:        time.Now().Add(-40 * time.Minute),
+						DataTérmino:       time.Now().Add(-10 * time.Minute),
+						DataCriação:       time.Now().Add(-5 * time.Minute),
+						ImagemNúmeroControle: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+					}, nil
+				},
+			}
+		}
+
+		var configuração config.Configuração
+		configuração.Atirador.PrazoConfirmação = 20 * time.Minute
+
+		serviço := NovoServiço(nil, configuração)
+		if err := serviço.ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta); err != nil {
+			if _, ok := err.(protocolo.Mensagens); !ok {
+				t.Log(err)
+				return false
+			}
+		}
+
+		return true
+	}
+
+	if err := quick.Check(f, &quick.Config{MaxCount: 5}); err != nil {
+		t.Error(err)
 	}
 }
 

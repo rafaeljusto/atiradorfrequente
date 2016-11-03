@@ -47,6 +47,9 @@ const (
 	// MensagemCódigoFrequênciaJáConfirmada frequência referenciada já está
 	// confirmada e não faz sentido confirma-la novamente.
 	MensagemCódigoFrequênciaJáConfirmada = "frequencia-ja-confirmada"
+
+	// MensagemCódigoTreinoMuitoLongo o tempo de treino está irreal.
+	MensagemCódigoTreinoMuitoLongo = "treino-muito-longo"
 )
 
 // MensagemCódigo tipo que define as possíveis mensagens a serem retornadas. A

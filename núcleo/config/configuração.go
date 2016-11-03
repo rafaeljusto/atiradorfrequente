@@ -26,6 +26,9 @@ type Configuração struct {
 		// frequência a partir do momento de sua criação.
 		PrazoConfirmação time.Duration `yaml:"prazo confirmacao" envconfig:"prazo_confirmacao"`
 
+		// DuraçãoMáximaTreino tempo máximo permitido de duração de um treino.
+		DuraçãoMáximaTreino time.Duration `yaml:"duracao maxima treino" envconfig:"duracao_maxima_treino"`
+
 		// ImagemNúmeroControle define as propriedades para geração da imagem que
 		// contém o número de controle.
 		ImagemNúmeroControle struct {
@@ -84,6 +87,7 @@ type Configuração struct {
 // sobrescrever somente alguns valores, mantendo os demais com valores padrão.
 func DefinirValoresPadrão(c *Configuração) {
 	c.Atirador.PrazoConfirmação = 30 * time.Minute
+	c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 	c.Atirador.ImagemNúmeroControle.Largura = 3508
 	c.Atirador.ImagemNúmeroControle.Altura = 2480
 	c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
