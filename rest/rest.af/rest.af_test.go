@@ -59,6 +59,7 @@ proxies:
   - 192.0.2.6
 atirador:
   prazo confirmacao: 10m
+  duracao maxima treino: 10h
   imagem numero controle:
     largura: 3508
     altura: 2480
@@ -79,6 +80,7 @@ atirador:
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
+				c.Atirador.DuraçãoMáximaTreino = 10 * time.Hour
 				c.Atirador.ImagemNúmeroControle.Largura = 3508
 				c.Atirador.ImagemNúmeroControle.Altura = 2480
 				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -127,6 +129,7 @@ url: http://localhost:8080/binarios/rest.af
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 30 * time.Minute
+				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				c.Atirador.ImagemNúmeroControle.Largura = 3508
 				c.Atirador.ImagemNúmeroControle.Altura = 2480
 				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -190,6 +193,7 @@ url: http://localhost:8080/binarios/rest.af
 				"AF_BD_MAXIMO_NUMERO_CONEXOES_ABERTAS":                       "40",
 				"AF_PROXIES":                                                 "192.0.2.4,192.0.2.5,192.0.2.6",
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "10m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
@@ -203,6 +207,7 @@ url: http://localhost:8080/binarios/rest.af
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
+				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				c.Atirador.ImagemNúmeroControle.Largura = 3508
 				c.Atirador.ImagemNúmeroControle.Altura = 2480
 				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -250,6 +255,7 @@ url: http://localhost:8080/binarios/rest.af
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 30 * time.Minute
+				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				c.Atirador.ImagemNúmeroControle.Largura = 3508
 				c.Atirador.ImagemNúmeroControle.Altura = 2480
 				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -299,6 +305,7 @@ url: http://localhost:8080/binarios/rest.af
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 30 * time.Minute
+				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				c.Atirador.ImagemNúmeroControle.Largura = 3508
 				c.Atirador.ImagemNúmeroControle.Altura = 2480
 				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -336,7 +343,7 @@ url: http://localhost:8080/binarios/rest.af
 				return c
 			}(),
 			saídaPadrãoEsperada: regexp.MustCompile(`^$`),
-			saídaErroEsperada:   regexp.MustCompile(`^Erro ao executar a aplicação\. Detalhes: .* Invalid address X\.X\.X\.X:X \(unknown port tcp/X\)$`),
+			saídaErroEsperada:   regexp.MustCompile(`^Erro ao executar a aplicação\. Detalhes: .* Invalid address X\.X\.X\.X:X .*$`),
 		},
 	}
 
