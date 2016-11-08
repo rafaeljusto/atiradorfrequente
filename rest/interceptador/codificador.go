@@ -5,12 +5,18 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/registrobr/gostk/log"
 	"github.com/registrobr/gostk/reflect"
 )
+
+// filtroImagemCorpo é a expressão regular que identifica imagens no corpo da
+// requisição ou da resposta em formato JSON. Utilizado para filtrar o tamanho
+// excessivo dos campos de imagem.
+var filtroImagemCorpo = regexp.MustCompile(`"imagem[^"]*":( )?"[^"]*"`)
 
 type codificador interface {
 	Field(string, string) interface{}
@@ -60,7 +66,9 @@ func (c *Codificador) Before() int {
 
 	// TODO(rafaeljusto): Tratar casos de login para não exibir as senha nos logs
 
-	c.handler.Logger().Debugf("Requisição corpo: “%s”", strings.TrimSpace(strings.Replace(buffer.String(), "\n", "", -1)))
+	requisiçãoCorpo := strings.TrimSpace(strings.Replace(buffer.String(), "\n", "", -1))
+	requisiçãoCorpo = filtrarImagemCorpo(requisiçãoCorpo)
+	c.handler.Logger().Debugf("Requisição corpo: “%s”", requisiçãoCorpo)
 	return 0
 }
 
@@ -106,8 +114,29 @@ func (c *Codificador) After(códigoHTTP int) int {
 			return
 		}
 
-		c.handler.Logger().Debugf("Resposta corpo: “%s”", strings.TrimSpace(strings.Replace(buffer.String(), "\n", "", -1)))
+		respostaCorpo := strings.TrimSpace(strings.Replace(buffer.String(), "\n", "", -1))
+		respostaCorpo = filtrarImagemCorpo(respostaCorpo)
+		c.handler.Logger().Debugf("Resposta corpo: “%s”", respostaCorpo)
 	}()
 
 	return códigoHTTP
+}
+
+// filtrarImagemCorpo remove o excesso de caracteres dos campos de imagem
+// para inseri-los nos logs. Estamos armazenando os primeiros e os últimos 5
+// caracteres dos campos de imagem.
+func filtrarImagemCorpo(corpo string) string {
+	corpo = filtroImagemCorpo.ReplaceAllStringFunc(corpo, func(imagem string) string {
+		imagemPartes := strings.Split(imagem, ":")
+		imagemConteúdo := imagemPartes[1]
+		imagemConteúdo = strings.TrimSpace(imagemConteúdo)
+
+		if len(imagemConteúdo) > 12 {
+			imagemConteúdo = imagemConteúdo[:6] + "..." + imagemConteúdo[len(imagemConteúdo)-6:]
+		}
+
+		return imagemPartes[0] + ":" + imagemConteúdo
+	})
+
+	return corpo
 }
