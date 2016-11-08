@@ -16,7 +16,7 @@ import (
 // filtroImagemCorpo é a expressão regular que identifica imagens no corpo da
 // requisição ou da resposta em formato JSON. Utilizado para filtrar o tamanho
 // excessivo dos campos de imagem.
-var filtroImagemCorpo = regexp.MustCompile(`"imagem.*":( )?".*"`)
+var filtroImagemCorpo = regexp.MustCompile(`"imagem[^"]*":( )?"[^"]*"`)
 
 type codificador interface {
 	Field(string, string) interface{}

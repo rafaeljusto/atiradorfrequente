@@ -120,6 +120,43 @@ func TestCodificador_Before(t *testing.T) {
 			tipoConteúdo:       "application/json",
 			códigoHTTPEsperado: http.StatusInternalServerError,
 		},
+		{
+			descrição: "deve evitar comprimir campos que não são de imagens",
+			requisição: func() *http.Request {
+				requisição, err := http.NewRequest("POST", "https://exemplo.com.br/teste", strings.NewReader(`{
+  "campo1": "imagem",
+  "campo2": [ 1, 2, 3, 4, 5 ],
+  "campo3": "ABCDEF1234567890"
+}`))
+
+				if err != nil {
+					t.Fatalf("Erro ao criar a requisição. Detalhes: %s", err)
+				}
+
+				return requisição
+			}(),
+			logger: &simulador.Logger{
+				SimulaDebug: func(m ...interface{}) {
+					mensagem := fmt.Sprint(m...)
+					if mensagem != "Interceptador Antes: Codificador" {
+						t.Errorf("mensagem inesperada: %s", mensagem)
+					}
+				},
+				SimulaDebugf: func(m string, a ...interface{}) {
+					mensagem := fmt.Sprintf(m, a...)
+					if mensagem != `Requisição corpo: “{  "campo1": "imagem",  "campo2": [ 1, 2, 3, 4, 5 ],  "campo3": "ABCDEF1234567890"}”` {
+						t.Errorf("mensagem inesperada: %s", mensagem)
+					}
+				},
+			},
+			tipoConteúdo: "application/json",
+			handlerEsperado: codificadorSimulado{
+				Requisição: codificadorObjetoSimulada{
+					Campo1: "imagem",
+					Campo2: []int{1, 2, 3, 4, 5},
+				},
+			},
+		},
 	}
 
 	for i, cenário := range cenários {
@@ -198,7 +235,7 @@ func TestCodificador_After(t *testing.T) {
 				},
 				SimulaDebugf: func(m string, a ...interface{}) {
 					mensagem := fmt.Sprintf(m, a...)
-					if mensagem != `Resposta corpo: “{"campo1":"valor1","campo2":[1,2,3,4,5],"imagemNumeroControle":"ABCDE...67890"}”` {
+					if mensagem != `Resposta corpo: “{"campo1":"valor1","campo2":[1,2,3,4,5],"imagem":"ABCDE...67890"}”` {
 						t.Errorf("mensagem inesperada: %s", mensagem)
 					}
 				},
@@ -206,7 +243,7 @@ func TestCodificador_After(t *testing.T) {
 			tipoConteúdo:               "application/json",
 			códigoHTTP:                 http.StatusOK,
 			códigoHTTPEsperado:         http.StatusOK,
-			respostaCodificadaEsperada: `{"campo1":"valor1","campo2":[1,2,3,4,5],"imagemNumeroControle":"ABCDEF1234567890"}` + "\n",
+			respostaCodificadaEsperada: `{"campo1":"valor1","campo2":[1,2,3,4,5],"imagem":"ABCDEF1234567890"}` + "\n",
 			cabeçalhoEsperado: http.Header{
 				"Content-Type": []string{"application/json"},
 				"E-Tag":        []string{"ABC123"},
@@ -506,7 +543,7 @@ func (c *codificadorRespostaInválidaSimulado) DefineResposta(w http.ResponseWri
 type codificadorObjetoSimulada struct {
 	Campo1 string `json:"campo1"`
 	Campo2 []int  `json:"campo2"`
-	Campo3 string `json:"imagemNumeroControle,omitempty"`
+	Campo3 string `json:"imagem,omitempty"`
 }
 
 type codificadorObjetoGenéricoSimulado []string
