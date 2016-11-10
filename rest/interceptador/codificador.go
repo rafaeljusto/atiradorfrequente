@@ -13,10 +13,10 @@ import (
 	"github.com/registrobr/gostk/reflect"
 )
 
-// filtroImagemCorpo é a expressão regular que identifica imagens no corpo da
-// requisição ou da resposta em formato JSON. Utilizado para filtrar o tamanho
-// excessivo dos campos de imagem.
-var filtroImagemCorpo = regexp.MustCompile(`"imagem[^"]*":( )?"[^"]*"`)
+// filtroCampoGrande é a expressão regular que identifica campos muito compridos
+// no corpo da requisição ou da resposta em formato JSON. Utilizado para filtrar
+// o tamanho excessivo dos campos de imagem.
+var filtroCampoGrande = regexp.MustCompile(`:( )*"[^"]{100,}"`)
 
 type codificador interface {
 	Field(string, string) interface{}
@@ -67,7 +67,7 @@ func (c *Codificador) Before() int {
 	// TODO(rafaeljusto): Tratar casos de login para não exibir as senha nos logs
 
 	requisiçãoCorpo := strings.TrimSpace(strings.Replace(buffer.String(), "\n", "", -1))
-	requisiçãoCorpo = filtrarImagemCorpo(requisiçãoCorpo)
+	requisiçãoCorpo = filtrarCampoGrande(requisiçãoCorpo)
 	c.handler.Logger().Debugf("Requisição corpo: “%s”", requisiçãoCorpo)
 	return 0
 }
@@ -115,27 +115,24 @@ func (c *Codificador) After(códigoHTTP int) int {
 		}
 
 		respostaCorpo := strings.TrimSpace(strings.Replace(buffer.String(), "\n", "", -1))
-		respostaCorpo = filtrarImagemCorpo(respostaCorpo)
+		respostaCorpo = filtrarCampoGrande(respostaCorpo)
 		c.handler.Logger().Debugf("Resposta corpo: “%s”", respostaCorpo)
 	}()
 
 	return códigoHTTP
 }
 
-// filtrarImagemCorpo remove o excesso de caracteres dos campos de imagem
-// para inseri-los nos logs. Estamos armazenando os primeiros e os últimos 5
-// caracteres dos campos de imagem.
-func filtrarImagemCorpo(corpo string) string {
-	corpo = filtroImagemCorpo.ReplaceAllStringFunc(corpo, func(imagem string) string {
-		imagemPartes := strings.Split(imagem, ":")
-		imagemConteúdo := imagemPartes[1]
-		imagemConteúdo = strings.TrimSpace(imagemConteúdo)
-
-		if len(imagemConteúdo) > 12 {
-			imagemConteúdo = imagemConteúdo[:6] + "..." + imagemConteúdo[len(imagemConteúdo)-6:]
-		}
-
-		return imagemPartes[0] + ":" + imagemConteúdo
+// filtrarCampoGrande remove o excesso de caracteres dos campos com muitos
+// caracteres para inseri-los nos logs. Estamos armazenando os primeiros e os
+// últimos 50 caracteres dos campos.
+func filtrarCampoGrande(corpo string) string {
+	corpo = filtroCampoGrande.ReplaceAllStringFunc(corpo, func(valor string) string {
+		// como a expressão regular garante o formato, podemos manipular o valor sem
+		// ter medo de extrapolar índices
+		valorPartes := strings.Split(valor, `"`)
+		valorConteúdo := valorPartes[1]
+		valorConteúdo = valorConteúdo[:50] + "..." + valorConteúdo[len(valorConteúdo)-50:]
+		return valorPartes[0] + `"` + valorConteúdo + `"` + valorPartes[2] 
 	})
 
 	return corpo
