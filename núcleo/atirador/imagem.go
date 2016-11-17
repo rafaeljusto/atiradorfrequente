@@ -35,37 +35,37 @@ func gerarImagemNúmeroControle(frequência frequência, configuração config.C
 			texto:        strconv.Itoa(frequência.CR),
 			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
 			fonteTamanho: 11,
-			posição:      imagemTextoPosição{120, 120},
+			posição:      imagemTextoPosição{120, 109},
 		},
 		{
 			texto:        frequência.DataInício.Format("02/01/2006 15:04:05") + " - " + frequência.DataTérmino.Format("15:04:05"),
 			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
 			fonteTamanho: 11,
-			posição:      imagemTextoPosição{120, 140},
+			posição:      imagemTextoPosição{160, 139},
 		},
 		{
 			texto:        frequência.Calibre,
 			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
 			fonteTamanho: 11,
-			posição:      imagemTextoPosição{120, 160},
+			posição:      imagemTextoPosição{220, 169},
 		},
 		{
 			texto:        frequência.ArmaUtilizada,
 			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
 			fonteTamanho: 11,
-			posição:      imagemTextoPosição{120, 180},
+			posição:      imagemTextoPosição{360, 199},
 		},
 		{
 			texto:        strconv.Itoa(frequência.QuantidadeMunição),
 			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
 			fonteTamanho: 11,
-			posição:      imagemTextoPosição{120, 200},
+			posição:      imagemTextoPosição{360, 226},
 		},
 		{
 			texto:        string(protocolo.NovoNúmeroControle(frequência.ID, frequência.Controle)),
 			fonteCor:     color.RGBA{0xff, 0x00, 0x00, 0xff},
 			fonteTamanho: 18,
-			posição:      imagemTextoPosição{120, 240},
+			posição:      imagemTextoPosição{150, 290},
 		},
 	}
 
