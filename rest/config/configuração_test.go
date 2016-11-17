@@ -2,7 +2,6 @@ package config_test
 
 import (
 	"fmt"
-	"image/color"
 	"io/ioutil"
 	"net"
 	"os"
@@ -10,6 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"golang.org/x/image/font/gofont/goregular"
+
+	"github.com/golang/freetype/truetype"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rafaeljusto/atiradorfrequente/rest/config"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
@@ -36,16 +38,7 @@ func TestDefinirValoresPadrão(t *testing.T) {
 	esperado := new(config.Configuração)
 	esperado.Atirador.PrazoConfirmação = 30 * time.Minute
 	esperado.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-	esperado.Atirador.ImagemNúmeroControle.Largura = 3508
-	esperado.Atirador.ImagemNúmeroControle.Altura = 2480
-	esperado.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
-	esperado.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
-	esperado.Atirador.ImagemNúmeroControle.Borda.Largura = 50
-	esperado.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
-	esperado.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
-	esperado.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
-	esperado.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
-	esperado.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+	esperado.Atirador.ImagemNúmeroControle.Fonte.Font, _ = truetype.Parse(goregular.TTF)
 	esperado.Binário.URL = "http://localhost:4000/binarios/rest.af"
 	esperado.Binário.TempoAtualização = 5 * time.Second
 	esperado.Servidor.Endereço = "0.0.0.0:443"
@@ -112,37 +105,11 @@ proxies:
 atirador:
   prazo confirmacao: 10m
   duracao maxima treino: 12h
-  imagem numero controle:
-    largura: 3508
-    altura: 2480
-    cor fundo: branco
-    fonte:
-      tamanho: 48
-      dpi: 300
-      cor: preto
-    borda:
-      largura: 50
-      espacamento: 50
-      cor: preto
-    linha fundo:
-      largura: 50
-      espacamento: 50
-      cor: cinza
 `,
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
 				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				c.Atirador.ImagemNúmeroControle.Largura = 3508
-				c.Atirador.ImagemNúmeroControle.Altura = 2480
-				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
-				c.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
-				c.Atirador.ImagemNúmeroControle.Borda.Largura = 50
-				c.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
-				c.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
-				c.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
-				c.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
-				c.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second
 				c.Servidor.Endereço = "192.0.2.1:443"
@@ -229,51 +196,33 @@ func TestCarregarDeVariávelAmbiente(t *testing.T) {
 		{
 			descrição: "deve carregar corretamente das variáveis de ambiente",
 			variáveisAmbiente: map[string]string{
-				"AF_BINARIO_URL":                                             "http://localhost:8080/binarios/rest.af",
-				"AF_BINARIO_TEMPO_ATUALIZACAO":                               "1s",
-				"AF_SERVIDOR_ENDERECO":                                       "192.0.2.1:443",
-				"AF_SERVIDOR_TLS_HABILITADO":                                 "true",
-				"AF_SERVIDOR_TLS_ARQUIVO_CERTIFICADO":                        "teste.crt",
-				"AF_SERVIDOR_TLS_ARQUIVO_CHAVE":                              "teste.key",
-				"AF_SERVIDOR_TEMPO_ESGOTADO_LEITURA":                         "5s",
-				"AF_SYSLOG_ENDERECO":                                         "192.0.2.2:514",
-				"AF_SYSLOG_TEMPO_ESGOTADO_CONEXAO":                           "5s",
-				"AF_BD_ENDERECO":                                             "192.0.2.3",
-				"AF_BD_PORTA":                                                "5432",
-				"AF_BD_NOME":                                                 "teste",
-				"AF_BD_USUARIO":                                              "usuario_teste",
-				"AF_BD_SENHA":                                                "abc123",
-				"AF_BD_TEMPO_ESGOTADO_CONEXAO":                               "5s",
-				"AF_BD_TEMPO_ESGOTADO_COMANDO":                               "20s",
-				"AF_BD_TEMPO_ESGOTADO_TRANSACAO":                             "5s",
-				"AF_BD_MAXIMO_NUMERO_CONEXOES_INATIVAS":                      "10",
-				"AF_BD_MAXIMO_NUMERO_CONEXOES_ABERTAS":                       "40",
-				"AF_PROXIES":                                                 "192.0.2.4,192.0.2.5,192.0.2.6",
-				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                              "10m",
-				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                          "12h",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LARGURA":                 "3508",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_ALTURA":                  "2480",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_COR_FUNDO":               "branco",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_LARGURA":           "50",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_ESPACAMENTO":       "50",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_BORDA_COR":               "preto",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_LARGURA":     "50",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_ESPACAMENTO": "50",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_LINHA_FUNDO_COR":         "cinza",
+				"AF_BINARIO_URL":                        "http://localhost:8080/binarios/rest.af",
+				"AF_BINARIO_TEMPO_ATUALIZACAO":          "1s",
+				"AF_SERVIDOR_ENDERECO":                  "192.0.2.1:443",
+				"AF_SERVIDOR_TLS_HABILITADO":            "true",
+				"AF_SERVIDOR_TLS_ARQUIVO_CERTIFICADO":   "teste.crt",
+				"AF_SERVIDOR_TLS_ARQUIVO_CHAVE":         "teste.key",
+				"AF_SERVIDOR_TEMPO_ESGOTADO_LEITURA":    "5s",
+				"AF_SYSLOG_ENDERECO":                    "192.0.2.2:514",
+				"AF_SYSLOG_TEMPO_ESGOTADO_CONEXAO":      "5s",
+				"AF_BD_ENDERECO":                        "192.0.2.3",
+				"AF_BD_PORTA":                           "5432",
+				"AF_BD_NOME":                            "teste",
+				"AF_BD_USUARIO":                         "usuario_teste",
+				"AF_BD_SENHA":                           "abc123",
+				"AF_BD_TEMPO_ESGOTADO_CONEXAO":          "5s",
+				"AF_BD_TEMPO_ESGOTADO_COMANDO":          "20s",
+				"AF_BD_TEMPO_ESGOTADO_TRANSACAO":        "5s",
+				"AF_BD_MAXIMO_NUMERO_CONEXOES_INATIVAS": "10",
+				"AF_BD_MAXIMO_NUMERO_CONEXOES_ABERTAS":  "40",
+				"AF_PROXIES":                            "192.0.2.4,192.0.2.5,192.0.2.6",
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":         "10m",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":     "12h",
 			},
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
 				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				c.Atirador.ImagemNúmeroControle.Largura = 3508
-				c.Atirador.ImagemNúmeroControle.Altura = 2480
-				c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
-				c.Atirador.ImagemNúmeroControle.Borda.Largura = 50
-				c.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
-				c.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
-				c.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
-				c.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
-				c.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second
 				c.Servidor.Endereço = "192.0.2.1:443"

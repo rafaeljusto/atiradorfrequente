@@ -49,8 +49,7 @@ func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.Frequ
 	}
 
 	var err error
-	númeroControle := protocolo.NovoNúmeroControle(f.ID, f.Controle)
-	f.ImagemNúmeroControle, err = gerarImagemNúmeroControle(númeroControle, s.configuração)
+	f.ImagemNúmeroControle, err = gerarImagemNúmeroControle(f, s.configuração)
 	if err != nil {
 		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)
 	}

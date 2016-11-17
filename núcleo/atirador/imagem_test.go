@@ -4,44 +4,46 @@ import (
 	"bytes"
 	"encoding/base64"
 	"image"
-	"image/color"
 	"testing"
+	"time"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/config"
-	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
-	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/font/gofont/goregular"
 )
 
 func BenchmarkGerarImagemNúmeroControle(b *testing.B) {
-	númeroControle := protocolo.NovoNúmeroControle(1, 123)
-
 	var configuração config.Configuração
-	configuração.Atirador.ImagemNúmeroControle.Largura = 0
-	configuração.Atirador.ImagemNúmeroControle.Altura = 0
-	configuração.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
-	configuração.Atirador.ImagemNúmeroControle.Fonte.Face = basicfont.Face7x13
-	configuração.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
+	var err error
 
-	imagemLogo, err := base64.StdEncoding.DecodeString(imagemLogoPNG)
+	configuração.Atirador.ImagemNúmeroControle.Fonte.Font, err = truetype.Parse(goregular.TTF)
+	if err != nil {
+		b.Fatalf("Erro ao extrair a fonte de teste. Detalhes: %s", err)
+	}
+
+	imagemBase, err := base64.StdEncoding.DecodeString(imagemBasePNG)
 	if err != nil {
 		b.Fatalf("Erro ao extrair a imagem de teste do logo. Detalhes: %s", err)
 	}
-	imagemLogoBuffer := bytes.NewBuffer(imagemLogo)
+	imagemBaseBuffer := bytes.NewBuffer(imagemBase)
 
-	configuração.Atirador.ImagemNúmeroControle.Logo.Imagem.Image, _, err = image.Decode(imagemLogoBuffer)
+	configuração.Atirador.ImagemNúmeroControle.ImagemBase.Image, _, err = image.Decode(imagemBaseBuffer)
 	if err != nil {
 		b.Fatalf("Erro ao extrair a imagem de teste do logo. Detalhes: %s", err)
 	}
 
-	configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento = 100
-	configuração.Atirador.ImagemNúmeroControle.Borda.Largura = 50
-	configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
-	configuração.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
-	configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
-	configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
-	configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+	f := frequência{
+		ID:                1,
+		Controle:          123,
+		CR:                123456789,
+		Calibre:           ".380",
+		ArmaUtilizada:     "Arma do Clube",
+		QuantidadeMunição: 50,
+		DataInício:        time.Now().Add(-40 * time.Minute),
+		DataTérmino:       time.Now().Add(-10 * time.Minute),
+	}
 
 	for i := 0; i < b.N; i++ {
-		gerarImagemNúmeroControle(númeroControle, configuração)
+		gerarImagemNúmeroControle(f, configuração)
 	}
 }
