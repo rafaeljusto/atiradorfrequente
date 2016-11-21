@@ -42,6 +42,18 @@ func validarDuraçãoTreino(frequência frequência, duraçãoMáximaTreino time
 	return nil
 }
 
+// validarTempoMáximoParaCadastro garante que o cadastro não seja feito após
+// muito tempo do treino.
+func validarTempoMáximoParaCadastro(frequência frequência, tempoMáximaCadastro time.Duration) protocolo.Mensagens {
+	if intervalo := time.Now().UTC().Sub(frequência.DataTérmino); intervalo > tempoMáximaCadastro {
+		return protocolo.NovasMensagens(
+			protocolo.NovaMensagem(protocolo.MensagemCódigoTempoMáximaCadastroExcedido),
+		)
+	}
+
+	return nil
+}
+
 // validarIntervaloMáximoConfirmação verifique se o prazo máximo para envio da
 // confirmação já expirou. No caso de expirado a mensagem de erro retornada
 // informa qual foi a data limite.

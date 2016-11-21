@@ -38,6 +38,7 @@ func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.Frequ
 	f := novaFrequência(frequênciaPedidoCompleta)
 
 	if mensagens := protocolo.JuntarMensagens(
+		validarTempoMáximoParaCadastro(f, s.configuração.Atirador.TempoMáximoCadastro),
 		validarDuraçãoTreino(f, s.configuração.Atirador.DuraçãoMáximaTreino),
 	); len(mensagens) > 0 {
 		return protocolo.FrequênciaPendenteResposta{}, mensagens

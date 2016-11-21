@@ -50,6 +50,10 @@ const (
 
 	// MensagemCódigoTreinoMuitoLongo o tempo de treino está irreal.
 	MensagemCódigoTreinoMuitoLongo = "treino-muito-longo"
+
+	// MensagemCódigoTempoMáximaCadastroExcedido já passou muito tempo desde que o
+	// treino foi feito, o cadastro não será permitido.
+	MensagemCódigoTempoMáximaCadastroExcedido = "tempo-maximo-cadastro-excedido"
 )
 
 // MensagemCódigo tipo que define as possíveis mensagens a serem retornadas. A
