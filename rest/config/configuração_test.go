@@ -37,6 +37,7 @@ func TestDefinirValoresPadrão(t *testing.T) {
 
 	esperado := new(config.Configuração)
 	esperado.Atirador.PrazoConfirmação = 30 * time.Minute
+	esperado.Atirador.TempoMáximoCadastro = 12 * time.Hour
 	esperado.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 	esperado.Atirador.ImagemNúmeroControle.Fonte.Font, _ = truetype.Parse(goregular.TTF)
 	esperado.Binário.URL = "http://localhost:4000/binarios/rest.af"
@@ -104,11 +105,13 @@ proxies:
   - 192.0.2.6
 atirador:
   prazo confirmacao: 10m
+  tempo maximo cadastro: 12h
   duracao maxima treino: 12h
 `,
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
+				c.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second
@@ -217,11 +220,13 @@ func TestCarregarDeVariávelAmbiente(t *testing.T) {
 				"AF_BD_MAXIMO_NUMERO_CONEXOES_ABERTAS":  "40",
 				"AF_PROXIES":                            "192.0.2.4,192.0.2.5,192.0.2.6",
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":         "10m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":     "12h",
 				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":     "12h",
 			},
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
+				c.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second

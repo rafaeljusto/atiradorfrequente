@@ -58,6 +58,7 @@ func TestConfiguração_yaml(t *testing.T) {
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  tempo maximo cadastro: 12h
   duracao maxima treino: 12h
   imagem numero controle:
     fonte: ` + arquivoFonte.Name() + `
@@ -68,6 +69,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -77,6 +79,7 @@ atirador:
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  tempo maximo cadastro: 12h
   duracao maxima treino: 12h
   imagem numero controle:
     fonte:
@@ -85,6 +88,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -94,6 +98,7 @@ atirador:
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  tempo maximo cadastro: 12h
   duracao maxima treino: 12h
   imagem numero controle:
     fonte: /tmp/eunaoexisto321.ttf
@@ -102,6 +107,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -116,6 +122,7 @@ atirador:
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  tempo maximo cadastro: 12h
   duracao maxima treino: 12h
   imagem numero controle:
     fonte: ` + arquivoQualquer.Name() + `
@@ -124,6 +131,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -134,6 +142,7 @@ atirador:
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  tempo maximo cadastro: 12h
   duracao maxima treino: 12h
   imagem numero controle:
     fonte: ` + arquivoFonte.Name() + `
@@ -143,6 +152,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -157,6 +167,7 @@ atirador:
 			conteúdoArquivo: `
 atirador:
   prazo confirmacao: 30m
+  tempo maximo cadastro: 12h
   duracao maxima treino: 12h
   imagem numero controle:
     fonte: ` + arquivoFonte.Name() + `
@@ -166,6 +177,7 @@ atirador:
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -240,6 +252,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve carregar a configuração corretamente",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                  "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":              "12h",
 				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":              "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoFonte.Name(),
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoImagemBase.Name(),
@@ -249,6 +262,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -257,11 +271,13 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve ignorar quando a imagem ou a fonte não são informados",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":     "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO": "12h",
 				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO": "12h",
 			},
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -270,6 +286,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando o arquivo da fonte não existe",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                  "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":              "12h",
 				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":              "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       "/tmp/eunaoexisto321.ttf",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoImagemBase.Name(),
@@ -277,6 +294,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -286,6 +304,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando o arquivo de fonte esta no formato inválido",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                  "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":              "12h",
 				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":              "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoQualquer.Name(),
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoImagemBase.Name(),
@@ -293,6 +312,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -302,6 +322,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando o arquivo de imagem base não existe",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                  "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":              "12h",
 				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":              "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoFonte.Name(),
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": "/tmp/eunaoexisto321.png",
@@ -310,6 +331,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -319,6 +341,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			descrição: "deve detectar quando a imagem base esta em um formato inválido",
 			variáveisAmbiente: map[string]string{
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                  "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":              "12h",
 				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":              "12h",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoFonte.Name(),
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoQualquer.Name(),
@@ -327,6 +350,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				return configuração
 			}(),
@@ -375,6 +399,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 func TestDefinirValoresPadrão(t *testing.T) {
 	var esperado config.Configuração
 	esperado.Atirador.PrazoConfirmação = 30 * time.Minute
+	esperado.Atirador.TempoMáximoCadastro = 12 * time.Hour
 	esperado.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 
 	var c config.Configuração

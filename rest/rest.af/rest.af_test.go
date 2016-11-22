@@ -58,11 +58,13 @@ proxies:
   - 192.0.2.6
 atirador:
   prazo confirmacao: 10m
+  tempo maximo cadastro: 11h
   duracao maxima treino: 10h
 `,
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
+				c.Atirador.TempoMáximoCadastro = 11 * time.Hour
 				c.Atirador.DuraçãoMáximaTreino = 10 * time.Hour
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second
@@ -102,6 +104,7 @@ url: http://localhost:8080/binarios/rest.af
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 30 * time.Minute
+				c.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				c.Binário.URL = "http://localhost:4000/binarios/rest.af"
 				c.Binário.TempoAtualização = 5 * time.Second
@@ -156,12 +159,14 @@ url: http://localhost:8080/binarios/rest.af
 				"AF_BD_MAXIMO_NUMERO_CONEXOES_ABERTAS":  "40",
 				"AF_PROXIES":                            "192.0.2.4,192.0.2.5,192.0.2.6",
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":         "10m",
-				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":     "12h",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":     "11h",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":     "10h",
 			},
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
-				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
+				c.Atirador.TempoMáximoCadastro = 11 * time.Hour
+				c.Atirador.DuraçãoMáximaTreino = 10 * time.Hour
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second
 				c.Servidor.Endereço = "0.0.0.0:0"
@@ -199,6 +204,7 @@ url: http://localhost:8080/binarios/rest.af
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 30 * time.Minute
+				c.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				c.Binário.URL = "http://localhost:4000/binarios/rest.af"
 				c.Binário.TempoAtualização = 5 * time.Second
@@ -239,6 +245,7 @@ url: http://localhost:8080/binarios/rest.af
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 30 * time.Minute
+				c.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second

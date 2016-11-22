@@ -22,6 +22,10 @@ type Configuração struct {
 		// frequência a partir do momento de sua criação.
 		PrazoConfirmação time.Duration `yaml:"prazo confirmacao" envconfig:"prazo_confirmacao"`
 
+		// TempoMáximoCadastro período máximo permitido para que um treino seja
+		// registrado.
+		TempoMáximoCadastro time.Duration `yaml:"tempo maximo cadastro" envconfig:"tempo_maximo_cadastro"`
+
 		// DuraçãoMáximaTreino tempo máximo permitido de duração de um treino.
 		DuraçãoMáximaTreino time.Duration `yaml:"duracao maxima treino" envconfig:"duracao_maxima_treino"`
 
@@ -42,6 +46,7 @@ type Configuração struct {
 // sobrescrever somente alguns valores, mantendo os demais com valores padrão.
 func DefinirValoresPadrão(c *Configuração) {
 	c.Atirador.PrazoConfirmação = 30 * time.Minute
+	c.Atirador.TempoMáximoCadastro = 12 * time.Hour
 	c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 	c.Atirador.ImagemNúmeroControle.Fonte.Font, _ = truetype.Parse(goregular.TTF)
 }
