@@ -37,6 +37,12 @@ type Configuração struct {
 			// ImagemBase caminho para o arquivo que contém a imagem, são suportados
 			// os formatos: JPEG, PNG e GIF.
 			ImagemBase imagem `yaml:"imagem base" envconfig:"imagem_base"`
+			// ChaveCódigoVerificação armazena a chave simétrica utilizada para
+			// criptografar a frequência gerando o código de verificação, que garante
+			// a autencidade do documento.
+			//
+			// TODO(rafaeljusto): Criptografar esta chave na configuração.
+			ChaveCódigoVerificação string `yaml:"chave codigo verificacao" envconfig:"chave_codigo_verificacao"`
 		} `yaml:"imagem numero controle" envconfig:"imagem_numero_controle"`
 	} `yaml:"atirador" envconfig:"atirador"`
 }

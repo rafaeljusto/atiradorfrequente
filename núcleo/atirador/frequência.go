@@ -1,10 +1,20 @@
 package atirador
 
 import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/binary"
+	"fmt"
+	"io"
+	"strings"
 	"time"
 
+	"github.com/btcsuite/btcutil/base58"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/randômico"
+	"golang.org/x/crypto/hkdf"
 )
 
 type frequência struct {
@@ -49,9 +59,35 @@ func (f *frequência) confirmar(frequênciaConfirmaçãoPedidoCompleta protocolo
 	f.ImagemConfirmação = frequênciaConfirmaçãoPedidoCompleta.Imagem
 }
 
-func (f frequência) protocoloPendente() protocolo.FrequênciaPendenteResposta {
+func (f *frequência) gerarCódigoVerificação(chave string) (string, error) {
+	buffer := new(bytes.Buffer)
+	if err := binary.Write(buffer, binary.LittleEndian, int64(f.ID)); err != nil {
+		return "", erros.Novo(err)
+	}
+
+	derivaçãoChave := make([]byte, 32)
+	funçãoDerivação := hkdf.New(sha256.New, []byte(chave), nil, buffer.Bytes())
+	if _, err := io.ReadFull(funçãoDerivação, derivaçãoChave); err != nil {
+		return "", erros.Novo(err)
+	}
+
+	mensagem := fmt.Sprintf("%010d %d %d", f.ID, f.CR, f.Controle)
+	mac := hmac.New(sha256.New, derivaçãoChave)
+	if _, err := mac.Write([]byte(mensagem)); err != nil {
+		return "", erros.Novo(err)
+	}
+	mensagemCodificada := base58.Encode(mac.Sum(nil))
+
+	if tamanho := 44 - len(mensagemCodificada); tamanho > 0 {
+		mensagemCodificada += strings.Repeat("o", tamanho)
+	}
+	return mensagemCodificada, nil
+}
+
+func (f frequência) protocoloPendente(códigoVerificação string) protocolo.FrequênciaPendenteResposta {
 	return protocolo.FrequênciaPendenteResposta{
-		NúmeroControle: protocolo.NovoNúmeroControle(f.ID, f.Controle),
-		Imagem:         f.ImagemNúmeroControle,
+		NúmeroControle:    protocolo.NovoNúmeroControle(f.ID, f.Controle),
+		CódigoVerificação: códigoVerificação,
+		Imagem:            f.ImagemNúmeroControle,
 	}
 }

@@ -53,6 +53,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.ImagemBase.Image = imagemBase
 				configuração.Atirador.ImagemNúmeroControle.Fonte.Font, err = truetype.Parse(goregular.TTF)
+				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
 
 				if err != nil {
 					t.Fatalf("Erro ao extrair a fonte de teste. Detalhes: %s", err)
@@ -89,8 +90,9 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				},
 			},
 			esperado: protocolo.FrequênciaPendenteResposta{
-				NúmeroControle: protocolo.NovoNúmeroControle(1, 123),
-				Imagem:         strings.Replace(imagemNúmeroControlePNG, "\n", "", -1),
+				NúmeroControle:    protocolo.NovoNúmeroControle(1, 123),
+				CódigoVerificação: "Dc5tNEyt4rB5NyqNpu62WawJ6WkLPxFyGoAFQ826LuBL",
+				Imagem:            strings.Replace(imagemNúmeroControlePNG, "\n", "", -1),
 			},
 		},
 		{
@@ -99,6 +101,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				var configuração config.Configuração
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
+				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 			frequênciaPedidoCompleta: protocolo.FrequênciaPedidoCompleta{
@@ -143,6 +146,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.ImagemBase.Image = imagemBase
 				configuração.Atirador.ImagemNúmeroControle.Fonte.Font, err = truetype.Parse(goregular.TTF)
+				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
 
 				if err != nil {
 					t.Fatalf("Erro ao extrair a fonte de teste. Detalhes: %s", err)
@@ -192,6 +196,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.ImagemBase.Image = imagemBase
 				configuração.Atirador.ImagemNúmeroControle.Fonte.Font, err = truetype.Parse(goregular.TTF)
+				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
 
 				if err != nil {
 					t.Fatalf("Erro ao extrair a fonte de teste. Detalhes: %s", err)
@@ -224,6 +229,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.ImagemBase.Image = imagemBaseInválida
 				configuração.Atirador.ImagemNúmeroControle.Fonte.Font, err = truetype.Parse(goregular.TTF)
+				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
 
 				if err != nil {
 					t.Fatalf("Erro ao extrair a fonte de teste. Detalhes: %s", err)
@@ -261,6 +267,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.ImagemBase.Image = imagemBase
+				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 			frequênciaPedidoCompleta: protocolo.FrequênciaPedidoCompleta{
@@ -294,6 +301,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ImagemNúmeroControle.ImagemBase.Image = imagemBase
 				configuração.Atirador.ImagemNúmeroControle.Fonte.Font, err = truetype.Parse(goregular.TTF)
+				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
 
 				if err != nil {
 					t.Fatalf("Erro ao extrair a fonte de teste. Detalhes: %s", err)
@@ -384,6 +392,7 @@ func TestServiço_CadastrarFrequência_valoresAleatórios(t *testing.T) {
 		configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 		configuração.Atirador.ImagemNúmeroControle.ImagemBase.Image = imagemBase
 		configuração.Atirador.ImagemNúmeroControle.Fonte.Font, err = truetype.Parse(goregular.TTF)
+		configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
 
 		if err != nil {
 			t.Fatalf("Erro ao extrair a fonte de teste. Detalhes: %s", err)

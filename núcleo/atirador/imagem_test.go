@@ -44,6 +44,6 @@ func BenchmarkGerarImagemNúmeroControle(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		gerarImagemNúmeroControle(f, configuração)
+		f.gerarImagemNúmeroControle(configuração, "abc123")
 	}
 }

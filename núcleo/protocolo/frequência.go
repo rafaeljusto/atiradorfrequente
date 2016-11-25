@@ -90,8 +90,9 @@ func NovaFrequênciaPedidoCompleta(cr int, frequênciaPedido FrequênciaPedido) 
 // FrequênciaPendenteResposta armazena os dados que permitem ao Clube de Tiro
 // confirmar a presença do Atirador.
 type FrequênciaPendenteResposta struct {
-	NúmeroControle NúmeroControle `json:"numeroControle"`
-	Imagem         string         `json:"imagem"` // base64
+	NúmeroControle    NúmeroControle `json:"numeroControle"`
+	CódigoVerificação string         `json:"codigoVerificacao"`
+	Imagem            string         `json:"imagem"` // base64
 }
 
 // FrequênciaConfirmaçãoPedido armazena os dados necessários para confirmar a

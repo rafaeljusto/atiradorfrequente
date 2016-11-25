@@ -49,9 +49,12 @@ func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.Frequ
 		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)
 	}
 
-	var err error
-	f.ImagemNúmeroControle, err = gerarImagemNúmeroControle(f, s.configuração)
+	códigoVerificação, err := f.gerarCódigoVerificação(s.configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação)
 	if err != nil {
+		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)
+	}
+
+	if err := f.gerarImagemNúmeroControle(s.configuração, códigoVerificação); err != nil {
 		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)
 	}
 
@@ -59,7 +62,7 @@ func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.Frequ
 		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)
 	}
 
-	return f.protocoloPendente(), nil
+	return f.protocoloPendente(códigoVerificação), nil
 }
 
 func (s serviço) ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
