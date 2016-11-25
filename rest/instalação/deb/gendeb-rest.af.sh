@@ -36,7 +36,7 @@ compilar() {
   local diretorio_projeto=`echo $GOPATH | cut -d: -f1`
   diretorio_projeto=$diretorio_projeto/src/github.com/rafaeljusto/atiradorfrequente/rest/rest.af
 
-  cd $diretorio_projeto || erro_sair "Cannot change directory"
+  cd $diretorio_projeto || erro_sair "Não foi possível trocar de diretório"
   go build -ldflags "-X github.com/rafaeljusto/atiradorfrequente/rest/config.Version=$VERSAO" || erro_sair "Erro de compilação"
 
   mv rest.af $DIRETORIO_TEMPORARIO || erro_sair "Erro ao copiar o binário principal"
@@ -76,6 +76,7 @@ if [ -z "$VERSAO" ]; then
   exit 1
 fi
 
+limpar
 preparar
 compilar
 copiar_arquivos
