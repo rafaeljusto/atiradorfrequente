@@ -9,12 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/image/font/gofont/goregular"
-
 	"github.com/golang/freetype/truetype"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rafaeljusto/atiradorfrequente/rest/config"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
+	"golang.org/x/image/font/gofont/goregular"
 	"gopkg.in/yaml.v2"
 )
 
@@ -107,12 +106,14 @@ atirador:
   prazo confirmacao: 10m
   tempo maximo cadastro: 12h
   duracao maxima treino: 12h
+  chave codigo verificacao: cba321
 `,
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
 				c.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
+				c.Atirador.ChaveCódigoVerificação = "cba321"
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second
 				c.Servidor.Endereço = "192.0.2.1:443"
@@ -222,12 +223,14 @@ func TestCarregarDeVariávelAmbiente(t *testing.T) {
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":         "10m",
 				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":     "12h",
 				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":     "12h",
+				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":  "cba321",
 			},
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
 				c.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
+				c.Atirador.ChaveCódigoVerificação = "cba321"
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second
 				c.Servidor.Endereço = "192.0.2.1:443"

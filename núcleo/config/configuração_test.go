@@ -60,10 +60,10 @@ atirador:
   prazo confirmacao: 30m
   tempo maximo cadastro: 12h
   duracao maxima treino: 12h
+  chave codigo verificacao: abc123
   imagem numero controle:
     fonte: ` + arquivoFonte.Name() + `
     imagem base: ` + arquivoImagemBase.Name() + `
-    chave codigo verificacao: abc123
 `,
 			deveConterFonte:      true,
 			deveConterImagemBase: true,
@@ -72,7 +72,7 @@ atirador:
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 		},
@@ -83,17 +83,17 @@ atirador:
   prazo confirmacao: 30m
   tempo maximo cadastro: 12h
   duracao maxima treino: 12h
+  chave codigo verificacao: abc123
   imagem numero controle:
     fonte:
     imagem base:
-    chave codigo verificacao: abc123
 `,
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 		},
@@ -104,17 +104,17 @@ atirador:
   prazo confirmacao: 30m
   tempo maximo cadastro: 12h
   duracao maxima treino: 12h
+  chave codigo verificacao: abc123
   imagem numero controle:
     fonte: /tmp/eunaoexisto321.ttf
     imagem base: ` + arquivoImagemBase.Name() + `
-    chave codigo verificacao: abc123
 `,
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 			erroEsperado: &os.PathError{
@@ -130,17 +130,17 @@ atirador:
   prazo confirmacao: 30m
   tempo maximo cadastro: 12h
   duracao maxima treino: 12h
+  chave codigo verificacao: abc123
   imagem numero controle:
     fonte: ` + arquivoQualquer.Name() + `
     imagem base: ` + arquivoImagemBase.Name() + `
-    chave codigo verificacao: abc123
 `,
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("freetype: invalid TrueType format: TTF data is too short"),
@@ -152,10 +152,10 @@ atirador:
   prazo confirmacao: 30m
   tempo maximo cadastro: 12h
   duracao maxima treino: 12h
+  chave codigo verificacao: abc123
   imagem numero controle:
     fonte: ` + arquivoFonte.Name() + `
     imagem base: /tmp/eunaoexisto321.png
-    chave codigo verificacao: abc123
 `,
 			deveConterFonte: true,
 			configuraçãoEsperada: func() config.Configuração {
@@ -163,7 +163,7 @@ atirador:
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 			erroEsperado: &os.PathError{
@@ -179,10 +179,10 @@ atirador:
   prazo confirmacao: 30m
   tempo maximo cadastro: 12h
   duracao maxima treino: 12h
+  chave codigo verificacao: abc123
   imagem numero controle:
     fonte: ` + arquivoFonte.Name() + `
     imagem base: ` + arquivoQualquer.Name() + `
-    chave codigo verificacao: abc123
 `,
 			deveConterFonte: true,
 			configuraçãoEsperada: func() config.Configuração {
@@ -190,7 +190,7 @@ atirador:
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("image: unknown format"),
@@ -263,12 +263,12 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 		{
 			descrição: "deve carregar a configuração corretamente",
 			variáveisAmbiente: map[string]string{
-				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                               "30m",
-				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":                           "12h",
-				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                           "12h",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                    arquivoFonte.Name(),
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE":              arquivoImagemBase.Name(),
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_CHAVE_CODIGO_VERIFICACAO": "abc123",
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                  "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":              "12h",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":              "12h",
+				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":           "abc123",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoFonte.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoImagemBase.Name(),
 			},
 			deveConterFonte:      true,
 			deveConterImagemBase: true,
@@ -277,43 +277,43 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 		},
 		{
 			descrição: "deve ignorar quando a imagem ou a fonte não são informados",
 			variáveisAmbiente: map[string]string{
-				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                               "30m",
-				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":                           "12h",
-				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                           "12h",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_CHAVE_CODIGO_VERIFICACAO": "abc123",
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":        "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":    "12h",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":    "12h",
+				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO": "abc123",
 			},
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 		},
 		{
 			descrição: "deve detectar quando o arquivo da fonte não existe",
 			variáveisAmbiente: map[string]string{
-				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                               "30m",
-				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":                           "12h",
-				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                           "12h",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                    "/tmp/eunaoexisto321.ttf",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE":              arquivoImagemBase.Name(),
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_CHAVE_CODIGO_VERIFICACAO": "abc123",
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                  "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":              "12h",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":              "12h",
+				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":           "abc123",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       "/tmp/eunaoexisto321.ttf",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoImagemBase.Name(),
 			},
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("open /tmp/eunaoexisto321.ttf: no such file or directory"),
@@ -321,19 +321,19 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 		{
 			descrição: "deve detectar quando o arquivo de fonte esta no formato inválido",
 			variáveisAmbiente: map[string]string{
-				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                               "30m",
-				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":                           "12h",
-				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                           "12h",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                    arquivoQualquer.Name(),
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE":              arquivoImagemBase.Name(),
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_CHAVE_CODIGO_VERIFICACAO": "abc123",
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                  "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":              "12h",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":              "12h",
+				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":           "abc123",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoQualquer.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoImagemBase.Name(),
 			},
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("freetype: invalid TrueType format: TTF data is too short"),
@@ -341,12 +341,12 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 		{
 			descrição: "deve detectar quando o arquivo de imagem base não existe",
 			variáveisAmbiente: map[string]string{
-				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                               "30m",
-				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":                           "12h",
-				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                           "12h",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                    arquivoFonte.Name(),
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE":              "/tmp/eunaoexisto321.png",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_CHAVE_CODIGO_VERIFICACAO": "abc123",
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                  "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":              "12h",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":              "12h",
+				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":           "abc123",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoFonte.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": "/tmp/eunaoexisto321.png",
 			},
 			deveConterFonte: true,
 			configuraçãoEsperada: func() config.Configuração {
@@ -354,7 +354,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("open /tmp/eunaoexisto321.png: no such file or directory"),
@@ -362,12 +362,12 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 		{
 			descrição: "deve detectar quando a imagem base esta em um formato inválido",
 			variáveisAmbiente: map[string]string{
-				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                               "30m",
-				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":                           "12h",
-				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":                           "12h",
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":                    arquivoFonte.Name(),
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE":              arquivoQualquer.Name(),
-				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_CHAVE_CODIGO_VERIFICACAO": "abc123",
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                  "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":              "12h",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":              "12h",
+				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":           "abc123",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoFonte.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoQualquer.Name(),
 			},
 			deveConterFonte: true,
 			configuraçãoEsperada: func() config.Configuração {
@@ -375,7 +375,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				configuração.Atirador.PrazoConfirmação = 30 * time.Minute
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-				configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("image: unknown format"),

@@ -49,10 +49,7 @@ func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.Frequ
 		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)
 	}
 
-	códigoVerificação, err := f.gerarCódigoVerificação(s.configuração.Atirador.ImagemNúmeroControle.ChaveCódigoVerificação)
-	if err != nil {
-		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)
-	}
+	códigoVerificação := f.gerarCódigoVerificação(s.configuração.Atirador.ChaveCódigoVerificação)
 
 	if err := f.gerarImagemNúmeroControle(s.configuração, códigoVerificação); err != nil {
 		return protocolo.FrequênciaPendenteResposta{}, erros.Novo(err)

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcutil/base58"
-	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/randômico"
 	"golang.org/x/crypto/hkdf"
@@ -59,29 +58,31 @@ func (f *frequência) confirmar(frequênciaConfirmaçãoPedidoCompleta protocolo
 	f.ImagemConfirmação = frequênciaConfirmaçãoPedidoCompleta.Imagem
 }
 
-func (f *frequência) gerarCódigoVerificação(chave string) (string, error) {
+func (f *frequência) gerarCódigoVerificação(chave string) string {
 	buffer := new(bytes.Buffer)
-	if err := binary.Write(buffer, binary.LittleEndian, int64(f.ID)); err != nil {
-		return "", erros.Novo(err)
-	}
+
+	// o erro retornado nesta escrita é ignorado, pois o tipo bytes.Buffer não
+	// gera erro no método Write
+	binary.Write(buffer, binary.LittleEndian, int64(f.ID))
 
 	derivaçãoChave := make([]byte, 32)
 	funçãoDerivação := hkdf.New(sha256.New, []byte(chave), nil, buffer.Bytes())
-	if _, err := io.ReadFull(funçãoDerivação, derivaçãoChave); err != nil {
-		return "", erros.Novo(err)
-	}
+
+	// o erro retornado nesta leitura é ignorado, pois como estamos lendo a
+	// quantidade total de bytes o cenário de erro nunca será atingido
+	io.ReadFull(funçãoDerivação, derivaçãoChave)
 
 	mensagem := fmt.Sprintf("%010d %d %d", f.ID, f.CR, f.Controle)
+
+	// o erro retornado é ignorado, pois o método Write do SHA256 não gera erro
 	mac := hmac.New(sha256.New, derivaçãoChave)
-	if _, err := mac.Write([]byte(mensagem)); err != nil {
-		return "", erros.Novo(err)
-	}
+	mac.Write([]byte(mensagem))
 	mensagemCodificada := base58.Encode(mac.Sum(nil))
 
 	if tamanho := 44 - len(mensagemCodificada); tamanho > 0 {
 		mensagemCodificada += strings.Repeat("o", tamanho)
 	}
-	return mensagemCodificada, nil
+	return mensagemCodificada
 }
 
 func (f frequência) protocoloPendente(códigoVerificação string) protocolo.FrequênciaPendenteResposta {

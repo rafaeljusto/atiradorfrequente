@@ -60,12 +60,14 @@ atirador:
   prazo confirmacao: 10m
   tempo maximo cadastro: 11h
   duracao maxima treino: 10h
+  chave codigo verificacao: cba321
 `,
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
 				c.Atirador.TempoMáximoCadastro = 11 * time.Hour
 				c.Atirador.DuraçãoMáximaTreino = 10 * time.Hour
+				c.Atirador.ChaveCódigoVerificação = "cba321"
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second
 				c.Servidor.Endereço = "0.0.0.0:0"
@@ -109,9 +111,6 @@ url: http://localhost:8080/binarios/rest.af
 				c.Binário.URL = "http://localhost:4000/binarios/rest.af"
 				c.Binário.TempoAtualização = 5 * time.Second
 				c.Servidor.Endereço = "0.0.0.0:443"
-				c.Servidor.TLS.Habilitado = false
-				c.Servidor.TLS.ArquivoCertificado = "teste.crt"
-				c.Servidor.TLS.ArquivoChave = "teste.key"
 				c.Servidor.TempoEsgotadoLeitura = 5 * time.Second
 				c.Syslog.Endereço = "127.0.0.1:514"
 				c.Syslog.TempoEsgotadoConexão = 2 * time.Second
@@ -119,17 +118,11 @@ url: http://localhost:8080/binarios/rest.af
 				c.BancoDados.Porta = 5432
 				c.BancoDados.Nome = "atiradorfrequente"
 				c.BancoDados.Usuário = "atiradorfrequente"
-				c.BancoDados.Senha = "abc123"
 				c.BancoDados.TempoEsgotadoConexão = 3 * time.Second
 				c.BancoDados.TempoEsgotadoComando = 10 * time.Second
 				c.BancoDados.TempoEsgotadoTransação = 3 * time.Second
 				c.BancoDados.MáximoNúmeroConexõesInativas = 16
 				c.BancoDados.MáximoNúmeroConexõesAbertas = 32
-				c.Proxies = []net.IP{
-					net.ParseIP("192.0.2.4"),
-					net.ParseIP("192.0.2.5"),
-					net.ParseIP("192.0.2.6"),
-				}
 				return c
 			}(),
 			saídaPadrãoEsperada: regexp.MustCompile(`^$`),
@@ -161,12 +154,14 @@ url: http://localhost:8080/binarios/rest.af
 				"AF_ATIRADOR_PRAZO_CONFIRMACAO":         "10m",
 				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":     "11h",
 				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":     "10h",
+				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":  "cba321",
 			},
 			configuraçãoEsperada: func() *config.Configuração {
 				c := new(config.Configuração)
 				c.Atirador.PrazoConfirmação = 10 * time.Minute
 				c.Atirador.TempoMáximoCadastro = 11 * time.Hour
 				c.Atirador.DuraçãoMáximaTreino = 10 * time.Hour
+				c.Atirador.ChaveCódigoVerificação = "cba321"
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second
 				c.Servidor.Endereço = "0.0.0.0:0"
@@ -209,9 +204,6 @@ url: http://localhost:8080/binarios/rest.af
 				c.Binário.URL = "http://localhost:4000/binarios/rest.af"
 				c.Binário.TempoAtualização = 5 * time.Second
 				c.Servidor.Endereço = "0.0.0.0:443"
-				c.Servidor.TLS.Habilitado = false
-				c.Servidor.TLS.ArquivoCertificado = "teste.crt"
-				c.Servidor.TLS.ArquivoChave = "teste.key"
 				c.Servidor.TempoEsgotadoLeitura = 5 * time.Second
 				c.Syslog.Endereço = "127.0.0.1:514"
 				c.Syslog.TempoEsgotadoConexão = 2 * time.Second
@@ -219,17 +211,11 @@ url: http://localhost:8080/binarios/rest.af
 				c.BancoDados.Porta = 5432
 				c.BancoDados.Nome = "atiradorfrequente"
 				c.BancoDados.Usuário = "atiradorfrequente"
-				c.BancoDados.Senha = "abc123"
 				c.BancoDados.TempoEsgotadoConexão = 3 * time.Second
 				c.BancoDados.TempoEsgotadoComando = 10 * time.Second
 				c.BancoDados.TempoEsgotadoTransação = 3 * time.Second
 				c.BancoDados.MáximoNúmeroConexõesInativas = 16
 				c.BancoDados.MáximoNúmeroConexõesAbertas = 32
-				c.Proxies = []net.IP{
-					net.ParseIP("192.0.2.4"),
-					net.ParseIP("192.0.2.5"),
-					net.ParseIP("192.0.2.6"),
-				}
 				return c
 			}(),
 			saídaPadrãoEsperada: regexp.MustCompile(`^$`),
@@ -250,9 +236,6 @@ url: http://localhost:8080/binarios/rest.af
 				c.Binário.URL = "http://localhost:8080/binarios/rest.af"
 				c.Binário.TempoAtualização = 1 * time.Second
 				c.Servidor.Endereço = "X.X.X.X:X"
-				c.Servidor.TLS.Habilitado = false
-				c.Servidor.TLS.ArquivoCertificado = "teste.crt"
-				c.Servidor.TLS.ArquivoChave = "teste.key"
 				c.Servidor.TempoEsgotadoLeitura = 5 * time.Second
 				c.Syslog.Endereço = "127.0.0.1:514"
 				c.Syslog.TempoEsgotadoConexão = 2 * time.Second
@@ -260,17 +243,11 @@ url: http://localhost:8080/binarios/rest.af
 				c.BancoDados.Porta = 5432
 				c.BancoDados.Nome = "atiradorfrequente"
 				c.BancoDados.Usuário = "atiradorfrequente"
-				c.BancoDados.Senha = "abc123"
 				c.BancoDados.TempoEsgotadoConexão = 3 * time.Second
 				c.BancoDados.TempoEsgotadoComando = 10 * time.Second
 				c.BancoDados.TempoEsgotadoTransação = 3 * time.Second
 				c.BancoDados.MáximoNúmeroConexõesInativas = 16
 				c.BancoDados.MáximoNúmeroConexõesAbertas = 32
-				c.Proxies = []net.IP{
-					net.ParseIP("192.0.2.4"),
-					net.ParseIP("192.0.2.5"),
-					net.ParseIP("192.0.2.6"),
-				}
 				return c
 			}(),
 			saídaPadrãoEsperada: regexp.MustCompile(`^$`),
@@ -318,6 +295,9 @@ url: http://localhost:8080/binarios/rest.af
 
 			os.Args = append(os.Args, []string{"-config", arquivoConfiguração.Name()}...)
 		}
+
+		// limpar a configuração a cada execução para tornar os cenários mais reais
+		config.AtualizarConfiguração(&config.Configuração{})
 
 		saídaPadrão, saídaErro := capturarSaídas(main)
 
