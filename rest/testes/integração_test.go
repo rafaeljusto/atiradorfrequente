@@ -249,7 +249,7 @@ func TestObterFrequência(t *testing.T) {
 		{
 			descrição: "deve obter corretamente uma frequência",
 			requisição: func() *http.Request {
-				url := fmt.Sprintf("http://%s/frequencia/380308/1-1234", endereçoServidor)
+				url := fmt.Sprintf("http://%s/frequencia/380308/1-1234?verificacao=EdapMpB39KQejKKqTq1CsU3MBb4EKzkckFM3eZqrvhd6", endereçoServidor)
 				r, err := http.NewRequest("GET", url, nil)
 				if err != nil {
 					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
@@ -258,6 +258,37 @@ func TestObterFrequência(t *testing.T) {
 				return r
 			}(),
 			códigoHTTPEsperado: http.StatusOK,
+			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
+				return http.Header{
+					"Content-Type": []string{"application/json; charset=utf-8"},
+				}, nil
+			},
+			corpoEsperado: func(corpo []byte) ([]byte, error) {
+				var frequênciaResposta protocolo.FrequênciaResposta
+				if err := json.Unmarshal(corpo, &frequênciaResposta); err != nil {
+					return nil, errors.Errorf("Erro ao interpretar o corpo da resposta. Detalhes: %s", err)
+				}
+
+				corpoEsperado, err := json.Marshal(frequênciaResposta)
+				if err != nil {
+					return nil, errors.Errorf("Erro ao gerar os dados da resposta. Detalhes: %s", err)
+				}
+
+				return bytes.TrimSpace(corpoEsperado), nil
+			},
+		},
+		{
+			descrição: "deve detectar quando uma frequência não existe",
+			requisição: func() *http.Request {
+				url := fmt.Sprintf("http://%s/frequencia/380308/9999-1234?verificacao=EdapMpB39KQejKKqTq1CsU3MBb4EKzkckFM3eZqrvhd6", endereçoServidor)
+				r, err := http.NewRequest("GET", url, nil)
+				if err != nil {
+					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
+				}
+
+				return r
+			}(),
+			códigoHTTPEsperado: http.StatusNotFound,
 			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
 				return make(http.Header), nil
 			},
@@ -356,7 +387,7 @@ func TestConfirmaçãoDeFrequência(t *testing.T) {
 					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
 				}
 
-				url := fmt.Sprintf("http://%s/frequencia/380308/1-1234", endereçoServidor)
+				url := fmt.Sprintf("http://%s/frequencia/380308/1-1234?verificacao=EdapMpB39KQejKKqTq1CsU3MBb4EKzkckFM3eZqrvhd6", endereçoServidor)
 				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
 				if err != nil {
 					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
@@ -365,6 +396,34 @@ func TestConfirmaçãoDeFrequência(t *testing.T) {
 				return r
 			}(),
 			códigoHTTPEsperado: http.StatusNoContent,
+			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
+				return make(http.Header), nil
+			},
+			corpoEsperado: func(corpo []byte) ([]byte, error) {
+				return nil, nil
+			},
+		},
+		{
+			descrição: "deve identificar uma frequência inexistente",
+			requisição: func() *http.Request {
+				frequênciaConfirmaçãoPedido := protocolo.FrequênciaConfirmaçãoPedido{
+					Imagem: "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAATElEQVR4XpWPCwoAIAhDswPrWTyxMcKEBn2EwYPG0yQi2st0gJllO5kHRlUNBIwsrkzjbnN3AdPqc5lXV/gMNqYt7cn9Vvr+NT0k7xkVBY1RndW3lwAAAABJRU5ErkJggg==",
+				}
+
+				corpo, err := json.Marshal(frequênciaConfirmaçãoPedido)
+				if err != nil {
+					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
+				}
+
+				url := fmt.Sprintf("http://%s/frequencia/380308/1-9999?verificacao=EdapMpB39KQejKKqTq1CsU3MBb4EKzkckFM3eZqrvhd6", endereçoServidor)
+				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
+				if err != nil {
+					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
+				}
+
+				return r
+			}(),
+			códigoHTTPEsperado: http.StatusNotFound,
 			cabeçalhoEsperado: func(corpo []byte) (http.Header, error) {
 				return make(http.Header), nil
 			},
@@ -384,7 +443,7 @@ func TestConfirmaçãoDeFrequência(t *testing.T) {
 					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
 				}
 
-				url := fmt.Sprintf("http://%s/frequencia/380308/1-1234", endereçoServidor)
+				url := fmt.Sprintf("http://%s/frequencia/380308/1-1234?verificacao=EdapMpB39KQejKKqTq1CsU3MBb4EKzkckFM3eZqrvhd6", endereçoServidor)
 				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
 				if err != nil {
 					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
@@ -423,7 +482,7 @@ func TestConfirmaçãoDeFrequência(t *testing.T) {
 					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
 				}
 
-				url := fmt.Sprintf("http://%s/frequencia/380308/1-1234", endereçoServidor)
+				url := fmt.Sprintf("http://%s/frequencia/380308/1-1234?verificacao=EdapMpB39KQejKKqTq1CsU3MBb4EKzkckFM3eZqrvhd6", endereçoServidor)
 				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
 				if err != nil {
 					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
@@ -462,7 +521,7 @@ func TestConfirmaçãoDeFrequência(t *testing.T) {
 					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
 				}
 
-				url := fmt.Sprintf("http://%s/frequencia/923714/2-7344", endereçoServidor)
+				url := fmt.Sprintf("http://%s/frequencia/923714/2-7344?verificacao=A9W4z9dyPMQzGisYDn1zQLHoDiXSUtQc4vFQFByFdj1P", endereçoServidor)
 				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
 				if err != nil {
 					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
@@ -501,7 +560,7 @@ func TestConfirmaçãoDeFrequência(t *testing.T) {
 					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
 				}
 
-				url := fmt.Sprintf("http://%s/frequencia/114239/3-1246", endereçoServidor)
+				url := fmt.Sprintf("http://%s/frequencia/114239/3-1246?verificacao=DqkQsDhqiYpRGPgq9LDzWQvLNqTxWnxURF47R99ztEdm", endereçoServidor)
 				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
 				if err != nil {
 					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
