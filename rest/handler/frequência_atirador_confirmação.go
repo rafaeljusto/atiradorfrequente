@@ -8,6 +8,7 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/rafaeljusto/atiradorfrequente/rest/config"
 	"github.com/rafaeljusto/atiradorfrequente/rest/interceptador"
+	"github.com/registrobr/gostk/errors"
 	"github.com/trajber/handy"
 )
 
@@ -35,6 +36,10 @@ func (f *frequênciaAtiradorConfirmação) Get() int {
 	serviçoAtirador := atirador.NovoServiço(f.Tx(), f.Logger(), config.Atual().Configuração)
 	frequênciaResposta, err := serviçoAtirador.ObterFrequência(f.CR, f.NúmeroControle, f.CódigoVerificação)
 	if err != nil {
+		if errors.Equal(err, erros.NãoEncontrado) {
+			return http.StatusNotFound
+		}
+
 		if mensagens, ok := err.(protocolo.Mensagens); ok {
 			f.Mensagens = mensagens
 			return http.StatusBadRequest
@@ -58,6 +63,10 @@ func (f *frequênciaAtiradorConfirmação) Put() int {
 	frequênciaConfirmaçãoPedidoCompleta := protocolo.NovaFrequênciaConfirmaçãoPedidoCompleta(f.CR, f.NúmeroControle, f.CódigoVerificação, f.FrequênciaConfirmaçãoPedido)
 
 	if err := serviçoAtirador.ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta); err != nil {
+		if errors.Equal(err, erros.NãoEncontrado) {
+			return http.StatusNotFound
+		}
+
 		if mensagens, ok := err.(protocolo.Mensagens); ok {
 			f.Mensagens = mensagens
 			return http.StatusBadRequest

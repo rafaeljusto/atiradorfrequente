@@ -74,9 +74,6 @@ func (s serviço) ObterFrequência(cr int, númeroControle protocolo.NúmeroCont
 	dao := novaFrequênciaDAO(s.sqlogger)
 	f, err := dao.resgatar(númeroControle.ID())
 	if err != nil {
-		// TODO(rafaeljusto): Quando temos um erro NãoEncontrado não seria correto
-		// trata-lo de forma diferenciada para não ocasionar em um código HTTP 500
-		// nos níveis acima?
 		return protocolo.FrequênciaResposta{}, erros.Novo(err)
 	}
 
