@@ -34,7 +34,7 @@ func NovaVariáveisEndereço(v variáveisEndereço) *VariáveisEndereço {
 
 // Before percorre as variáveis de endereço e preenche nos atributos
 // correspondentes do handler. Caso ocorra algum erro ao preencher um atributo
-// uma mensagem definida para alertar o usuário e detalhes serão escritos no
+// uma mensagem é definida para alertar o usuário e detalhes serão escritos no
 // log.
 func (v *VariáveisEndereço) Before() int {
 	v.handler.Logger().Debug("Interceptador Antes: Variáveis Endereço")

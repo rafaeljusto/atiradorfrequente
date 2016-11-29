@@ -85,6 +85,23 @@ func (f *frequência) gerarCódigoVerificação(chave string) string {
 	return mensagemCodificada
 }
 
+func (f frequência) protocolo(códigoVerificação string) protocolo.FrequênciaResposta {
+	return protocolo.FrequênciaResposta{
+		NúmeroControle:    protocolo.NovoNúmeroControle(f.ID, f.Controle),
+		CódigoVerificação: códigoVerificação,
+		Calibre:           f.Calibre,
+		ArmaUtilizada:     f.ArmaUtilizada,
+		NúmeroSérie:       f.NúmeroSérie,
+		GuiaDeTráfego:     f.GuiaDeTráfego,
+		QuantidadeMunição: f.QuantidadeMunição,
+		DataInício:        f.DataInício,
+		DataTérmino:       f.DataTérmino,
+		DataCriação:       f.DataCriação,
+		DataConfirmação:   f.DataConfirmação,
+		Imagem:            f.ImagemNúmeroControle,
+	}
+}
+
 func (f frequência) protocoloPendente(códigoVerificação string) protocolo.FrequênciaPendenteResposta {
 	return protocolo.FrequênciaPendenteResposta{
 		NúmeroControle:    protocolo.NovoNúmeroControle(f.ID, f.Controle),

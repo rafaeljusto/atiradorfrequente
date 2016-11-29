@@ -41,6 +41,7 @@ func criarCorrenteBásica(c correnteBásica) handy.InterceptorChain {
 		Chain(interceptador.NovoLog(c)).
 		Chain(interceptor.NewIntrospector(c)).
 		Chain(interceptador.NovoCodificador(c, "application/json; charset=utf-8")).
+		Chain(interceptador.NovoParâmetrosConsulta(c)).
 		Chain(interceptador.NovaVariáveisEndereço(c)).
 		Chain(interceptador.NovoPadronizador(c))
 

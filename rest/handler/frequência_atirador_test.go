@@ -9,13 +9,14 @@ import (
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/atirador"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
-	configNúcleo "github.com/rafaeljusto/atiradorfrequente/núcleo/config"
+	núcleoconfig "github.com/rafaeljusto/atiradorfrequente/núcleo/config"
+	núcleolog "github.com/rafaeljusto/atiradorfrequente/núcleo/log"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
-	configREST "github.com/rafaeljusto/atiradorfrequente/rest/config"
+	restconfig "github.com/rafaeljusto/atiradorfrequente/rest/config"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
 	"github.com/rafaeljusto/atiradorfrequente/testes/simulador"
 	"github.com/registrobr/gostk/errors"
-	"github.com/registrobr/gostk/log"
+	gostklog "github.com/registrobr/gostk/log"
 )
 
 func TestFrequênciaAtirador_Post(t *testing.T) {
@@ -25,8 +26,8 @@ func TestFrequênciaAtirador_Post(t *testing.T) {
 		descrição          string
 		cr                 int
 		frequênciaPedido   protocolo.FrequênciaPedido
-		logger             log.Logger
-		configuração       *configREST.Configuração
+		logger             gostklog.Logger
+		configuração       *restconfig.Configuração
 		serviçoAtirador    atirador.Serviço
 		códigoHTTPEsperado int
 		esperado           *protocolo.FrequênciaPendenteResposta
@@ -43,13 +44,14 @@ func TestFrequênciaAtirador_Post(t *testing.T) {
 				DataInício:        data,
 				DataTérmino:       data.Add(30 * time.Minute),
 			},
-			configuração: func() *configREST.Configuração {
-				return new(configREST.Configuração)
+			configuração: func() *restconfig.Configuração {
+				return new(restconfig.Configuração)
 			}(),
 			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaCadastrarFrequência: func(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
 					return protocolo.FrequênciaPendenteResposta{
-						NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+						NúmeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+						CódigoVerificação: "8bLCbDcRkTUroc5BshugiXyf8JcDVmBupmZsTVFp53F1",
 						Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
 IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
 dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
@@ -60,7 +62,8 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
 			códigoHTTPEsperado: http.StatusCreated,
 			esperado: &protocolo.FrequênciaPendenteResposta{
-				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+				NúmeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+				CódigoVerificação: "8bLCbDcRkTUroc5BshugiXyf8JcDVmBupmZsTVFp53F1",
 				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
 IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
 dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
@@ -68,7 +71,7 @@ dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
 ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
 			cabeçalhoEsperado: http.Header{
-				"Location": []string{"/frequencia/123456789/7654-918273645"},
+				"Location": []string{"/frequencia/123456789/7654-918273645?verificacao=8bLCbDcRkTUroc5BshugiXyf8JcDVmBupmZsTVFp53F1"},
 			},
 		},
 		{
@@ -113,8 +116,8 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 					}
 				},
 			},
-			configuração: func() *configREST.Configuração {
-				return new(configREST.Configuração)
+			configuração: func() *restconfig.Configuração {
+				return new(restconfig.Configuração)
 			}(),
 			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaCadastrarFrequência: func(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
@@ -134,8 +137,8 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				DataTérmino:       data.Add(30 * time.Minute),
 			},
 			logger: simulador.Logger{},
-			configuração: func() *configREST.Configuração {
-				return new(configREST.Configuração)
+			configuração: func() *restconfig.Configuração {
+				return new(restconfig.Configuração)
 			}(),
 			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaCadastrarFrequência: func(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
@@ -151,9 +154,9 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		},
 	}
 
-	configuraçãoOriginal := configREST.Atual()
+	configuraçãoOriginal := restconfig.Atual()
 	defer func() {
-		configREST.AtualizarConfiguração(configuraçãoOriginal)
+		restconfig.AtualizarConfiguração(configuraçãoOriginal)
 	}()
 
 	serviçoAtiradorOriginal := atirador.NovoServiço
@@ -162,9 +165,9 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 	}()
 
 	for i, cenário := range cenários {
-		configREST.AtualizarConfiguração(cenário.configuração)
+		restconfig.AtualizarConfiguração(cenário.configuração)
 
-		atirador.NovoServiço = func(s *bd.SQLogger, configuração configNúcleo.Configuração) atirador.Serviço {
+		atirador.NovoServiço = func(s *bd.SQLogger, l núcleolog.Serviço, configuração núcleoconfig.Configuração) atirador.Serviço {
 			return cenário.serviçoAtirador
 		}
 
@@ -204,6 +207,7 @@ func TestFrequênciaAtirador_Interceptors(t *testing.T) {
 		"*interceptador.Log",
 		"*interceptor.Introspector",
 		"*interceptador.Codificador",
+		"*interceptador.ParâmetrosConsulta",
 		"*interceptador.VariáveisEndereço",
 		"*interceptador.Padronizador",
 		"*interceptador.BD",

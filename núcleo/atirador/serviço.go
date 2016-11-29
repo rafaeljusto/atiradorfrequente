@@ -4,6 +4,7 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/config"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/log"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 )
 
@@ -15,6 +16,11 @@ type Serviço interface {
 	// frequência.
 	CadastrarFrequência(protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error)
 
+	// ObterFrequência retorna a frequência relacionada ao CR e número de controle
+	// informados. O código de verificação deve bater com o informado no momento
+	// da criação para que a informação seja liberada.
+	ObterFrequência(cr int, númeroControle protocolo.NúmeroControle, códigoVerificação string) (protocolo.FrequênciaResposta, error)
+
 	// ConfirmarFrequência finaliza o cadastro da frequência, confirmando atraves
 	// de uma imagem que o Atirador esta presente no Clube de Tiro.
 	ConfirmarFrequência(protocolo.FrequênciaConfirmaçãoPedidoCompleta) error
@@ -22,15 +28,17 @@ type Serviço interface {
 
 // NovoServiço inicializa um serviço concreto do Atirador. Pode ser substituído
 // em testes por simuladores, permitindo uma abstração da camada de serviços.
-var NovoServiço = func(s *bd.SQLogger, configuração config.Configuração) Serviço {
+var NovoServiço = func(s *bd.SQLogger, l log.Serviço, configuração config.Configuração) Serviço {
 	return serviço{
 		sqlogger:     s,
+		logger:       l,
 		configuração: configuração,
 	}
 }
 
 type serviço struct {
 	sqlogger     *bd.SQLogger
+	logger       log.Serviço
 	configuração config.Configuração
 }
 
@@ -62,6 +70,27 @@ func (s serviço) CadastrarFrequência(frequênciaPedidoCompleta protocolo.Frequ
 	return f.protocoloPendente(códigoVerificação), nil
 }
 
+func (s serviço) ObterFrequência(cr int, númeroControle protocolo.NúmeroControle, códigoVerificação string) (protocolo.FrequênciaResposta, error) {
+	dao := novaFrequênciaDAO(s.sqlogger)
+	f, err := dao.resgatar(númeroControle.ID())
+	if err != nil {
+		// TODO(rafaeljusto): Quando temos um erro NãoEncontrado não seria correto
+		// trata-lo de forma diferenciada para não ocasionar em um código HTTP 500
+		// nos níveis acima?
+		return protocolo.FrequênciaResposta{}, erros.Novo(err)
+	}
+
+	if mensagens := protocolo.JuntarMensagens(
+		validarCR(cr, f),
+		validarNúmeroControle(númeroControle, f),
+		validarCódigoVerificação(f, s.configuração.Atirador.ChaveCódigoVerificação, códigoVerificação),
+	); len(mensagens) > 0 {
+		return protocolo.FrequênciaResposta{}, mensagens
+	}
+
+	return f.protocolo(códigoVerificação), nil
+}
+
 func (s serviço) ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
 	dao := novaFrequênciaDAO(s.sqlogger)
 	f, err := dao.resgatar(frequênciaConfirmaçãoPedidoCompleta.NúmeroControle.ID())
@@ -72,6 +101,7 @@ func (s serviço) ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta pr
 	if mensagens := protocolo.JuntarMensagens(
 		validarCR(frequênciaConfirmaçãoPedidoCompleta.CR, f),
 		validarNúmeroControle(frequênciaConfirmaçãoPedidoCompleta.NúmeroControle, f),
+		validarCódigoVerificação(f, s.configuração.Atirador.ChaveCódigoVerificação, frequênciaConfirmaçãoPedidoCompleta.CódigoVerificação),
 		validarIntervaloMáximoConfirmação(f, s.configuração.Atirador.PrazoConfirmação),
 		validarImagemConfirmação(f, frequênciaConfirmaçãoPedidoCompleta.Imagem),
 		validarEstadoFrequência(f),

@@ -6,6 +6,7 @@ import "github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 // simular as camadas de serviços em testes unitários.
 type ServiçoAtirador struct {
 	SimulaCadastrarFrequência func(protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error)
+	SimulaObterFrequência     func(cr int, númeroControle protocolo.NúmeroControle, códigoVerificação string) (protocolo.FrequênciaResposta, error)
 	SimulaConfirmarFrequência func(protocolo.FrequênciaConfirmaçãoPedidoCompleta) error
 }
 
@@ -15,6 +16,13 @@ type ServiçoAtirador struct {
 // frequência.
 func (s ServiçoAtirador) CadastrarFrequência(frequênciaPedidoCompleta protocolo.FrequênciaPedidoCompleta) (protocolo.FrequênciaPendenteResposta, error) {
 	return s.SimulaCadastrarFrequência(frequênciaPedidoCompleta)
+}
+
+// ObterFrequência retorna a frequência relacionada ao CR e número de controle
+// informados. O código de verificação deve bater com o informado no momento da
+// criação para que a informação seja liberada.
+func (s ServiçoAtirador) ObterFrequência(cr int, númeroControle protocolo.NúmeroControle, códigoVerificação string) (protocolo.FrequênciaResposta, error) {
+	return s.SimulaObterFrequência(cr, númeroControle, códigoVerificação)
 }
 
 // ConfirmarFrequência finaliza o cadastro da frequência, confirmando atraves de

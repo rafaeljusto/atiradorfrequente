@@ -343,7 +343,7 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 			return cenário.frequênciaDAO
 		}
 
-		serviço := NovoServiço(nil, cenário.configuração)
+		serviço := NovoServiço(nil, nil, cenário.configuração)
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(cenário.esperado, cenário.erroEsperado)
 
@@ -411,8 +411,271 @@ func TestServiço_CadastrarFrequência_valoresAleatórios(t *testing.T) {
 			},
 		}
 
-		serviço := NovoServiço(nil, configuração)
+		serviço := NovoServiço(nil, nil, configuração)
 		if _, err := serviço.CadastrarFrequência(frequênciaPedidoCompleta); err != nil {
+			if _, ok := err.(protocolo.Mensagens); !ok {
+				t.Log(err)
+				return false
+			}
+		}
+
+		return true
+	}
+
+	if err := quick.Check(f, &quick.Config{MaxCount: 5}); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestServiço_ObterFrequência(t *testing.T) {
+	data := time.Now()
+
+	cenários := []struct {
+		descrição         string
+		configuração      config.Configuração
+		cr                int
+		númeroControle    protocolo.NúmeroControle
+		códigoVerificação string
+		frequênciaDAO     frequênciaDAO
+		esperado          protocolo.FrequênciaResposta
+		erroEsperado      error
+	}{
+		{
+			descrição:         "deve obter uma frequência corretamente",
+			configuração:      config.Configuração{},
+			cr:                123456789,
+			númeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+			códigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
+			frequênciaDAO: simulaFrequênciaDAO{
+				simulaResgatar: func(id int64) (frequência, error) {
+					if id != 7654 {
+						t.Errorf("ID %d inesperado", id)
+					}
+
+					return frequência{
+						ID:                7654,
+						Controle:          918273645,
+						CR:                123456789,
+						Calibre:           ".380",
+						ArmaUtilizada:     "Arma do Clube",
+						NúmeroSérie:       "ZA785671",
+						GuiaDeTráfego:     762556223,
+						QuantidadeMunição: 50,
+						DataInício:        data.Add(-40 * time.Minute),
+						DataTérmino:       data.Add(-10 * time.Minute),
+						DataCriação:       data.Add(-5 * time.Minute),
+						ImagemNúmeroControle: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+					}, nil
+				},
+			},
+			esperado: protocolo.FrequênciaResposta{
+				NúmeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+				CódigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
+				Calibre:           ".380",
+				ArmaUtilizada:     "Arma do Clube",
+				NúmeroSérie:       "ZA785671",
+				GuiaDeTráfego:     762556223,
+				QuantidadeMunição: 50,
+				DataInício:        data.Add(-40 * time.Minute),
+				DataTérmino:       data.Add(-10 * time.Minute),
+				DataCriação:       data.Add(-5 * time.Minute),
+				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+			},
+		},
+		{
+			descrição:         "deve identificar uma frequência que não existe",
+			configuração:      config.Configuração{},
+			cr:                123456789,
+			númeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+			códigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
+			frequênciaDAO: simulaFrequênciaDAO{
+				simulaResgatar: func(id int64) (frequência, error) {
+					if id != 7654 {
+						t.Errorf("ID %d inesperado", id)
+					}
+
+					return frequência{}, erros.NãoEncontrado
+				},
+			},
+			erroEsperado: erros.NãoEncontrado,
+		},
+		{
+			descrição:         "deve identificar quando o CR não confere",
+			configuração:      config.Configuração{},
+			cr:                123456780,
+			númeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+			códigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
+			frequênciaDAO: simulaFrequênciaDAO{
+				simulaResgatar: func(id int64) (frequência, error) {
+					if id != 7654 {
+						t.Errorf("ID %d inesperado", id)
+					}
+
+					return frequência{
+						ID:                7654,
+						Controle:          918273645,
+						CR:                123456789,
+						Calibre:           ".380",
+						ArmaUtilizada:     "Arma do Clube",
+						NúmeroSérie:       "ZA785671",
+						GuiaDeTráfego:     762556223,
+						QuantidadeMunição: 50,
+						DataInício:        data.Add(-40 * time.Minute),
+						DataTérmino:       data.Add(-10 * time.Minute),
+						DataCriação:       data.Add(-5 * time.Minute),
+						ImagemNúmeroControle: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+					}, nil
+				},
+			},
+			erroEsperado: protocolo.NovasMensagens(
+				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoCRInválido, "123456780"),
+			),
+		},
+		{
+			descrição:         "deve identificar quando o número de controle não confere",
+			configuração:      config.Configuração{},
+			cr:                123456789,
+			númeroControle:    protocolo.NovoNúmeroControle(7654, 918273646),
+			códigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
+			frequênciaDAO: simulaFrequênciaDAO{
+				simulaResgatar: func(id int64) (frequência, error) {
+					if id != 7654 {
+						t.Errorf("ID %d inesperado", id)
+					}
+
+					return frequência{
+						ID:                7654,
+						Controle:          918273645,
+						CR:                123456789,
+						Calibre:           ".380",
+						ArmaUtilizada:     "Arma do Clube",
+						NúmeroSérie:       "ZA785671",
+						GuiaDeTráfego:     762556223,
+						QuantidadeMunição: 50,
+						DataInício:        data.Add(-40 * time.Minute),
+						DataTérmino:       data.Add(-10 * time.Minute),
+						DataCriação:       data.Add(-5 * time.Minute),
+						ImagemNúmeroControle: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+					}, nil
+				},
+			},
+			erroEsperado: protocolo.NovasMensagens(
+				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoNúmeroControleInválido, "7654-918273646"),
+			),
+		},
+		{
+			descrição:         "deve identificar quando o código de verificação não confere",
+			configuração:      config.Configuração{},
+			cr:                123456789,
+			númeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+			códigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4q",
+			frequênciaDAO: simulaFrequênciaDAO{
+				simulaResgatar: func(id int64) (frequência, error) {
+					if id != 7654 {
+						t.Errorf("ID %d inesperado", id)
+					}
+
+					return frequência{
+						ID:                7654,
+						Controle:          918273645,
+						CR:                123456789,
+						Calibre:           ".380",
+						ArmaUtilizada:     "Arma do Clube",
+						NúmeroSérie:       "ZA785671",
+						GuiaDeTráfego:     762556223,
+						QuantidadeMunição: 50,
+						DataInício:        data.Add(-40 * time.Minute),
+						DataTérmino:       data.Add(-10 * time.Minute),
+						DataCriação:       data.Add(-5 * time.Minute),
+						ImagemNúmeroControle: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+					}, nil
+				},
+			},
+			erroEsperado: protocolo.NovasMensagens(
+				protocolo.NovaMensagemComValor(protocolo.MensagemCódigoVerificaçãoInválida, "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4q"),
+			),
+		},
+	}
+
+	daoOriginal := novaFrequênciaDAO
+	defer func() {
+		novaFrequênciaDAO = daoOriginal
+	}()
+
+	for i, cenário := range cenários {
+		novaFrequênciaDAO = func(sqlogger *bd.SQLogger) frequênciaDAO {
+			return cenário.frequênciaDAO
+		}
+
+		serviço := NovoServiço(nil, nil, cenário.configuração)
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+		verificadorResultado.DefinirEsperado(cenário.esperado, cenário.erroEsperado)
+
+		if err := verificadorResultado.VerificaResultado(serviço.ObterFrequência(cenário.cr, cenário.númeroControle, cenário.códigoVerificação)); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func TestServiço_ObterFrequência_valoresAleatórios(t *testing.T) {
+	daoOriginal := novaFrequênciaDAO
+	defer func() {
+		novaFrequênciaDAO = daoOriginal
+	}()
+
+	f := func(cr int, númeroControle protocolo.NúmeroControle, códigoVerificação string) bool {
+		novaFrequênciaDAO = func(sqlogger *bd.SQLogger) frequênciaDAO {
+			return simulaFrequênciaDAO{
+				simulaResgatar: func(id int64) (frequência, error) {
+					return frequência{
+						ID:                númeroControle.ID(),
+						Controle:          númeroControle.Controle(),
+						CR:                cr,
+						Calibre:           ".380",
+						ArmaUtilizada:     "Arma do Clube",
+						NúmeroSérie:       "ZA785671",
+						GuiaDeTráfego:     762556223,
+						QuantidadeMunição: 50,
+						DataInício:        time.Now().Add(-40 * time.Minute),
+						DataTérmino:       time.Now().Add(-10 * time.Minute),
+						DataCriação:       time.Now().Add(-5 * time.Minute),
+						ImagemNúmeroControle: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+					}, nil
+				},
+			}
+		}
+
+		var configuração config.Configuração
+		configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
+		configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
+		configuração.Atirador.ChaveCódigoVerificação = "abc123"
+
+		serviço := NovoServiço(nil, nil, configuração)
+		if _, err := serviço.ObterFrequência(cr, númeroControle, códigoVerificação); err != nil {
 			if _, ok := err.(protocolo.Mensagens); !ok {
 				t.Log(err)
 				return false
@@ -445,8 +708,9 @@ func TestServiço_ConfirmarFrequência(t *testing.T) {
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             123456789,
-				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+				CR:                123456789,
+				NúmeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+				CódigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAP1BMVEX///8AezAAzhcIziD//5sA
 aygIzos5zoPGpQAArQAArSj/zpsxzkkAWgBCnAAAlBcAvQAApTi1zgApjACMYwCTUqAuAAAAT0lE
@@ -500,8 +764,9 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             123456789,
-				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+				CR:                123456789,
+				NúmeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+				CódigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAP1BMVEX///8AezAAzhcIziD//5sA
 aygIzos5zoPGpQAArQAArSj/zpsxzkkAWgBCnAAAlBcAvQAApTi1zgApjACMYwCTUqAuAAAAT0lE
@@ -524,8 +789,9 @@ QVQImR2MyQ3AMAzDpNjO3bv7z1o1ehEiQABIGv6d/SC3vgu7uTEzZC93HyxRkWK9ozShLJObcMuR
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             123456781,
-				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273640),
+				CR:                123456781,
+				NúmeroControle:    protocolo.NovoNúmeroControle(7654, 918273640),
+				CódigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAP1BMVEX///8AezAAzhcIziD//5sA
 aygIzos5zoPGpQAArQAArSj/zpsxzkkAWgBCnAAAlBcAvQAApTi1zgApjACMYwCTUqAuAAAAT0lE
@@ -568,8 +834,9 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             123456789,
-				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+				CR:                123456789,
+				NúmeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+				CódigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAP1BMVEX///8AezAAzhcIziD//5sA
 aygIzos5zoPGpQAArQAArSj/zpsxzkkAWgBCnAAAlBcAvQAApTi1zgApjACMYwCTUqAuAAAAT0lE
@@ -611,8 +878,9 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             123456789,
-				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+				CR:                123456789,
+				NúmeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+				CódigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
 IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
@@ -660,8 +928,9 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`),
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             123456789,
-				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+				CR:                123456789,
+				NúmeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+				CódigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAP1BMVEX///8AezAAzhcIziD//5sA
 aygIzos5zoPGpQAArQAArSj/zpsxzkkAWgBCnAAAlBcAvQAApTi1zgApjACMYwCTUqAuAAAAT0lE
@@ -712,8 +981,9 @@ QVQImR2MyQ3AMAzDpNjO3bv7z1o1ehEiQABIGv6d/SC3vgu7uTEzZC93HyxRkWK9ozShLJObcMuR
 				return configuração
 			}(),
 			frequênciaConfirmaçãoPedidoCompleta: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             123456789,
-				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+				CR:                123456789,
+				NúmeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+				CódigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAP1BMVEX///8AezAAzhcIziD//5sA
 aygIzos5zoPGpQAArQAArSj/zpsxzkkAWgBCnAAAlBcAvQAApTi1zgApjACMYwCTUqAuAAAAT0lE
@@ -760,7 +1030,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			return cenário.frequênciaDAO
 		}
 
-		serviço := NovoServiço(nil, cenário.configuração)
+		serviço := NovoServiço(nil, nil, cenário.configuração)
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(nil, cenário.erroEsperado)
 
@@ -809,7 +1079,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		var configuração config.Configuração
 		configuração.Atirador.PrazoConfirmação = 20 * time.Minute
 
-		serviço := NovoServiço(nil, configuração)
+		serviço := NovoServiço(nil, nil, configuração)
 		if err := serviço.ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta); err != nil {
 			if _, ok := err.(protocolo.Mensagens); !ok {
 				t.Log(err)

@@ -54,6 +54,19 @@ func validarTempoMáximoParaCadastro(frequência frequência, tempoMáximaCadast
 	return nil
 }
 
+// validarCódigoVerificação analisa se o código de verificação informado é o
+// correto. Calculamos o código correto utilizando os dados da frequência com
+// uma chave simétrica global.
+func validarCódigoVerificação(frequência frequência, chaveCódigoVerificação, códigoVerificação string) protocolo.Mensagens {
+	if frequência.gerarCódigoVerificação(chaveCódigoVerificação) != códigoVerificação {
+		return protocolo.NovasMensagens(
+			protocolo.NovaMensagemComValor(protocolo.MensagemCódigoVerificaçãoInválida, códigoVerificação),
+		)
+	}
+
+	return nil
+}
+
 // validarIntervaloMáximoConfirmação verifique se o prazo máximo para envio da
 // confirmação já expirou. No caso de expirado a mensagem de erro retornada
 // informa qual foi a data limite.

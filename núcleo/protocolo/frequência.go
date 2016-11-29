@@ -95,6 +95,22 @@ type FrequênciaPendenteResposta struct {
 	Imagem            string         `json:"imagem"` // base64
 }
 
+// FrequênciaResposta armazena os dados da frequência visualizada.
+type FrequênciaResposta struct {
+	NúmeroControle    NúmeroControle `json:"numeroControle"`
+	CódigoVerificação string         `json:"codigoVerificacao"`
+	Calibre           string         `json:"calibre"`
+	ArmaUtilizada     string         `json:"armaUtilizada"`
+	NúmeroSérie       string         `json:"numeroSerie,omitempty"`
+	GuiaDeTráfego     int            `json:"guiaTrafego,omitempty"`
+	QuantidadeMunição int            `json:"quantidadeMunicao"`
+	DataInício        time.Time      `json:"dataInicio"`
+	DataTérmino       time.Time      `json:"dataTermino"`
+	DataCriação       time.Time      `json:"dataCriacao"`
+	DataConfirmação   time.Time      `json:"dataConfirmacao,omitempty"`
+	Imagem            string         `json:"imagem"` // base64
+}
+
 // FrequênciaConfirmaçãoPedido armazena os dados necessários para confirmar a
 // presença do Atirador no Clube de Tiro.
 type FrequênciaConfirmaçãoPedido struct {
@@ -127,18 +143,20 @@ func (f FrequênciaConfirmaçãoPedido) Validar() Mensagens {
 // FrequênciaConfirmaçãoPedido incluindo o CR e o número de controle encontrados
 // no endereço.
 type FrequênciaConfirmaçãoPedidoCompleta struct {
-	CR             int
-	NúmeroControle NúmeroControle
+	CR                int
+	NúmeroControle    NúmeroControle
+	CódigoVerificação string
 	FrequênciaConfirmaçãoPedido
 }
 
 // NovaFrequênciaConfirmaçãoPedidoCompleta inicializa o tipo
 // FrequênciaConfirmaçãoPedidoCompleta a partir do CR, número de controle e do
 // tipo FrequênciaConfirmaçãoPedido.
-func NovaFrequênciaConfirmaçãoPedidoCompleta(cr int, númeroControle NúmeroControle, frequênciaConfirmaçãoPedido FrequênciaConfirmaçãoPedido) FrequênciaConfirmaçãoPedidoCompleta {
+func NovaFrequênciaConfirmaçãoPedidoCompleta(cr int, númeroControle NúmeroControle, códigoVerificação string, frequênciaConfirmaçãoPedido FrequênciaConfirmaçãoPedido) FrequênciaConfirmaçãoPedidoCompleta {
 	return FrequênciaConfirmaçãoPedidoCompleta{
 		CR:                          cr,
 		NúmeroControle:              númeroControle,
+		CódigoVerificação:           códigoVerificação,
 		FrequênciaConfirmaçãoPedido: frequênciaConfirmaçãoPedido,
 	}
 }
