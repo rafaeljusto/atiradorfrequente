@@ -208,6 +208,12 @@ func TestCriaçãoDeFrequência(t *testing.T) {
 					cabeçalhoEsperado.Set("Content-Length", tamanhoConteúdo)
 				}
 
+				// quando o Content-Type não esta definido, assume-se text/plain. Com
+				// exceção de quando o código HTTP é 24 (NoContent).
+				if tipoConteúdo := cabeçalhoEsperado.Get("Content-Type"); tipoConteúdo == "" && resposta.StatusCode != http.StatusNoContent {
+					cabeçalhoEsperado.Set("Content-Type", "text/plain; charset=utf-8")
+				}
+
 				verificadorResultado.DefinirEsperado(cabeçalhoEsperado, nil)
 				if err = verificadorResultado.VerificaResultado(resposta.Header, nil); err != nil {
 					t.Error(err)
@@ -337,6 +343,12 @@ func TestObterFrequência(t *testing.T) {
 					cabeçalhoEsperado.Set("Content-Length", tamanhoConteúdo)
 				}
 
+				// quando o Content-Type não esta definido, assume-se text/plain. Com
+				// exceção de quando o código HTTP é 24 (NoContent).
+				if tipoConteúdo := cabeçalhoEsperado.Get("Content-Type"); tipoConteúdo == "" && resposta.StatusCode != http.StatusNoContent {
+					cabeçalhoEsperado.Set("Content-Type", "text/plain; charset=utf-8")
+				}
+
 				verificadorResultado.DefinirEsperado(cabeçalhoEsperado, nil)
 				if err = verificadorResultado.VerificaResultado(resposta.Header, nil); err != nil {
 					t.Error(err)
@@ -415,7 +427,7 @@ func TestConfirmaçãoDeFrequência(t *testing.T) {
 					t.Fatalf("Erro ao gerar os dados da requisição. Detalhes: %s", err)
 				}
 
-				url := fmt.Sprintf("http://%s/frequencia/380308/1-9999?verificacao=EdapMpB39KQejKKqTq1CsU3MBb4EKzkckFM3eZqrvhd6", endereçoServidor)
+				url := fmt.Sprintf("http://%s/frequencia/380308/9999-1234?verificacao=EdapMpB39KQejKKqTq1CsU3MBb4EKzkckFM3eZqrvhd6", endereçoServidor)
 				r, err := http.NewRequest("PUT", url, bytes.NewReader(corpo))
 				if err != nil {
 					t.Fatalf("Erro ao gerar a requisição. Detalhes: %s", err)
@@ -626,6 +638,12 @@ func TestConfirmaçãoDeFrequência(t *testing.T) {
 				}
 				if tamanhoConteúdo := resposta.Header.Get("Content-Length"); tamanhoConteúdo != "" {
 					cabeçalhoEsperado.Set("Content-Length", tamanhoConteúdo)
+				}
+
+				// quando o Content-Type não esta definido, assume-se text/plain. Com
+				// exceção de quando o código HTTP é 24 (NoContent).
+				if tipoConteúdo := cabeçalhoEsperado.Get("Content-Type"); tipoConteúdo == "" && resposta.StatusCode != http.StatusNoContent {
+					cabeçalhoEsperado.Set("Content-Type", "text/plain; charset=utf-8")
 				}
 
 				verificadorResultado.DefinirEsperado(cabeçalhoEsperado, nil)
