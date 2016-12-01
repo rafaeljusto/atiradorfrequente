@@ -44,6 +44,14 @@ type Configuração struct {
 			// ImagemBase caminho para o arquivo que contém a imagem, são suportados
 			// os formatos: JPEG, PNG e GIF.
 			ImagemBase imagem `yaml:"imagem base" envconfig:"imagem_base"`
+			// URLQRCode define o endereço HTTP que será embutido no QRCode da imagem
+			// do número de controle. Esta URL deve possuir 3 posições de substituição
+			// com o símbolo "%s", que representam respectivamente o CR, o número de
+			// controle e o código de verificação. Exemplo de uma URL para o QRCode
+			// seria:
+			//
+			//     https://exemplo.com.br/frequencia/%s/%s?verificacao=%s
+			URLQRCode string `yaml:"url qrcode" envconfig:"url_qrcode"`
 		} `yaml:"imagem numero controle" envconfig:"imagem_numero_controle"`
 	} `yaml:"atirador" envconfig:"atirador"`
 }
@@ -56,6 +64,7 @@ func DefinirValoresPadrão(c *Configuração) {
 	c.Atirador.TempoMáximoCadastro = 12 * time.Hour
 	c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 	c.Atirador.ImagemNúmeroControle.Fonte.Font, _ = truetype.Parse(goregular.TTF)
+	c.Atirador.ImagemNúmeroControle.URLQRCode = "http://localhost/frequencia/%s/%s?verificacao=%s"
 }
 
 type imagem struct {

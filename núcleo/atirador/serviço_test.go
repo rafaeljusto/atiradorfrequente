@@ -294,6 +294,46 @@ func TestServiço_CadastrarFrequência(t *testing.T) {
 			erroEsperado: errors.Errorf("fonte da imagem do número de controle indefinida"),
 		},
 		{
+			descrição: "deve detectar quando o QR code não pode ser gerado",
+			configuração: func() config.Configuração {
+				var configuração config.Configuração
+				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
+				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
+				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.ImagemBase.Image = imagemBase
+				configuração.Atirador.ImagemNúmeroControle.Fonte.Font, err = truetype.Parse(goregular.TTF)
+
+				if err != nil {
+					t.Fatalf("Erro ao extrair a fonte de teste. Detalhes: %s", err)
+				}
+
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo... digitando um texto extremamente longo..."
+				return configuração
+			}(),
+			frequênciaPedidoCompleta: protocolo.FrequênciaPedidoCompleta{
+				CR: 123456789,
+				FrequênciaPedido: protocolo.FrequênciaPedido{
+					Calibre:           ".380",
+					ArmaUtilizada:     "Arma do Clube",
+					QuantidadeMunição: 50,
+					DataInício:        data,
+					DataTérmino:       data.Add(30 * time.Minute),
+				},
+			},
+			frequênciaDAO: simulaFrequênciaDAO{
+				simulaCriar: func(frequência *frequência) error {
+					if frequência.Controle == 0 {
+						t.Errorf("Número aleatório para controle não gerado")
+					}
+
+					frequência.ID = 1
+					frequência.Controle = 123
+					return nil
+				},
+			},
+			erroEsperado: errors.Errorf("content too long to encode"),
+		},
+		{
 			descrição: "deve detectar um erro ao atualizar uma frequência",
 			configuração: func() config.Configuração {
 				var configuração config.Configuração

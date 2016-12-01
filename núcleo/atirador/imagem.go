@@ -3,6 +3,7 @@ package atirador
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -14,6 +15,7 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/registrobr/gostk/errors"
+	qrcode "github.com/skip2/go-qrcode"
 )
 
 // gerarImagemNúmeroControle gera uma imagem com dados da frequência utilizando
@@ -69,9 +71,9 @@ func (f *frequência) gerarImagemNúmeroControle(configuração config.Configura
 		},
 		{
 			texto:        códigoVerificação,
-			fonteCor:     color.RGBA{0xff, 0x00, 0x00, 0x00},
+			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
 			fonteTamanho: 11,
-			posição:      imagemTextoPosição{150, 485},
+			posição:      imagemTextoPosição{32, 486},
 		},
 	}
 
@@ -88,6 +90,22 @@ func (f *frequência) gerarImagemNúmeroControle(configuração config.Configura
 		camadaTexto.DrawString(t.texto, posição)
 	}
 
+	// QR Code
+	qrURL := fmt.Sprintf(configuração.Atirador.ImagemNúmeroControle.URLQRCode, strconv.Itoa(f.CR), protocolo.NovoNúmeroControle(f.ID, f.Controle), códigoVerificação)
+
+	qr, err := qrcode.New(qrURL, qrcode.Highest)
+	if err != nil {
+		return erros.Novo(err)
+	}
+
+	qr.BackgroundColor = color.Transparent
+	qr.ForegroundColor = color.RGBA{0x00, 0x00, 0x00, 0xff}
+
+	qrPonto := image.Pt(200, 600)
+	qrPosição := imagem.Bounds().Min.Sub(qrPonto)
+	draw.Draw(imagem, imagem.Bounds(), qr.Image(300), qrPosição, draw.Over)
+
+	// codifica a imagem
 	var buffer bytes.Buffer
 	if err := png.Encode(&buffer, imagem); err != nil {
 		return erros.Novo(err)

@@ -64,6 +64,7 @@ atirador:
   imagem numero controle:
     fonte: ` + arquivoFonte.Name() + `
     imagem base: ` + arquivoImagemBase.Name() + `
+    url qrcode: https://exemplo.com.br/frequencia/%s/%s?verificacao=%s
 `,
 			deveConterFonte:      true,
 			deveConterImagemBase: true,
@@ -73,6 +74,7 @@ atirador:
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 		},
@@ -87,6 +89,7 @@ atirador:
   imagem numero controle:
     fonte:
     imagem base:
+    url qrcode: https://exemplo.com.br/frequencia/%s/%s?verificacao=%s
 `,
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
@@ -94,6 +97,7 @@ atirador:
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 		},
@@ -108,6 +112,7 @@ atirador:
   imagem numero controle:
     fonte: /tmp/eunaoexisto321.ttf
     imagem base: ` + arquivoImagemBase.Name() + `
+    url qrcode: https://exemplo.com.br/frequencia/%s/%s?verificacao=%s
 `,
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
@@ -115,6 +120,7 @@ atirador:
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 			erroEsperado: &os.PathError{
@@ -134,6 +140,7 @@ atirador:
   imagem numero controle:
     fonte: ` + arquivoQualquer.Name() + `
     imagem base: ` + arquivoImagemBase.Name() + `
+    url qrcode: https://exemplo.com.br/frequencia/%s/%s?verificacao=%s
 `,
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
@@ -141,6 +148,7 @@ atirador:
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("freetype: invalid TrueType format: TTF data is too short"),
@@ -156,6 +164,7 @@ atirador:
   imagem numero controle:
     fonte: ` + arquivoFonte.Name() + `
     imagem base: /tmp/eunaoexisto321.png
+    url qrcode: https://exemplo.com.br/frequencia/%s/%s?verificacao=%s
 `,
 			deveConterFonte: true,
 			configuraçãoEsperada: func() config.Configuração {
@@ -164,6 +173,7 @@ atirador:
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 			erroEsperado: &os.PathError{
@@ -183,6 +193,7 @@ atirador:
   imagem numero controle:
     fonte: ` + arquivoFonte.Name() + `
     imagem base: ` + arquivoQualquer.Name() + `
+    url qrcode: https://exemplo.com.br/frequencia/%s/%s?verificacao=%s
 `,
 			deveConterFonte: true,
 			configuraçãoEsperada: func() config.Configuração {
@@ -191,6 +202,7 @@ atirador:
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("image: unknown format"),
@@ -269,6 +281,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":           "abc123",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoFonte.Name(),
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoImagemBase.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_URL_QRCODE":  "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s",
 			},
 			deveConterFonte:      true,
 			deveConterImagemBase: true,
@@ -278,16 +291,18 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 		},
 		{
 			descrição: "deve ignorar quando a imagem ou a fonte não são informados",
 			variáveisAmbiente: map[string]string{
-				"AF_ATIRADOR_PRAZO_CONFIRMACAO":        "30m",
-				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":    "12h",
-				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":    "12h",
-				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO": "abc123",
+				"AF_ATIRADOR_PRAZO_CONFIRMACAO":                 "30m",
+				"AF_ATIRADOR_TEMPO_MAXIMO_CADASTRO":             "12h",
+				"AF_ATIRADOR_DURACAO_MAXIMA_TREINO":             "12h",
+				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":          "abc123",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_URL_QRCODE": "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s",
 			},
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
@@ -295,6 +310,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 		},
@@ -307,6 +323,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":           "abc123",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       "/tmp/eunaoexisto321.ttf",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoImagemBase.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_URL_QRCODE":  "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s",
 			},
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
@@ -314,6 +331,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("open /tmp/eunaoexisto321.ttf: no such file or directory"),
@@ -327,6 +345,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":           "abc123",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoQualquer.Name(),
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoImagemBase.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_URL_QRCODE":  "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s",
 			},
 			configuraçãoEsperada: func() config.Configuração {
 				var configuração config.Configuração
@@ -334,6 +353,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("freetype: invalid TrueType format: TTF data is too short"),
@@ -347,6 +367,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":           "abc123",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoFonte.Name(),
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": "/tmp/eunaoexisto321.png",
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_URL_QRCODE":  "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s",
 			},
 			deveConterFonte: true,
 			configuraçãoEsperada: func() config.Configuração {
@@ -355,6 +376,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("open /tmp/eunaoexisto321.png: no such file or directory"),
@@ -368,6 +390,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				"AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO":           "abc123",
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_FONTE":       arquivoFonte.Name(),
 				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_IMAGEM_BASE": arquivoQualquer.Name(),
+				"AF_ATIRADOR_IMAGEM_NUMERO_CONTROLE_URL_QRCODE":  "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s",
 			},
 			deveConterFonte: true,
 			configuraçãoEsperada: func() config.Configuração {
@@ -376,6 +399,7 @@ func TestConfiguração_variáveisDeAmbiente(t *testing.T) {
 				configuração.Atirador.TempoMáximoCadastro = 12 * time.Hour
 				configuração.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
 				configuração.Atirador.ChaveCódigoVerificação = "abc123"
+				configuração.Atirador.ImagemNúmeroControle.URLQRCode = "https://exemplo.com.br/frequencia/%s/%s?verificacao=%s"
 				return configuração
 			}(),
 			erroEsperado: errors.Errorf("image: unknown format"),
@@ -425,6 +449,7 @@ func TestDefinirValoresPadrão(t *testing.T) {
 	esperado.Atirador.PrazoConfirmação = 30 * time.Minute
 	esperado.Atirador.TempoMáximoCadastro = 12 * time.Hour
 	esperado.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
+	esperado.Atirador.ImagemNúmeroControle.URLQRCode = "http://localhost/frequencia/%s/%s?verificacao=%s"
 
 	var c config.Configuração
 	config.DefinirValoresPadrão(&c)
