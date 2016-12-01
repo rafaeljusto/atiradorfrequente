@@ -851,6 +851,12 @@
 			"revisionTime": "2016-10-17T21:13:44Z"
 		},
 		{
+			"checksumSHA1": "w01kP96jx5UAf+uWB8m0w8Xghas=",
+			"path": "github.com/golang/freetype",
+			"revision": "38b4c392adc5eed94207994c4848fff99f4ac234",
+			"revisionTime": "2016-06-26T06:51:47Z"
+		},
+		{
 			"checksumSHA1": "aJ/kX/eCUlrCJBZ26Hwh/RXzAIw=",
 			"path": "github.com/golang/freetype/raster",
 			"revision": "38b4c392adc5eed94207994c4848fff99f4ac234",
@@ -1054,6 +1060,12 @@
 			"path": "golang.org/x/image/font/basicfont",
 			"revision": "fa54d6fa1c2aaf941da0bc4885015df17693f8ec",
 			"revisionTime": "2016-10-15T02:23:35Z"
+		},
+		{
+			"checksumSHA1": "j54gT6Bazslv3fmNc5+AxLmcq6I=",
+			"path": "golang.org/x/image/font/gofont/goregular",
+			"revision": "b7f8df6bc082334698d4505fb85fa05e99156b72",
+			"revisionTime": "2016-11-15T02:34:20Z"
 		},
 		{
 			"checksumSHA1": "mi+YA8hJi3z9bAf9EgOzvrdEZLk=",

@@ -158,13 +158,15 @@ func TestNovaFrequênciaConfirmaçãoPedidoCompleta(t *testing.T) {
 		descrição                   string
 		cr                          int
 		númeroControle              protocolo.NúmeroControle
+		códigoVerificação           string
 		frequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedido
 		esperado                    protocolo.FrequênciaConfirmaçãoPedidoCompleta
 	}{
 		{
-			descrição:      "deve inicializar um objeto do tipo FrequênciaPedidoCompleta corretamente",
-			cr:             123456789,
-			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+			descrição:         "deve inicializar um objeto do tipo FrequênciaPedidoCompleta corretamente",
+			cr:                123456789,
+			númeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+			códigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
 			frequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
 IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
@@ -173,8 +175,9 @@ dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
 ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
 			esperado: protocolo.FrequênciaConfirmaçãoPedidoCompleta{
-				CR:             123456789,
-				NúmeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+				CR:                123456789,
+				NúmeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+				CódigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
 				FrequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
 					Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
 IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
@@ -187,7 +190,7 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 	}
 
 	for i, cenário := range cenários {
-		freqênciaPedidoCompleta := protocolo.NovaFrequênciaConfirmaçãoPedidoCompleta(cenário.cr, cenário.númeroControle, cenário.frequênciaConfirmaçãoPedido)
+		freqênciaPedidoCompleta := protocolo.NovaFrequênciaConfirmaçãoPedidoCompleta(cenário.cr, cenário.númeroControle, cenário.códigoVerificação, cenário.frequênciaConfirmaçãoPedido)
 
 		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
 		verificadorResultado.DefinirEsperado(cenário.esperado, nil)

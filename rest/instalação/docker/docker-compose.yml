@@ -65,6 +65,7 @@ services:
       - AF_SYSLOG_ENDERECO=rsyslog:514
       - AF_BD_ENDERECO=bd
       - AF_BD_SENHA=abc123
+      - AF_ATIRADOR_CHAVE_CODIGO_VERIFICACAO=abc123
     depends_on:
       - "bd"
       - "rsyslog"

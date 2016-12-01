@@ -78,6 +78,7 @@ func TestPing_Interceptors(t *testing.T) {
 		"*interceptador.Log",
 		"*interceptor.Introspector",
 		"*interceptador.Codificador",
+		"*interceptador.ParâmetrosConsulta",
 		"*interceptador.VariáveisEndereço",
 		"*interceptador.Padronizador",
 		"*interceptador.BD",

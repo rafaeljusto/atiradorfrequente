@@ -31,7 +31,7 @@ func (f *frequênciaAtirador) Post() int {
 		return http.StatusInternalServerError
 	}
 
-	serviçoAtirador := atirador.NovoServiço(f.Tx(), config.Atual().Configuração)
+	serviçoAtirador := atirador.NovoServiço(f.Tx(), f.Logger(), config.Atual().Configuração)
 	frequênciaPedidoCompleta := protocolo.NovaFrequênciaPedidoCompleta(f.CR, f.FrequênciaPedido)
 	frequênciaPendenteResposta, err := serviçoAtirador.CadastrarFrequência(frequênciaPedidoCompleta)
 
@@ -46,7 +46,7 @@ func (f *frequênciaAtirador) Post() int {
 	}
 
 	f.FrequênciaPendenteResposta = &frequênciaPendenteResposta
-	f.DefinirCabeçalho("Location", fmt.Sprintf("/frequencia/%d/%s", f.CR, f.FrequênciaPendenteResposta.NúmeroControle))
+	f.DefinirCabeçalho("Location", fmt.Sprintf("/frequencia/%d/%s?verificacao=%s", f.CR, f.FrequênciaPendenteResposta.NúmeroControle, f.FrequênciaPendenteResposta.CódigoVerificação))
 	return http.StatusCreated
 }
 

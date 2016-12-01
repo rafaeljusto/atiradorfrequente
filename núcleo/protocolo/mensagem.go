@@ -54,6 +54,10 @@ const (
 	// MensagemCódigoTempoMáximaCadastroExcedido já passou muito tempo desde que o
 	// treino foi feito, o cadastro não será permitido.
 	MensagemCódigoTempoMáximaCadastroExcedido = "tempo-maximo-cadastro-excedido"
+
+	// MensagemCódigoVerificaçãoInválida o código de verificação informado não
+	// corresponde ao calculado.
+	MensagemCódigoVerificaçãoInválida = "verificacao-invalida"
 )
 
 // MensagemCódigo tipo que define as possíveis mensagens a serem retornadas. A

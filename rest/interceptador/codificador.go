@@ -132,7 +132,7 @@ func filtrarCampoGrande(corpo string) string {
 		valorPartes := strings.Split(valor, `"`)
 		valorConteúdo := valorPartes[1]
 		valorConteúdo = valorConteúdo[:50] + "..." + valorConteúdo[len(valorConteúdo)-50:]
-		return valorPartes[0] + `"` + valorConteúdo + `"` + valorPartes[2] 
+		return valorPartes[0] + `"` + valorConteúdo + `"` + valorPartes[2]
 	})
 
 	return corpo

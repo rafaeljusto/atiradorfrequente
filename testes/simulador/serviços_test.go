@@ -13,14 +13,14 @@ func TestServiçoAtirador(t *testing.T) {
 	var serviçoAtiradorSimulado simulador.ServiçoAtirador
 	var métodosSimulados []string
 
-	estruturaBDSimulado := reflect.TypeOf(serviçoAtiradorSimulado)
-	for i := 0; i < estruturaBDSimulado.NumField(); i++ {
+	estruturaSimulada := reflect.TypeOf(serviçoAtiradorSimulado)
+	for i := 0; i < estruturaSimulada.NumField(); i++ {
 		// trata somente funções como argumentos, ignorando atributos simples
-		if !strings.HasPrefix(estruturaBDSimulado.Field(i).Type.String(), "func (") {
+		if !strings.HasPrefix(estruturaSimulada.Field(i).Type.String(), "func (") {
 			continue
 		}
 
-		métodosSimulados = append(métodosSimulados, estruturaBDSimulado.Field(i).Name)
+		métodosSimulados = append(métodosSimulados, estruturaSimulada.Field(i).Name)
 	}
 
 	visitou := func(métodoSimulado string) {
@@ -37,12 +37,18 @@ func TestServiçoAtirador(t *testing.T) {
 		return protocolo.FrequênciaPendenteResposta{}, nil
 	}
 
+	serviçoAtiradorSimulado.SimulaObterFrequência = func(cr int, númeroControle protocolo.NúmeroControle, códigoVerificação string) (protocolo.FrequênciaResposta, error) {
+		visitou("SimulaObterFrequência")
+		return protocolo.FrequênciaResposta{}, nil
+	}
+
 	serviçoAtiradorSimulado.SimulaConfirmarFrequência = func(protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
 		visitou("SimulaConfirmarFrequência")
 		return nil
 	}
 
 	serviçoAtiradorSimulado.CadastrarFrequência(protocolo.FrequênciaPedidoCompleta{})
+	serviçoAtiradorSimulado.ObterFrequência(0, "", "")
 	serviçoAtiradorSimulado.ConfirmarFrequência(protocolo.FrequênciaConfirmaçãoPedidoCompleta{})
 
 	if len(métodosSimulados) > 0 {

@@ -3,103 +3,126 @@ package atirador
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"image"
+	"image/color"
 	"image/draw"
 	"image/png"
+	"strconv"
 
+	"github.com/golang/freetype"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/config"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/registrobr/gostk/errors"
-	"golang.org/x/image/font"
-	"golang.org/x/image/math/fixed"
+	qrcode "github.com/skip2/go-qrcode"
 )
 
-// gerarImagemNúmeroControle gera uma imagem exibindo uma borda, com um logo no
-// canto superior esquerdo e um número de controle centralizado.
-func gerarImagemNúmeroControle(númeroControle protocolo.NúmeroControle, configuração config.Configuração) (string, error) {
-	var (
-		imagemLargura = configuração.Atirador.ImagemNúmeroControle.Largura
-		imagemAltura  = configuração.Atirador.ImagemNúmeroControle.Altura
-		imagemCor     = configuração.Atirador.ImagemNúmeroControle.CorFundo
-
-		fonte    = configuração.Atirador.ImagemNúmeroControle.Fonte.Face
-		fonteCor = configuração.Atirador.ImagemNúmeroControle.Fonte.Cor
-
-		bordaLargura     = configuração.Atirador.ImagemNúmeroControle.Borda.Largura
-		bordaEspaçamento = configuração.Atirador.ImagemNúmeroControle.Borda.Espaçamento
-		bordaCor         = configuração.Atirador.ImagemNúmeroControle.Borda.Cor
-
-		linhaFundoLargura     = configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Largura
-		linhaFundoEspaçamento = configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento
-		linhaFundoCor         = configuração.Atirador.ImagemNúmeroControle.LinhaFundo.Cor
-
-		logo            = configuração.Atirador.ImagemNúmeroControle.Logo.Imagem
-		logoEspaçamento = configuração.Atirador.ImagemNúmeroControle.Logo.Espaçamento
-	)
-
-	// não é possível gerar a imagem sem uma fonte definida
+// gerarImagemNúmeroControle gera uma imagem com dados da frequência utilizando
+// uma imagem base.
+func (f *frequência) gerarImagemNúmeroControle(configuração config.Configuração, códigoVerificação string) error {
+	fonte := configuração.Atirador.ImagemNúmeroControle.Fonte.Font
 	if fonte == nil {
-		return "", errors.Errorf("fonte da imagem do número de controle indefinida")
+		// não é possível gerar a imagem sem uma fonte definida
+		return errors.Errorf("fonte da imagem do número de controle indefinida")
 	}
 
 	// define o fundo
-	imagem := image.NewRGBA(image.Rect(0, 0, imagemLargura, imagemAltura))
-	draw.Draw(imagem, imagem.Bounds(), image.NewUniform(imagemCor), image.ZP, draw.Src)
+	imagem := image.NewRGBA(configuração.Atirador.ImagemNúmeroControle.ImagemBase.Bounds())
+	draw.Draw(imagem, imagem.Bounds(), configuração.Atirador.ImagemNúmeroControle.ImagemBase, image.ZP, draw.Src)
 
-	// desenha a borda
-	if bordaLargura > 0 {
-		draw.Draw(imagem, image.Rect(
-			bordaEspaçamento,
-			bordaEspaçamento,
-			imagemLargura-bordaEspaçamento,
-			imagemAltura-bordaEspaçamento,
-		), image.NewUniform(bordaCor), image.ZP, draw.Src)
-		draw.Draw(imagem, image.Rect(
-			bordaEspaçamento+bordaLargura,
-			bordaEspaçamento+bordaLargura,
-			imagemLargura-bordaEspaçamento-bordaLargura,
-			imagemAltura-bordaEspaçamento-bordaLargura,
-		), image.NewUniform(imagemCor), image.ZP, draw.Src)
+	// textos
+	textos := []imagemTexto{
+		{
+			texto:        strconv.Itoa(f.CR),
+			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
+			fonteTamanho: 11,
+			posição:      imagemTextoPosição{260, 110},
+		},
+		{
+			texto:        f.Calibre,
+			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
+			fonteTamanho: 11,
+			posição:      imagemTextoPosição{260, 126},
+		},
+		{
+			texto:        f.DataInício.Format("02/01/2006 15:04") + " - " + f.DataTérmino.Format("15:04"),
+			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
+			fonteTamanho: 11,
+			posição:      imagemTextoPosição{260, 142},
+		},
+		{
+			texto:        f.ArmaUtilizada,
+			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
+			fonteTamanho: 11,
+			posição:      imagemTextoPosição{260, 157},
+		},
+		{
+			texto:        strconv.Itoa(f.QuantidadeMunição),
+			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
+			fonteTamanho: 11,
+			posição:      imagemTextoPosição{260, 173},
+		},
+		{
+			texto:        string(protocolo.NovoNúmeroControle(f.ID, f.Controle)),
+			fonteCor:     color.RGBA{0xff, 0x00, 0x00, 0xff},
+			fonteTamanho: 18,
+			posição:      imagemTextoPosição{150, 220},
+		},
+		{
+			texto:        códigoVerificação,
+			fonteCor:     color.RGBA{0x00, 0x00, 0x00, 0xff},
+			fonteTamanho: 11,
+			posição:      imagemTextoPosição{32, 486},
+		},
 	}
 
-	// desenha os riscos no fundo
-	if linhaFundoLargura > 0 {
-		for y := bordaEspaçamento + bordaLargura; y < imagemAltura-bordaEspaçamento-bordaLargura; y += linhaFundoEspaçamento {
-			draw.Draw(imagem, image.Rect(
-				bordaEspaçamento+bordaLargura,
-				y,
-				imagemLargura-bordaEspaçamento-bordaLargura,
-				y+linhaFundoLargura,
-			), image.NewUniform(linhaFundoCor), image.ZP, draw.Src)
-		}
+	camadaTexto := freetype.NewContext()
+	camadaTexto.SetDPI(150)
+	camadaTexto.SetClip(imagem.Bounds())
+	camadaTexto.SetDst(imagem)
+	camadaTexto.SetFont(fonte)
+
+	for _, t := range textos {
+		posição := freetype.Pt(int(t.posição.x), int(camadaTexto.PointToFixed(float64(t.fonteTamanho+t.posição.y))>>6))
+		camadaTexto.SetSrc(image.NewUniform(t.fonteCor))
+		camadaTexto.SetFontSize(t.fonteTamanho)
+		camadaTexto.DrawString(t.texto, posição)
 	}
 
-	// desenha o logo no canto superior esquerdo
-	if logo.Image != nil {
-		draw.Draw(imagem, logo.Bounds().Add(image.Pt(
-			bordaLargura+bordaEspaçamento+logoEspaçamento,
-			bordaLargura+bordaEspaçamento+logoEspaçamento,
-		)), logo, image.ZP, draw.Src)
+	// QR Code
+	qrURL := fmt.Sprintf(configuração.Atirador.ImagemNúmeroControle.URLQRCode, strconv.Itoa(f.CR), protocolo.NovoNúmeroControle(f.ID, f.Controle), códigoVerificação)
+
+	qr, err := qrcode.New(qrURL, qrcode.Highest)
+	if err != nil {
+		return erros.Novo(err)
 	}
 
-	desenhador := font.Drawer{
-		Dst:  imagem,
-		Src:  image.NewUniform(fonteCor),
-		Face: fonte,
-	}
+	qr.BackgroundColor = color.Transparent
+	qr.ForegroundColor = color.RGBA{0x00, 0x00, 0x00, 0xff}
 
-	desenhador.Dot = fixed.Point26_6{
-		X: (fixed.I(imagemLargura) - desenhador.MeasureString(númeroControle.String())) / 2,
-		Y: fixed.I(imagemAltura / 2),
-	}
+	qrPonto := image.Pt(200, 600)
+	qrPosição := imagem.Bounds().Min.Sub(qrPonto)
+	draw.Draw(imagem, imagem.Bounds(), qr.Image(300), qrPosição, draw.Over)
 
-	// desenha o número de controle centralizado
-	desenhador.DrawString(númeroControle.String())
-
+	// codifica a imagem
 	var buffer bytes.Buffer
 	if err := png.Encode(&buffer, imagem); err != nil {
-		return "", erros.Novo(err)
+		return erros.Novo(err)
 	}
-	return base64.StdEncoding.EncodeToString(buffer.Bytes()), nil
+
+	f.ImagemNúmeroControle = base64.StdEncoding.EncodeToString(buffer.Bytes())
+	return nil
+}
+
+type imagemTexto struct {
+	texto        string
+	fonteCor     color.RGBA
+	fonteTamanho float64
+	posição      imagemTextoPosição
+}
+
+type imagemTextoPosição struct {
+	x float64
+	y float64
 }
