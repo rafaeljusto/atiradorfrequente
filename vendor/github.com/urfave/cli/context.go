@@ -79,12 +79,7 @@ func (c *Context) IsSet(name string) bool {
 					return
 				}
 
-				val := reflect.ValueOf(f)
-				if val.Kind() == reflect.Ptr {
-					val = val.Elem()
-				}
-
-				envVarValue := val.FieldByName("EnvVar")
+				envVarValue := reflect.ValueOf(f).FieldByName("EnvVar")
 				if !envVarValue.IsValid() {
 					return
 				}

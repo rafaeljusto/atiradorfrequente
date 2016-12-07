@@ -30,6 +30,7 @@ type ServiceConfigV1 struct {
 	ContainerName string               `yaml:"container_name,omitempty"`
 	Devices       []string             `yaml:"devices,omitempty"`
 	DNS           yaml.Stringorslice   `yaml:"dns,omitempty"`
+	DNSOpts       []string             `yaml:"dns_opt,omitempty"`
 	DNSSearch     yaml.Stringorslice   `yaml:"dns_search,omitempty"`
 	Dockerfile    string               `yaml:"dockerfile,omitempty"`
 	DomainName    string               `yaml:"domainname,omitempty"`
@@ -39,6 +40,7 @@ type ServiceConfigV1 struct {
 	GroupAdd      []string             `yaml:"group_add,omitempty"`
 	Hostname      string               `yaml:"hostname,omitempty"`
 	Image         string               `yaml:"image,omitempty"`
+	Isolation     string               `yaml:"isolation,omitempty"`
 	Labels        yaml.SliceorMap      `yaml:"labels,omitempty"`
 	Links         yaml.MaporColonSlice `yaml:"links,omitempty"`
 	LogDriver     string               `yaml:"log_driver,omitempty"`
@@ -94,6 +96,7 @@ type ServiceConfig struct {
 	Devices       []string             `yaml:"devices,omitempty"`
 	DependsOn     []string             `yaml:"depends_on,omitempty"`
 	DNS           yaml.Stringorslice   `yaml:"dns,omitempty"`
+	DNSOpts       []string             `yaml:"dns_opt,omitempty"`
 	DNSSearch     yaml.Stringorslice   `yaml:"dns_search,omitempty"`
 	DomainName    string               `yaml:"domainname,omitempty"`
 	Entrypoint    yaml.Command         `yaml:"entrypoint,flow,omitempty"`
@@ -105,6 +108,7 @@ type ServiceConfig struct {
 	ExtraHosts    []string             `yaml:"extra_hosts,omitempty"`
 	GroupAdd      []string             `yaml:"group_add,omitempty"`
 	Image         string               `yaml:"image,omitempty"`
+	Isolation     string               `yaml:"isolation,omitempty"`
 	Hostname      string               `yaml:"hostname,omitempty"`
 	Ipc           string               `yaml:"ipc,omitempty"`
 	Labels        yaml.SliceorMap      `yaml:"labels,omitempty"`

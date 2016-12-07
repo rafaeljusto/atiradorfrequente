@@ -239,7 +239,12 @@ func Convert(c *config.ServiceConfig, ctx project.Context, clientFactory compose
 
 	tmpfs := map[string]string{}
 	for _, path := range c.Tmpfs {
-		tmpfs[path] = ""
+		split := strings.SplitN(path, ":", 2)
+		if len(split) == 1 {
+			tmpfs[split[0]] = ""
+		} else if len(split) == 2 {
+			tmpfs[split[0]] = split[1]
+		}
 	}
 
 	hostConfig := &container.HostConfig{
@@ -251,7 +256,9 @@ func Convert(c *config.ServiceConfig, ctx project.Context, clientFactory compose
 		Privileged:  c.Privileged,
 		Binds:       Filter(vols, isBind),
 		DNS:         utils.CopySlice(c.DNS),
+		DNSOptions:  utils.CopySlice(c.DNSOpts),
 		DNSSearch:   utils.CopySlice(c.DNSSearch),
+		Isolation:   container.Isolation(c.Isolation),
 		LogConfig: container.LogConfig{
 			Type:   c.Logging.Driver,
 			Config: utils.CopyMap(c.Logging.Options),

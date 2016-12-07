@@ -27,12 +27,11 @@ package gojsonreference
 
 import (
 	"errors"
+	"github.com/xeipuuv/gojsonpointer"
 	"net/url"
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"github.com/xeipuuv/gojsonpointer"
 )
 
 const (

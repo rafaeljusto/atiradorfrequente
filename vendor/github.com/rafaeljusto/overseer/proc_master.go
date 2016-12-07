@@ -65,13 +65,13 @@ func (mp *master) run() error {
 	if mp.Test {
 		mp.debugf("test mode enabled")
 		state := State{
-			Enabled:          true,
-			ID:               hex.EncodeToString(mp.binHash),
-			StartedAt:        time.Now(),
-			Address:          mp.Config.Address,
-			Addresses:        mp.Config.Addresses,
+			Enabled: true,
+			ID: hex.EncodeToString(mp.binHash),
+			StartedAt: time.Now(),
+			Address: mp.Config.Address,
+			Addresses: mp.Config.Addresses,
 			GracefulShutdown: make(chan bool, 1),
-			BinPath:          mp.binPath,
+			BinPath: mp.binPath,
 		}
 		state.Listeners = make([]net.Listener, len(mp.slaveExtraFiles))
 		for i, extraFile := range mp.slaveExtraFiles {
