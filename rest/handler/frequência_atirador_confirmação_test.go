@@ -8,14 +8,161 @@ import (
 
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/atirador"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/bd"
-	configNúcleo "github.com/rafaeljusto/atiradorfrequente/núcleo/config"
+	núcleoconfig "github.com/rafaeljusto/atiradorfrequente/núcleo/config"
+	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
+	núcleolog "github.com/rafaeljusto/atiradorfrequente/núcleo/log"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
-	configREST "github.com/rafaeljusto/atiradorfrequente/rest/config"
+	restconfig "github.com/rafaeljusto/atiradorfrequente/rest/config"
 	"github.com/rafaeljusto/atiradorfrequente/testes"
 	"github.com/rafaeljusto/atiradorfrequente/testes/simulador"
 	"github.com/registrobr/gostk/errors"
-	"github.com/registrobr/gostk/log"
+	gostklog "github.com/registrobr/gostk/log"
 )
+
+func TestFrequênciaAtiradorConfirmação_Get(t *testing.T) {
+	cenários := []struct {
+		descrição          string
+		cr                 int
+		númeroControle     protocolo.NúmeroControle
+		códigoVerificação  string
+		logger             gostklog.Logger
+		configuração       *restconfig.Configuração
+		serviçoAtirador    atirador.Serviço
+		códigoHTTPEsperado int
+		mensagensEsperadas protocolo.Mensagens
+	}{
+		{
+			descrição:         "deve obter corretamente os dados de frequência do atirador",
+			cr:                123456789,
+			númeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+			códigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
+			configuração: func() *restconfig.Configuração {
+				return new(restconfig.Configuração)
+			}(),
+			serviçoAtirador: simulador.ServiçoAtirador{
+				SimulaObterFrequência: func(cr int, númeroControle protocolo.NúmeroControle, códigoVerificação string) (protocolo.FrequênciaResposta, error) {
+					return protocolo.FrequênciaResposta{}, nil
+				},
+			},
+			códigoHTTPEsperado: http.StatusOK,
+		},
+		{
+			descrição:         "deve detectar quando a configuração não foi inicializada",
+			cr:                123456789,
+			númeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+			códigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
+			logger: simulador.Logger{
+				SimulaCrit: func(m ...interface{}) {
+					mensagem := fmt.Sprint(m...)
+					if mensagem != "Não existe configuração definida para atender a requisição" {
+						t.Errorf("mensagem inesperada: %s", mensagem)
+					}
+				},
+				SimulaError: func(e error) {
+					if !strings.HasSuffix(e.Error(), "erro de baixo nível") {
+						t.Error("não está adicionando o erro correto ao log")
+					}
+				},
+			},
+			códigoHTTPEsperado: http.StatusInternalServerError,
+		},
+		{
+			descrição:         "deve detectar quando a frequência do atirador não existe",
+			cr:                123456789,
+			númeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+			códigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
+			configuração: func() *restconfig.Configuração {
+				return new(restconfig.Configuração)
+			}(),
+			serviçoAtirador: simulador.ServiçoAtirador{
+				SimulaObterFrequência: func(cr int, númeroControle protocolo.NúmeroControle, códigoVerificação string) (protocolo.FrequênciaResposta, error) {
+					return protocolo.FrequênciaResposta{}, erros.NãoEncontrado
+				},
+			},
+			códigoHTTPEsperado: http.StatusNotFound,
+		},
+		{
+			descrição:         "deve detectar um erro na camada de serviço do atirador",
+			cr:                123456789,
+			númeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+			códigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
+			logger: simulador.Logger{
+				SimulaError: func(e error) {
+					if !strings.HasSuffix(e.Error(), "erro de baixo nível") {
+						t.Error("não está adicionando o erro correto ao log")
+					}
+				},
+			},
+			configuração: func() *restconfig.Configuração {
+				return new(restconfig.Configuração)
+			}(),
+			serviçoAtirador: simulador.ServiçoAtirador{
+				SimulaObterFrequência: func(cr int, númeroControle protocolo.NúmeroControle, códigoVerificação string) (protocolo.FrequênciaResposta, error) {
+					return protocolo.FrequênciaResposta{}, errors.Errorf("erro de baixo nível")
+				},
+			},
+			códigoHTTPEsperado: http.StatusInternalServerError,
+		},
+		{
+			descrição:         "deve detectar mensagens na camada de serviço do atirador",
+			cr:                123456789,
+			númeroControle:    protocolo.NovoNúmeroControle(7654, 918273645),
+			códigoVerificação: "5JRYo4LFpvhr9gnALUTNJf8v3Z3TwAduwWQy1yxx1c4Q",
+			logger:            simulador.Logger{},
+			configuração: func() *restconfig.Configuração {
+				return new(restconfig.Configuração)
+			}(),
+			serviçoAtirador: simulador.ServiçoAtirador{
+				SimulaObterFrequência: func(cr int, númeroControle protocolo.NúmeroControle, códigoVerificação string) (protocolo.FrequênciaResposta, error) {
+					return protocolo.FrequênciaResposta{}, protocolo.NovasMensagens(
+						protocolo.NovaMensagem(protocolo.MensagemCódigoCRInválido),
+					)
+				},
+			},
+			códigoHTTPEsperado: http.StatusBadRequest,
+			mensagensEsperadas: protocolo.NovasMensagens(
+				protocolo.NovaMensagem(protocolo.MensagemCódigoCRInválido),
+			),
+		},
+	}
+
+	configuraçãoOriginal := restconfig.Atual()
+	defer func() {
+		restconfig.AtualizarConfiguração(configuraçãoOriginal)
+	}()
+
+	serviçoAtiradorOriginal := atirador.NovoServiço
+	defer func() {
+		atirador.NovoServiço = serviçoAtiradorOriginal
+	}()
+
+	for i, cenário := range cenários {
+		restconfig.AtualizarConfiguração(cenário.configuração)
+
+		atirador.NovoServiço = func(s *bd.SQLogger, l núcleolog.Serviço, configuração núcleoconfig.Configuração) atirador.Serviço {
+			return cenário.serviçoAtirador
+		}
+
+		handler := frequênciaAtiradorConfirmação{
+			CR:                cenário.cr,
+			NúmeroControle:    cenário.númeroControle,
+			CódigoVerificação: cenário.códigoVerificação,
+		}
+		handler.DefineLogger(cenário.logger)
+
+		verificadorResultado := testes.NovoVerificadorResultados(cenário.descrição, i)
+
+		verificadorResultado.DefinirEsperado(cenário.códigoHTTPEsperado, nil)
+		if err := verificadorResultado.VerificaResultado(handler.Get(), nil); err != nil {
+			t.Error(err)
+		}
+
+		verificadorResultado.DefinirEsperado(cenário.mensagensEsperadas, nil)
+		if err := verificadorResultado.VerificaResultado(handler.Mensagens, nil); err != nil {
+			t.Error(err)
+		}
+	}
+}
 
 func TestFrequênciaAtiradorConfirmação_Put(t *testing.T) {
 	cenários := []struct {
@@ -23,8 +170,8 @@ func TestFrequênciaAtiradorConfirmação_Put(t *testing.T) {
 		cr                          int
 		númeroControle              protocolo.NúmeroControle
 		frequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedido
-		logger                      log.Logger
-		configuração                *configREST.Configuração
+		logger                      gostklog.Logger
+		configuração                *restconfig.Configuração
 		serviçoAtirador             atirador.Serviço
 		códigoHTTPEsperado          int
 		mensagensEsperadas          protocolo.Mensagens
@@ -40,8 +187,8 @@ dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
 dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
 ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
-			configuração: func() *configREST.Configuração {
-				return new(configREST.Configuração)
+			configuração: func() *restconfig.Configuração {
+				return new(restconfig.Configuração)
 			}(),
 			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaConfirmarFrequência: func(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
@@ -77,6 +224,27 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			códigoHTTPEsperado: http.StatusInternalServerError,
 		},
 		{
+			descrição:      "deve detectar quando a frequência do atirador não existe",
+			cr:             123456789,
+			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
+			frequênciaConfirmaçãoPedido: protocolo.FrequênciaConfirmaçãoPedido{
+				Imagem: `TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlz
+IHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2Yg
+dGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGlu
+dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
+ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
+			},
+			configuração: func() *restconfig.Configuração {
+				return new(restconfig.Configuração)
+			}(),
+			serviçoAtirador: simulador.ServiçoAtirador{
+				SimulaConfirmarFrequência: func(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
+					return erros.NãoEncontrado
+				},
+			},
+			códigoHTTPEsperado: http.StatusNotFound,
+		},
+		{
 			descrição:      "deve detectar um erro na camada de serviço do atirador",
 			cr:             123456789,
 			númeroControle: protocolo.NovoNúmeroControle(7654, 918273645),
@@ -94,8 +262,8 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 					}
 				},
 			},
-			configuração: func() *configREST.Configuração {
-				return new(configREST.Configuração)
+			configuração: func() *restconfig.Configuração {
+				return new(restconfig.Configuração)
 			}(),
 			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaConfirmarFrequência: func(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
@@ -116,8 +284,8 @@ dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo
 ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 			},
 			logger: simulador.Logger{},
-			configuração: func() *configREST.Configuração {
-				return new(configREST.Configuração)
+			configuração: func() *restconfig.Configuração {
+				return new(restconfig.Configuração)
 			}(),
 			serviçoAtirador: simulador.ServiçoAtirador{
 				SimulaConfirmarFrequência: func(frequênciaConfirmaçãoPedidoCompleta protocolo.FrequênciaConfirmaçãoPedidoCompleta) error {
@@ -133,9 +301,9 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 		},
 	}
 
-	configuraçãoOriginal := configREST.Atual()
+	configuraçãoOriginal := restconfig.Atual()
 	defer func() {
-		configREST.AtualizarConfiguração(configuraçãoOriginal)
+		restconfig.AtualizarConfiguração(configuraçãoOriginal)
 	}()
 
 	serviçoAtiradorOriginal := atirador.NovoServiço
@@ -144,9 +312,9 @@ ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=`,
 	}()
 
 	for i, cenário := range cenários {
-		configREST.AtualizarConfiguração(cenário.configuração)
+		restconfig.AtualizarConfiguração(cenário.configuração)
 
-		atirador.NovoServiço = func(s *bd.SQLogger, configuração configNúcleo.Configuração) atirador.Serviço {
+		atirador.NovoServiço = func(s *bd.SQLogger, l núcleolog.Serviço, configuração núcleoconfig.Configuração) atirador.Serviço {
 			return cenário.serviçoAtirador
 		}
 
@@ -177,6 +345,7 @@ func TestFrequênciaAtiradorConfirmação_Interceptors(t *testing.T) {
 		"*interceptador.Log",
 		"*interceptor.Introspector",
 		"*interceptador.Codificador",
+		"*interceptador.ParâmetrosConsulta",
 		"*interceptador.VariáveisEndereço",
 		"*interceptador.Padronizador",
 		"*interceptador.BD",

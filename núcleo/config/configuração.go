@@ -2,20 +2,16 @@ package config
 
 import (
 	"image"
-	"image/color"
 	_ "image/gif"  // adiciona o suporte para imagens GIF no image.Decode
 	_ "image/jpeg" // adiciona o suporte para imagens JPEG no image.Decode
 	_ "image/png"  // adiciona o suporte para imagens PNG no image.Decode
 	"io/ioutil"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/erros"
-	"github.com/registrobr/gostk/errors"
-	"golang.org/x/image/font"
+	"golang.org/x/image/font/gofont/goregular"
 )
 
 // Configuração define os valores configuráveis referentes a regras de negócio e
@@ -33,55 +29,29 @@ type Configuração struct {
 		// DuraçãoMáximaTreino tempo máximo permitido de duração de um treino.
 		DuraçãoMáximaTreino time.Duration `yaml:"duracao maxima treino" envconfig:"duracao_maxima_treino"`
 
+		// ChaveCódigoVerificação armazena a chave simétrica utilizada para
+		// criptografar a frequência gerando o código de verificação, que garante
+		// a autencidade do documento.
+		//
+		// TODO(rafaeljusto): Criptografar esta chave na configuração.
+		ChaveCódigoVerificação string `yaml:"chave codigo verificacao" envconfig:"chave_codigo_verificacao"`
+
 		// ImagemNúmeroControle define as propriedades para geração da imagem que
 		// contém o número de controle.
 		ImagemNúmeroControle struct {
-			// Largura define a largura em pixels da imagem.
-			Largura int `yaml:"largura" envconfig:"largura"`
-			// Altura define a altura em pixels da imagem.
-			Altura int `yaml:"altura" envconfig:"altura"`
-			// CorFundo define a cor de fundo da imagem. As possível opções são:
-			// "preto", "branco", "verde", "azul", "vermelho", "amarelo" e "cinza"
-			CorFundo cor `yaml:"cor fundo" envconfig:"cor_fundo"`
 			// Fonte define as propriedades da fonte utilizada na imagem.
-			Fonte fonte `yaml:"fonte" envconfig:"fonte"`
-			// Logo define o logo a ser exibido na imagem no canto superior esquerdo.
-			Logo struct {
-				// Imagem caminho para o arquivo que contém a imagem, são suportados os
-				// formatos: JPEG, PNG e GIF. Caso o campo esteja indefinido a imagem
-				// não será exibida. Esta opção tende a deixar a impressão da imagem
-				// mais lenta.
-				Imagem imagem `yaml:"imagem" envconfig:"imagem"`
-				// Espaçamento define o espaço em pixels entre a borda superior e a
-				// borda esquerda da imagem do logo.
-				Espaçamento int `yaml:"espacamento" envconfig:"espacamento"`
-			} `yaml:"logo" envconfig:"logo"`
-			// Borda define as características da borda. Esta opção tende a deixar a
-			// impressão da imagem mais lenta.
-			Borda struct {
-				// Largura define a espessura da borda. Caso o valor seja 0 a borda não
-				// será exibida.
-				Largura int `yaml:"largura" envconfig:"largura"`
-				// Espaçamento define o espeço em pixels entre a borda e as margens da
-				// imagem.
-				Espaçamento int `yaml:"espacamento" envconfig:"espacamento"`
-				// Cor define a cor da borda. As possível opções são:
-				// "preto", "branco", "verde", "azul", "vermelho", "amarelo" e "cinza"
-				Cor cor `yaml:"cor" envconfig:"cor"`
-			} `yaml:"borda" envconfig:"borda"`
-			// LinhaFundo define as características da linha que é exibida
-			// repetidamente no fundo da imagem. Esta opção tende a deixar a impressão
-			// da imagem mais lenta.
-			LinhaFundo struct {
-				// Largura define a espessura da linha. Caso o valor seja 0 a borda não
-				// será exibida.
-				Largura int `yaml:"largura" envconfig:"largura"`
-				// Espaçamento define o espeço em pixels entre as linhas.
-				Espaçamento int `yaml:"espacamento" envconfig:"espacamento"`
-				// Cor define a cor da linha. As possível opções são:
-				// "preto", "branco", "verde", "azul", "vermelho", "amarelo" e "cinza"
-				Cor cor `yaml:"cor" envconfig:"cor"`
-			} `yaml:"linha fundo" envconfig:"linha_fundo"`
+			Fonte fonteFamília `yaml:"fonte" envconfig:"fonte"`
+			// ImagemBase caminho para o arquivo que contém a imagem, são suportados
+			// os formatos: JPEG, PNG e GIF.
+			ImagemBase imagem `yaml:"imagem base" envconfig:"imagem_base"`
+			// URLQRCode define o endereço HTTP que será embutido no QRCode da imagem
+			// do número de controle. Esta URL deve possuir 3 posições de substituição
+			// com o símbolo "%s", que representam respectivamente o CR, o número de
+			// controle e o código de verificação. Exemplo de uma URL para o QRCode
+			// seria:
+			//
+			//     https://exemplo.com.br/frequencia/%s/%s?verificacao=%s
+			URLQRCode string `yaml:"url qrcode" envconfig:"url_qrcode"`
 		} `yaml:"imagem numero controle" envconfig:"imagem_numero_controle"`
 	} `yaml:"atirador" envconfig:"atirador"`
 }
@@ -93,16 +63,8 @@ func DefinirValoresPadrão(c *Configuração) {
 	c.Atirador.PrazoConfirmação = 30 * time.Minute
 	c.Atirador.TempoMáximoCadastro = 12 * time.Hour
 	c.Atirador.DuraçãoMáximaTreino = 12 * time.Hour
-	c.Atirador.ImagemNúmeroControle.Largura = 3508
-	c.Atirador.ImagemNúmeroControle.Altura = 2480
-	c.Atirador.ImagemNúmeroControle.CorFundo.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
-	c.Atirador.ImagemNúmeroControle.Fonte.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
-	c.Atirador.ImagemNúmeroControle.Borda.Largura = 50
-	c.Atirador.ImagemNúmeroControle.Borda.Espaçamento = 50
-	c.Atirador.ImagemNúmeroControle.Borda.Cor.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
-	c.Atirador.ImagemNúmeroControle.LinhaFundo.Largura = 50
-	c.Atirador.ImagemNúmeroControle.LinhaFundo.Espaçamento = 50
-	c.Atirador.ImagemNúmeroControle.LinhaFundo.Cor.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
+	c.Atirador.ImagemNúmeroControle.Fonte.Font, _ = truetype.Parse(goregular.TTF)
+	c.Atirador.ImagemNúmeroControle.URLQRCode = "http://localhost/frequencia/%s/%s?verificacao=%s"
 }
 
 type imagem struct {
@@ -125,85 +87,6 @@ func (i *imagem) UnmarshalText(texto []byte) error {
 	return nil
 }
 
-type fonte struct {
-	font.Face
-	Cor cor
-}
-
-// UnmarshalYAML agrupa as propriedades da fonte para gerar o tipo font.Face.
-// Utilizado ao interpretar um arquivo YAML.
-func (f *fonte) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var detalhes fonteDetalhes
-	if err := unmarshal(&detalhes); err != nil {
-		return erros.Novo(err)
-	}
-
-	f.Cor = detalhes.Cor
-
-	if detalhes.Família.Font != nil {
-		f.Face = truetype.NewFace(detalhes.Família.Font, &truetype.Options{
-			Size:    detalhes.Tamanho,
-			DPI:     detalhes.DPI,
-			Hinting: font.HintingNone,
-		})
-	}
-
-	return nil
-}
-
-// UnmarshalText agrupa as propriedades da fonte para gerar o tipo font.Face.
-// Utilizado ao interpretar variáveis de ambiente. É esperado que o texto seja
-// definido por 4 valores separados por espaço: <família> <tamanho> <dpi> <cor>
-func (f *fonte) UnmarshalText(texto []byte) error {
-	partes := strings.Split(string(texto), " ")
-	if len(partes) != 4 {
-		return errors.Errorf("fonte não contém as informações necessárias")
-	}
-
-	var detalhes fonteDetalhes
-	var err error
-
-	if err = detalhes.Família.UnmarshalText([]byte(partes[0])); err != nil {
-		return erros.Novo(err)
-	}
-
-	if detalhes.Tamanho, err = strconv.ParseFloat(partes[1], 64); err != nil {
-		return erros.Novo(err)
-	}
-
-	if detalhes.DPI, err = strconv.ParseFloat(partes[2], 64); err != nil {
-		return erros.Novo(err)
-	}
-
-	if err = detalhes.Cor.UnmarshalText([]byte(partes[3])); err != nil {
-		return erros.Novo(err)
-	}
-
-	f.Cor = detalhes.Cor
-
-	if detalhes.Família.Font != nil {
-		f.Face = truetype.NewFace(detalhes.Família.Font, &truetype.Options{
-			Size:    detalhes.Tamanho,
-			DPI:     detalhes.DPI,
-			Hinting: font.HintingNone,
-		})
-	}
-
-	return nil
-}
-
-type fonteDetalhes struct {
-	// Família caminho para o arquivo que contém a fonte a ser utilizada na
-	// imagem. O único formato suportado no momento é o TTF.
-	Família fonteFamília `yaml:"familia"`
-	// Tamanho define o tamanho da fonte em pixels a ser utilizado.
-	Tamanho float64 `yaml:"tamanho"`
-	// DPI define a resolução da fonte.
-	DPI float64 `yaml:"dpi"`
-	// Cor define a cor da fonte.
-	Cor cor `yaml:"cor"`
-}
-
 type fonteFamília struct {
 	*truetype.Font
 }
@@ -217,39 +100,6 @@ func (f *fonteFamília) UnmarshalText(texto []byte) error {
 
 	if f.Font, err = truetype.Parse(fonte); err != nil {
 		return erros.Novo(err)
-	}
-
-	return nil
-}
-
-type cor struct {
-	color.Color
-}
-
-// UnmarshalText carrega a cor, convertendo do formato texto para a estrutura
-// apropriada. As cores possíveis são: "preto", "branco", "verde", "azul",
-// "vermelho", "amarelo" e "cinza"
-func (c *cor) UnmarshalText(texto []byte) error {
-	cor := string(texto)
-	cor = strings.ToLower(cor)
-
-	switch cor {
-	case "preto":
-		c.Color = color.RGBA{0x00, 0x00, 0x00, 0xff}
-	case "branco":
-		c.Color = color.RGBA{0xff, 0xff, 0xff, 0xff}
-	case "verde":
-		c.Color = color.RGBA{0x00, 0xff, 0x00, 0xff}
-	case "azul":
-		c.Color = color.RGBA{0x00, 0x00, 0xff, 0xff}
-	case "vermelho":
-		c.Color = color.RGBA{0xff, 0x00, 0x00, 0xff}
-	case "amarelo":
-		c.Color = color.RGBA{0xff, 0xff, 0x00, 0xff}
-	case "cinza":
-		c.Color = color.RGBA{0xee, 0xee, 0xee, 0xff}
-	default:
-		return errors.Errorf("cor “%s” desconhecida", cor)
 	}
 
 	return nil

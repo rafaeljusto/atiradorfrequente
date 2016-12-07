@@ -8,6 +8,7 @@ import (
 	"github.com/rafaeljusto/atiradorfrequente/núcleo/protocolo"
 	"github.com/rafaeljusto/atiradorfrequente/rest/config"
 	"github.com/rafaeljusto/atiradorfrequente/rest/interceptador"
+	"github.com/registrobr/gostk/errors"
 	"github.com/trajber/handy"
 )
 
@@ -21,7 +22,35 @@ type frequênciaAtiradorConfirmação struct {
 
 	CR                          int                                   `urivar:"cr"`
 	NúmeroControle              protocolo.NúmeroControle              `urivar:"numeroControle"`
+	CódigoVerificação           string                                `query:"verificacao"`
 	FrequênciaConfirmaçãoPedido protocolo.FrequênciaConfirmaçãoPedido `request:"put"`
+	FrequênciaResposta          *protocolo.FrequênciaResposta         `response:"get"`
+}
+
+func (f *frequênciaAtiradorConfirmação) Get() int {
+	if config.Atual() == nil {
+		f.Logger().Crit("Não existe configuração definida para atender a requisição")
+		return http.StatusInternalServerError
+	}
+
+	serviçoAtirador := atirador.NovoServiço(f.Tx(), f.Logger(), config.Atual().Configuração)
+	frequênciaResposta, err := serviçoAtirador.ObterFrequência(f.CR, f.NúmeroControle, f.CódigoVerificação)
+	if err != nil {
+		if errors.Equal(err, erros.NãoEncontrado) {
+			return http.StatusNotFound
+		}
+
+		if mensagens, ok := err.(protocolo.Mensagens); ok {
+			f.Mensagens = mensagens
+			return http.StatusBadRequest
+		}
+
+		f.Logger().Error(erros.Novo(err))
+		return http.StatusInternalServerError
+	}
+
+	f.FrequênciaResposta = &frequênciaResposta
+	return http.StatusOK
 }
 
 func (f *frequênciaAtiradorConfirmação) Put() int {
@@ -30,10 +59,14 @@ func (f *frequênciaAtiradorConfirmação) Put() int {
 		return http.StatusInternalServerError
 	}
 
-	serviçoAtirador := atirador.NovoServiço(f.Tx(), config.Atual().Configuração)
-	frequênciaConfirmaçãoPedidoCompleta := protocolo.NovaFrequênciaConfirmaçãoPedidoCompleta(f.CR, f.NúmeroControle, f.FrequênciaConfirmaçãoPedido)
+	serviçoAtirador := atirador.NovoServiço(f.Tx(), f.Logger(), config.Atual().Configuração)
+	frequênciaConfirmaçãoPedidoCompleta := protocolo.NovaFrequênciaConfirmaçãoPedidoCompleta(f.CR, f.NúmeroControle, f.CódigoVerificação, f.FrequênciaConfirmaçãoPedido)
 
 	if err := serviçoAtirador.ConfirmarFrequência(frequênciaConfirmaçãoPedidoCompleta); err != nil {
+		if errors.Equal(err, erros.NãoEncontrado) {
+			return http.StatusNotFound
+		}
+
 		if mensagens, ok := err.(protocolo.Mensagens); ok {
 			f.Mensagens = mensagens
 			return http.StatusBadRequest
